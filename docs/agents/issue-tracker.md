@@ -7,9 +7,11 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - One feature per directory: `.scratch/<feature-slug>/`
 - The spec is `.scratch/<feature-slug>/spec.md`
 - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file
-- Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
+- Triage state is recorded as a `**Status:** <role>` line near the top of each issue file and spec, written exactly so (see `triage-labels.md` for the role strings). `grep -rn '^\*\*Status:\*\*' .scratch` lists every ticket's state
+- Dependencies are a `**Blocked by:** NN, NN` line
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
-- **Done**: when a ticket's work lands, tick every acceptance box it met and set `Status: done`, in the same commit as the code. A `Blocked by:` edge clears only when the blocking ticket reads `done`.
+- **Shipping**: each ticket is built on its own branch `issue-<NN>-<slug>` off `main`, then opened as a PR to `main`. The Owner reviews the Vercel preview and merges.
+- **Done**: when a ticket's work lands, tick every acceptance box it met and set `**Status:** done`, in the same commit as the code. A `Blocked by:` edge clears only when the blocking ticket reads `done` on `main`.
 
 ## When a skill says "publish to the issue tracker"
 
