@@ -4,10 +4,14 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-human
+**Status:** done
 
-- [ ] The GitHub private repo exists and main is pushed
-- [ ] Vercel deploys main to production and each PR to a preview URL
-- [ ] CI runs on a test PR and reports pass/fail
-- [ ] The base URL configuration is set to the Vercel production domain
-- [ ] Vercel Analytics records visits
+- [x] The GitHub private repo exists and main is pushed
+- [x] Vercel deploys main to production and each PR to a preview URL
+- [x] CI runs on a test PR and reports pass/fail
+- [x] The base URL configuration is set to the Vercel production domain
+- [x] Vercel Analytics records visits
+
+## Comments
+
+- 2026-11-01: The Owner created the repo, imported it into Vercel, set `SITE_URL` (Production only) and enabled Analytics by hand. PR #1 added `<Analytics />` and `siteUrl()`; it was the test PR: CI passed and Vercel posted a preview URL. Analytics recorded visits.
