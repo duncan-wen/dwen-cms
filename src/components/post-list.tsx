@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Post } from "@/content/content";
 import { formatDate } from "@/format-date";
+import { TagList } from "./tag-list";
 
 type Props = {
   posts: Post[];
@@ -8,7 +9,7 @@ type Props = {
   titleAs: "h2" | "h3";
 };
 
-/** Posts as a list of title, date and description, in the order given. */
+/** Posts as a list of title, date, description and Tags, in the order given. */
 export function PostList({ posts, titleAs: Heading }: Props) {
   return (
     <ul className="space-y-8">
@@ -24,6 +25,7 @@ export function PostList({ posts, titleAs: Heading }: Props) {
               {formatDate(post.date)}
             </time>
             <p className="mt-2 text-zinc-700">{post.description}</p>
+            <TagList tags={post.tags} className="mt-3" />
           </article>
         </li>
       ))}

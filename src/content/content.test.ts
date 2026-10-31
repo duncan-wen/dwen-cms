@@ -48,6 +48,34 @@ describe("loading a valid content directory", () => {
   });
 });
 
+describe("querying by Tag", () => {
+  it("lists a Tag's Posts newest first", async () => {
+    const content = await loadContent(fixture("valid"));
+
+    expect(content.listPostsByTag("meta").map((post) => post.slug)).toEqual([
+      "second-post",
+      "hello-world",
+    ]);
+    expect(content.listPostsByTag("nextjs").map((post) => post.slug)).toEqual(["second-post"]);
+  });
+
+  it("lists no Posts for a Tag nobody uses", async () => {
+    const content = await loadContent(fixture("valid"));
+
+    expect(content.listPostsByTag("no-such-tag")).toEqual([]);
+  });
+
+  it("lists used Tags with their Post counts, most Posts first, then by name", async () => {
+    const content = await loadContent(fixture("tag-counts"));
+
+    expect(content.listTagsWithCounts()).toEqual([
+      { tag: "nextjs", count: 2 },
+      { tag: "ai", count: 1 },
+      { tag: "meta", count: 1 },
+    ]);
+  });
+});
+
 describe("validating content", () => {
   it("rejects a Post with a missing required field, naming the file, field and rule", async () => {
     await expect(loadContent(fixture("missing-title"))).rejects.toMatchObject({
@@ -64,9 +92,42 @@ describe("validating content", () => {
     ["empty-tags", "posts/empty-tags/index.mdx", "tags", "at-least-one-tag"],
     ["tags-not-a-list", "posts/string-tags/index.mdx", "tags", "list"],
     ["blank-tag", "posts/blank-tag/index.mdx", "tags", "non-empty-tag"],
+    ["duplicate-tag", "posts/twice/index.mdx", "tags", "duplicate-tag"],
   ])("rejects fixture %s: %s %s breaks %s", async (fixtureName, file, field, rule) => {
     await expect(loadContent(fixture(fixtureName))).rejects.toMatchObject({
       problems: [{ file, field, rule }],
+    });
+  });
+});
+
+describe("validating Tags", () => {
+  it("rejects a Tag that isn't in the approved Tag list", async () => {
+    const error = await loadContent(fixture("unapproved-tag")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/rag-intro/index.mdx", field: "tags", rule: "approved-tag" }],
+    });
+    expect((error as Error).message).toContain('"rag"');
+    expect((error as Error).message).toContain("tags.yml");
+  });
+
+  it("rejects a Tag that isn't lowercase, even when its lowercase form is approved", async () => {
+    const error = await loadContent(fixture("uppercase-tag")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/rag-intro/index.mdx", field: "tags", rule: "lowercase" }],
+    });
+    expect((error as Error).message).toContain('"rag"');
+  });
+
+  it.each([
+    ["missing-tags-file", "file", "required"],
+    ["tags-file-broken-yaml", "file", "yaml-syntax"],
+    ["tags-file-not-a-list", "tags", "list"],
+    ["tags-file-bad-entry", "tags", "kebab-case"],
+  ])("rejects an approved Tag list in fixture %s: %s breaks %s", async (fixtureName, field, rule) => {
+    await expect(loadContent(fixture(fixtureName))).rejects.toMatchObject({
+      problems: [{ file: "tags.yml", field, rule }],
     });
   });
 });

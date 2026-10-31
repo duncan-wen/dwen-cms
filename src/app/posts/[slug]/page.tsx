@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { TagList } from "@/components/tag-list";
 import { getContent } from "@/content/site-content";
 import { formatDate } from "@/format-date";
 import { MdxBody } from "@/mdx/mdx-body";
@@ -34,6 +35,7 @@ export default async function PostPage({ params }: Props) {
         <time dateTime={post.date} className="mt-2 block text-sm text-zinc-500">
           {formatDate(post.date)}
         </time>
+        <TagList tags={post.tags} className="mt-3" />
       </header>
       <MdxBody source={post.body} />
     </article>

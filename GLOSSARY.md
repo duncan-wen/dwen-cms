@@ -27,8 +27,8 @@ The lowercase English kebab-case identifier in a Post's URL (`/posts/<slug>`); w
 _Avoid_: Permalink, path, ID
 
 **Tag**:
-A lowercase English label from the approved tag list; a Post has one or more.
-_Avoid_: Category, label, topic
+A lowercase English label from the approved tag list; a Post has one or more. Shown to readers as 「標籤」, and only once at least one Post carries it.
+_Avoid_: Category, label, topic, 主題, 分類
 
 **Page**:
 Standalone undated content outside listings, such as the About page.

@@ -20,7 +20,16 @@ export type Content = {
   /** Every Published Post, newest first; Posts sharing a date are in Slug order. */
   listPublishedPosts(): Post[];
   resolveSlug(slug: string): SlugResolution;
+  /** The Posts carrying `tag`, in listPublishedPosts order; empty for an unused Tag. */
+  listPostsByTag(tag: string): Post[];
+  /**
+   * Every Tag at least one Post carries, with its Post count; most Posts
+   * first, ties in name order. Approved Tags no Post uses are left out.
+   */
+  listTagsWithCounts(): TagCount[];
 };
+
+export type TagCount = { tag: string; count: number };
 
 export type ContentProblem = {
   /** Path relative to the content directory, with forward slashes. */
@@ -43,6 +52,9 @@ export class ContentValidationError extends Error {
 
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** The approved Tag list, relative to the content directory. */
+const TAGS_FILE = "tags.yml";
+
 /**
  * Loads and validates every Post under `contentDir`.
  * Throws a ContentValidationError listing every problem found.
@@ -54,6 +66,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     .map((entry) => entry.name);
   const problems: ContentProblem[] = [];
   const posts: Post[] = [];
+  const approvedTags = await loadApprovedTags(contentDir, problems);
 
   for (const slug of slugs) {
     const file = `posts/${slug}/index.mdx`;
@@ -99,8 +112,21 @@ export async function loadContent(contentDir: string): Promise<Content> {
     } else {
       for (const tag of data.tags as unknown[]) {
         const name = requiredString(tag);
-        if (name === undefined) report("tags", "non-empty-tag", "every Tag must be non-empty text");
-        else tags.push(name);
+        if (name === undefined) {
+          report("tags", "non-empty-tag", "every Tag must be non-empty text");
+        } else if (name !== name.toLowerCase()) {
+          report("tags", "lowercase", `"${name}" must be lowercase; write "${name.toLowerCase()}"`);
+        } else if (approvedTags && !approvedTags.has(name)) {
+          report(
+            "tags",
+            "approved-tag",
+            `"${name}" isn't in the approved Tag list (${TAGS_FILE}); use an approved Tag, or add it there and give the reason in the PR`,
+          );
+        } else if (tags.includes(name)) {
+          report("tags", "duplicate-tag", `"${name}" is listed more than once`);
+        } else {
+          tags.push(name);
+        }
       }
     }
 
@@ -118,6 +144,13 @@ export async function loadContent(contentDir: string): Promise<Content> {
 
   posts.sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
   const bySlug = new Map(posts.map((post) => [post.slug, post]));
+  const counts = new Map<string, number>();
+  for (const tag of posts.flatMap((post) => post.tags)) {
+    counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  const tagCounts: TagCount[] = [...counts]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 
   return {
     listPublishedPosts() {
@@ -127,7 +160,49 @@ export async function loadContent(contentDir: string): Promise<Content> {
       const post = bySlug.get(slug);
       return post ? { kind: "post", post } : { kind: "not-found" };
     },
+    listPostsByTag(tag) {
+      return posts.filter((post) => post.tags.includes(tag));
+    },
+    listTagsWithCounts() {
+      return [...tagCounts];
+    },
   };
+}
+
+/**
+ * Reads the approved Tag list. Reports problems with the file itself and
+ * returns undefined when the list can't be used, so Post Tags aren't
+ * checked against a broken list.
+ */
+async function loadApprovedTags(
+  contentDir: string,
+  problems: ContentProblem[],
+): Promise<Set<string> | undefined> {
+  const report = (field: string, rule: string, message: string) =>
+    problems.push({ file: TAGS_FILE, field, rule, message });
+
+  const source = await readFile(path.join(contentDir, TAGS_FILE), "utf8").catch(() => undefined);
+  if (source === undefined) {
+    report("file", "required", "the content directory needs an approved Tag list");
+    return undefined;
+  }
+  let list: unknown;
+  try {
+    list = loadYaml(source, { schema: CORE_SCHEMA });
+  } catch (error) {
+    report("file", "yaml-syntax", (error as Error).message.split("\n")[0]);
+    return undefined;
+  }
+  if (!Array.isArray(list)) {
+    report("tags", "list", "must be a YAML list of Tags, e.g. - nextjs");
+    return undefined;
+  }
+  const approved = new Set<string>();
+  for (const tag of list as unknown[]) {
+    if (typeof tag === "string" && KEBAB_CASE.test(tag)) approved.add(tag);
+    else report("tags", "kebab-case", `${JSON.stringify(tag)} must be lowercase English kebab-case`);
+  }
+  return approved;
 }
 
 function requiredString(value: unknown): string | undefined {
