@@ -8,6 +8,10 @@ Duncan Wen's personal tech-brand site and AI portfolio, written for prospective 
 The person who owns the site and the only one who decides whether any content goes live.
 _Avoid_: Admin, author, editor
 
+**Reader**:
+Anyone visiting the site, primarily prospective employers and clients, secondarily fellow engineers.
+_Avoid_: Visitor, user, audience
+
 **Writing Agent**:
 An AI agent that drafts and revises content on the Owner's behalf; it never publishes on its own.
 _Avoid_: Bot, assistant, writer
