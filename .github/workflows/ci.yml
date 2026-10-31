@@ -17,5 +17,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
-      - run: pnpm build
+      - name: Build (fails on warnings)
+        run: |
+          pnpm build 2>&1 | tee build.log
+          if grep -E "⚠|Warning:" build.log | grep -v "No build cache found"; then
+            echo "::error::next build printed warnings (see above)"
+            exit 1
+          fi
       - run: pnpm test:smoke
