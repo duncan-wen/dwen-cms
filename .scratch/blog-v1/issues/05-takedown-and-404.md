@@ -11,3 +11,7 @@
 - [ ] Reusing a taken-down Slug fails the content check
 - [ ] A taken-down Slug answers 410 with an explanation page; an unknown URL answers 404 with a way back to content
 - [ ] Unit tests cover resolution and the reuse rule; smoke tests cover 410 and 404
+
+## Comments
+
+The taken-down Slug list is optional: a missing file means no Slug is taken down. `tags.yml` stays the only required data file, so existing fixture directories need no new file.
