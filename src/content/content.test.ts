@@ -52,6 +52,8 @@ describe("validating content", () => {
     ["impossible-date", "posts/month-13/index.mdx", "date", "date-format"],
     ["missing-tags", "posts/no-tags/index.mdx", "tags", "at-least-one-tag"],
     ["empty-tags", "posts/empty-tags/index.mdx", "tags", "at-least-one-tag"],
+    ["tags-not-a-list", "posts/string-tags/index.mdx", "tags", "list"],
+    ["blank-tag", "posts/blank-tag/index.mdx", "tags", "non-empty-tag"],
   ])("rejects fixture %s: %s %s breaks %s", async (fixtureName, file, field, rule) => {
     await expect(loadContent(fixture(fixtureName))).rejects.toMatchObject({
       problems: [{ file, field, rule }],
@@ -85,5 +87,14 @@ describe("validating Slugs", () => {
       "posts/你好/index.mdx",
     ]);
     expect(problems.every((p) => p.field === "slug" && p.rule === "kebab-case")).toBe(true);
+  });
+
+  it("reports a bad Slug even when the Post's frontmatter is also broken", async () => {
+    const error = await loadContent(fixture("bad-slug-and-yaml")).catch((e: unknown) => e);
+
+    expect((error as ContentValidationError).problems.map((p) => p.rule).sort()).toEqual([
+      "kebab-case",
+      "yaml-syntax",
+    ]);
   });
 });

@@ -60,6 +60,10 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const report = (field: string, rule: string, message: string) =>
       problems.push({ file, field, rule, message });
 
+    if (!KEBAB_CASE.test(slug)) {
+      report("slug", "kebab-case", "the folder name must be lowercase English kebab-case");
+    }
+
     const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
     if (source === undefined) {
       report("file", "required", "every Post folder needs an index.mdx");
@@ -72,11 +76,8 @@ export async function loadContent(contentDir: string): Promise<Content> {
       report("frontmatter", "yaml-syntax", (error as Error).message.split("\n")[0]);
       continue;
     }
-    const { data, content } = parsed;
+    const { data, content: body } = parsed;
 
-    if (!KEBAB_CASE.test(slug)) {
-      report("slug", "kebab-case", "the folder name must be lowercase English kebab-case");
-    }
 
     const title = requiredString(data.title);
     if (title === undefined) report("title", "required", "must be a non-empty string");
@@ -90,8 +91,18 @@ export async function loadContent(contentDir: string): Promise<Content> {
     if (data.date === undefined) report("date", "required", "is missing");
     else if (date === undefined) report("date", "date-format", "must be a date written YYYY-MM-DD");
 
-    const tags = Array.isArray(data.tags) ? data.tags : [];
-    if (tags.length === 0) report("tags", "at-least-one-tag", "must list at least one Tag");
+    const tags: string[] = [];
+    if (data.tags !== undefined && !Array.isArray(data.tags)) {
+      report("tags", "list", "must be a list, e.g. tags: [nextjs]");
+    } else if (!data.tags?.length) {
+      report("tags", "at-least-one-tag", "must list at least one Tag");
+    } else {
+      for (const tag of data.tags as unknown[]) {
+        const name = requiredString(tag);
+        if (name === undefined) report("tags", "non-empty-tag", "every Tag must be non-empty text");
+        else tags.push(name);
+      }
+    }
 
     posts.push({
       slug,
@@ -99,7 +110,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
       description: description ?? "",
       date: date ?? "",
       tags,
-      body: content,
+      body,
     });
   }
 
