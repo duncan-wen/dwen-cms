@@ -17,7 +17,7 @@ export type Post = {
 export type SlugResolution = { kind: "post"; post: Post } | { kind: "not-found" };
 
 export type Content = {
-  /** Every Published Post, newest first. */
+  /** Every Published Post, newest first; Posts sharing a date are in Slug order. */
   listPublishedPosts(): Post[];
   resolveSlug(slug: string): SlugResolution;
 };
@@ -116,7 +116,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
 
   if (problems.length > 0) throw new ContentValidationError(problems);
 
-  posts.sort((a, b) => b.date.localeCompare(a.date));
+  posts.sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
   const bySlug = new Map(posts.map((post) => [post.slug, post]));
 
   return {

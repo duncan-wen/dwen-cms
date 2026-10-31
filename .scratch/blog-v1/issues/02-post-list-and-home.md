@@ -4,9 +4,13 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `/posts` lists every Published Post, newest first
-- [ ] The home page shows a short intro and the latest few Posts, linking to `/posts`
-- [ ] Unit tests cover ordering via the content module
-- [ ] Smoke tests confirm `/` and `/posts` answer 200
+- [x] `/posts` lists every Published Post, newest first
+- [x] The home page shows a short intro and the latest few Posts, linking to `/posts`
+- [x] Unit tests cover ordering via the content module
+- [x] Smoke tests confirm `/` and `/posts` answer 200
+
+## Comments
+
+- 2026-11-01: The home page shows the latest 5 Posts. Posts that share a date are listed in Slug order so the order is deterministic. The home intro is placeholder copy in the Owner's voice: replace it once the Owner's sample texts arrive, alongside issue 10.

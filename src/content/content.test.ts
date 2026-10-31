@@ -36,6 +36,16 @@ describe("loading a valid content directory", () => {
       "hello-world",
     ]);
   });
+
+  it("orders Posts sharing a date by Slug", async () => {
+    const content = await loadContent(fixture("same-date"));
+
+    expect(content.listPublishedPosts().map((post) => post.slug)).toEqual([
+      "alpha",
+      "zulu",
+      "older",
+    ]);
+  });
 });
 
 describe("validating content", () => {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getContent } from "@/content/site-content";
+import { formatDate } from "@/format-date";
 import { MdxBody } from "@/mdx/mdx-body";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -24,8 +25,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: post.title, description: post.description };
 }
 
-const dateFormat = new Intl.DateTimeFormat("zh-TW", { dateStyle: "long", timeZone: "UTC" });
-
 export default async function PostPage({ params }: Props) {
   const post = await findPost(params);
   return (
@@ -33,7 +32,7 @@ export default async function PostPage({ params }: Props) {
       <header className="not-prose mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{post.title}</h1>
         <time dateTime={post.date} className="mt-2 block text-sm text-zinc-500">
-          {dateFormat.format(new Date(`${post.date}T00:00:00Z`))}
+          {formatDate(post.date)}
         </time>
       </header>
       <MdxBody source={post.body} />
