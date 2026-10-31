@@ -73,7 +73,7 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
   - list Published Posts, newest first
   - resolve a Slug: returns the Post, a redirect to the current Slug (for an old Slug), a Takedown marker, or not found
   - list Posts by Tag
-  - list all Tags with their Post counts
+  - list all Tags with their Post counts (only Tags at least one Post carries; an approved Tag no Post uses has no listing or Tag page)
   - get a Page by its name
 - Everything that renders content goes through this interface: pages, RSS, sitemap and OG images. No page reads content files directly.
 - The same module backs a content-check command used locally and in CI, so validation runs without a full Next.js build.
