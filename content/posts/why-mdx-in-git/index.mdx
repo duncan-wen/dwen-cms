@@ -1,0 +1,16 @@
+---
+title: 為什麼這個網站的文章寫在 git 裡
+description: 用 MDX 和 pull request 管理內容，讓 AI 起草、由我審核。
+date: 2026-11-01
+tags: [meta]
+---
+
+這個網站的每一篇文章都是 repo 裡的一個 MDX 檔案，而不是存在 Hashnode 或 Ghost 這類平台上。
+
+## 為什麼不用現成平台
+
+- **AI 擅長改檔案。** 讓 AI 起草文章時，最自然的工作方式就是在分支上改檔案，再開一個 pull request。
+- **審核就是 code review。** 每一次變更都有完整的 diff 和歷史紀錄，合併之後才會上線。
+- **MDX 可以嵌入元件。** 之後的互動 Demo 可以直接放進文章裡。
+
+代價是少了平台本身的社群流量，需要的話可以手動轉貼並加上 `canonical` 網址。
