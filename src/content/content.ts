@@ -10,11 +10,17 @@ export type Post = {
   /** Publication date as YYYY-MM-DD. */
   date: string;
   tags: string[];
+  /** Slugs this Post had before, each redirected permanently to `slug`. */
+  previousSlugs: string[];
   /** Raw MDX body, without frontmatter. */
   body: string;
 };
 
-export type SlugResolution = { kind: "post"; post: Post } | { kind: "not-found" };
+export type SlugResolution =
+  | { kind: "post"; post: Post }
+  /** An old Slug; `to` is the Post's current Slug. */
+  | { kind: "redirect"; to: string }
+  | { kind: "not-found" };
 
 export type Content = {
   /** Every Published Post, newest first; Posts sharing a date are in Slug order. */
@@ -130,20 +136,42 @@ export async function loadContent(contentDir: string): Promise<Content> {
       }
     }
 
+    const previousSlugs: string[] = [];
+    if (data.previousSlugs !== undefined && !Array.isArray(data.previousSlugs)) {
+      report("previousSlugs", "list", "must be a list, e.g. previousSlugs: [old-slug]");
+    } else {
+      for (const old of (data.previousSlugs ?? []) as unknown[]) {
+        if (typeof old === "string" && KEBAB_CASE.test(old)) previousSlugs.push(old);
+        else {
+          report(
+            "previousSlugs",
+            "kebab-case",
+            `${JSON.stringify(old)} must be lowercase English kebab-case`,
+          );
+        }
+      }
+    }
+
     posts.push({
       slug,
       title: title ?? "",
       description: description ?? "",
       date: date ?? "",
       tags,
+      previousSlugs,
       body,
     });
   }
+
+  checkPreviousSlugs(slugs, posts, problems);
 
   if (problems.length > 0) throw new ContentValidationError(problems);
 
   posts.sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
   const bySlug = new Map(posts.map((post) => [post.slug, post]));
+  const redirects = new Map(
+    posts.flatMap((post) => post.previousSlugs.map((old) => [old, post.slug] as const)),
+  );
   const counts = new Map<string, number>();
   for (const tag of posts.flatMap((post) => post.tags)) {
     counts.set(tag, (counts.get(tag) ?? 0) + 1);
@@ -158,7 +186,9 @@ export async function loadContent(contentDir: string): Promise<Content> {
     },
     resolveSlug(slug) {
       const post = bySlug.get(slug);
-      return post ? { kind: "post", post } : { kind: "not-found" };
+      if (post) return { kind: "post", post };
+      const to = redirects.get(slug);
+      return to ? { kind: "redirect", to } : { kind: "not-found" };
     },
     listPostsByTag(tag) {
       return posts.filter((post) => post.tags.includes(tag));
@@ -203,6 +233,37 @@ async function loadApprovedTags(
     else report("tags", "kebab-case", `${JSON.stringify(tag)} must be lowercase English kebab-case`);
   }
   return approved;
+}
+
+/**
+ * A previous Slug redirects to exactly one Post, so it can't equal any
+ * current Slug (every Post folder, valid or not) or be claimed by two Posts.
+ * Posts are checked in Slug order, so the later Post is the one reported.
+ */
+function checkPreviousSlugs(currentSlugs: string[], posts: Post[], problems: ContentProblem[]) {
+  const current = new Set(currentSlugs);
+  const claimedBy = new Map<string, string>();
+  const postFile = (slug: string) => `posts/${slug}/index.mdx`;
+  for (const post of [...posts].sort((a, b) => a.slug.localeCompare(b.slug))) {
+    const report = (rule: string, message: string) =>
+      problems.push({ file: postFile(post.slug), field: "previousSlugs", rule, message });
+    for (const old of post.previousSlugs) {
+      const claimant = claimedBy.get(old);
+      if (current.has(old)) {
+        report(
+          "previous-slug-is-current",
+          `"${old}" is the current Slug of ${postFile(old)}; no previous Slug may equal any current Slug`,
+        );
+      } else if (claimant !== undefined && claimant !== post.slug) {
+        report(
+          "previous-slug-claimed-twice",
+          `"${old}" is already a previous Slug of ${postFile(claimant)}; no two Posts may claim the same previous Slug`,
+        );
+      } else {
+        claimedBy.set(old, post.slug);
+      }
+    }
+  }
 }
 
 function requiredString(value: unknown): string | undefined {

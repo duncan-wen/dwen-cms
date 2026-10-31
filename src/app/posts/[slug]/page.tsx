@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { TagList } from "@/components/tag-list";
 import { getContent } from "@/content/site-content";
 import { formatDate } from "@/format-date";
@@ -11,12 +11,16 @@ export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const content = await getContent();
-  return content.listPublishedPosts().map((post) => ({ slug: post.slug }));
+  return content
+    .listPublishedPosts()
+    .flatMap((post) => [post.slug, ...post.previousSlugs])
+    .map((slug) => ({ slug }));
 }
 
 async function findPost(params: Props["params"]) {
   const { slug } = await params;
   const result = (await getContent()).resolveSlug(slug);
+  if (result.kind === "redirect") permanentRedirect(`/posts/${result.to}`);
   if (result.kind !== "post") notFound();
   return result.post;
 }
