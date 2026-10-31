@@ -4,11 +4,11 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The approved Tag list is a data file in the content directory
-- [ ] The content check fails on an unapproved or non-lowercase Tag, with a readable error
-- [ ] The content module exposes "list Posts by Tag" and "list Tags with counts"
-- [ ] `/tags` and `/tags/<tag>` render; unknown Tags answer 404
-- [ ] Tags appear on Post list items and Post pages, linking to their Tag page
-- [ ] Unit tests cover filtering, counts and validation; smoke tests cover both routes
+- [x] The approved Tag list is a data file in the content directory
+- [x] The content check fails on an unapproved or non-lowercase Tag, with a readable error
+- [x] The content module exposes "list Posts by Tag" and "list Tags with counts"
+- [x] `/tags` and `/tags/<tag>` render; unknown Tags answer 404
+- [x] Tags appear on Post list items and Post pages, linking to their Tag page
+- [x] Unit tests cover filtering, counts and validation; smoke tests cover both routes
