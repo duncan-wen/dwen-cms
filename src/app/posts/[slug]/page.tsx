@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { PostCover } from "@/components/post-cover";
+import { Seal } from "@/components/seal";
+import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
 import { getContent } from "@/content/site-content";
 import { formatDate } from "@/format-date";
-import { MdxBody } from "@/mdx/mdx-body";
+import { compileMdx } from "@/mdx/compile-mdx";
+
+const textLink =
+  "font-medium text-accent underline decoration-rule decoration-1 underline-offset-[5px] hover:decoration-accent";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -53,21 +59,50 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
+  const { Body, headings } = await compileMdx(post.body);
   return (
-    <article className="prose prose-site max-w-none">
-      <header className="not-prose mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">{post.title}</h1>
-        <time dateTime={post.date} className="mt-2 block text-sm text-ink-soft">
-          {formatDate(post.date)}
-        </time>
-        {revision && (
-          <p className="mt-1 text-sm text-ink-soft">
-            更新於 <time dateTime={revision.date}>{formatDate(revision.date)}</time>：{revision.note}
+    <article>
+      <PostCover slug={post.slug} className="aspect-[21/9] rounded-md" />
+      {/* The table of contents hangs off the column's right edge, so the column never moves. */}
+      <div className="relative">
+        <header className="grid gap-[18px] pt-8 pb-10">
+          <h1 className="text-[clamp(30px,5.6vw,40px)] leading-[1.38] font-black text-balance">
+            {post.title}
+          </h1>
+          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] text-ink-soft">
+            <time dateTime={post.date}>{post.date}</time>
+            <TagList tags={post.tags} />
+          </div>
+          {revision && (
+            <p className="border-l-2 border-accent pl-3.5 text-[15px] leading-[1.7] text-ink-soft">
+              更新於{" "}
+              <time dateTime={revision.date} className="text-[13px]">
+                {revision.date}
+              </time>
+              ：{revision.note}
+            </p>
+          )}
+        </header>
+        <div className="prose prose-site max-w-none prose-h2:scroll-mt-6">
+          <Body />
+        </div>
+        <footer className="mt-14 flex items-center gap-3.5 border-t border-rule pt-7">
+          <Seal size="large" />
+          <p className="grid leading-[1.6]">
+            <b className="font-serif font-bold">Duncan Wen</b>
+            <span className="text-sm text-ink-soft">寫於 {formatDate(post.date)}</span>
           </p>
-        )}
-        <TagList tags={post.tags} className="mt-3" />
-      </header>
-      <MdxBody source={post.body} />
+        </footer>
+        <p className="mt-7 flex flex-wrap gap-7">
+          <Link href="/posts" className={textLink}>
+            所有文章
+          </Link>
+          <Link href="/about#contact" className={textLink}>
+            聯絡我
+          </Link>
+        </p>
+        <TableOfContents headings={headings} />
+      </div>
     </article>
   );
 }
