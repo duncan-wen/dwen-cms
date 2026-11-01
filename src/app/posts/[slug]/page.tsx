@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { bodyColumnSizes } from "@/body-column";
 import { LinkRow } from "@/components/link-row";
 import { MutedParagraph } from "@/components/muted-paragraph";
 import { PageHeading } from "@/components/page-heading";
@@ -10,6 +11,8 @@ import { TagList } from "@/components/tag-list";
 import { getContent } from "@/content/site-content";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
+import { pageAlternates } from "@/page-alternates";
+import { bodyImageSources } from "@/post-image-url";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -35,7 +38,12 @@ async function resolve(params: Props["params"]) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const result = await resolve(params);
   if (result.kind === "taken-down") return { title: "文章已移除", robots: { index: false } };
-  return { title: result.post.title, description: result.post.description };
+  const { post } = result;
+  return {
+    title: post.title,
+    description: post.description,
+    alternates: pageAlternates(`/posts/${post.slug}`),
+  };
 }
 
 /** Rendered for a taken-down Slug, which the proxy answers with 410 Gone. */
@@ -60,10 +68,15 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
-  const { Body, headings } = await compileMdx(post.body);
+  const { Body, headings } = await compileMdx(post.body, bodyImageSources(post));
   return (
     <article>
-      <PostCover slug={post.slug} className="aspect-[21/9] rounded-md" />
+      <PostCover
+        post={post}
+        sizes={bodyColumnSizes}
+        preload
+        className="aspect-[21/9] rounded-md"
+      />
       {/* The table of contents hangs off the column's right edge, so the column never moves. */}
       <div className="relative">
         <PageHeading size="page" title={post.title}>

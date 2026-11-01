@@ -21,7 +21,8 @@ export function PostGrid({ posts }: Props) {
               className={`group grid content-start gap-2.5 ${lead ? "sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] sm:items-center sm:gap-8" : ""}`}
             >
               <PostCover
-                slug={post.slug}
+                post={post}
+                sizes={lead ? "(min-width: 640px) 370px, 100vw" : "(min-width: 640px) 305px, 100vw"}
                 className={`rounded-md ${lead ? "aspect-[16/11]" : "aspect-[16/10]"}`}
               />
               <div className={`grid min-w-0 ${lead ? "gap-3" : "gap-2"}`}>

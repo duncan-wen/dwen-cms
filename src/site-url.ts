@@ -13,3 +13,8 @@ export function siteUrl(env: Env = process.env): URL {
   if (vercel) return new URL(`https://${vercel}`);
   return new URL("http://localhost:3000");
 }
+
+/** A site path, `/posts/<slug>`, as an absolute URL on the base URL: for the feed and sitemap. */
+export function absoluteUrl(path: string, env: Env = process.env): string {
+  return new URL(path, siteUrl(env)).href;
+}

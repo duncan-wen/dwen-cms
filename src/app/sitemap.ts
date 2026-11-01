@@ -1,0 +1,24 @@
+import type { MetadataRoute } from "next";
+import { getContent } from "@/content/site-content";
+import { absoluteUrl } from "@/site-url";
+
+/**
+ * Every URL search engines should index: the listings, each Published Post, each
+ * Page (served at `/<name>`) and each Tag page. Previous and taken-down Slugs are
+ * left out, since they redirect or answer 410.
+ */
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const content = await getContent();
+  const posts = content.listPublishedPosts();
+  return [
+    { url: absoluteUrl("/"), lastModified: posts[0]?.date },
+    { url: absoluteUrl("/posts"), lastModified: posts[0]?.date },
+    ...posts.map((post) => ({
+      url: absoluteUrl(`/posts/${post.slug}`),
+      lastModified: post.latestRevision?.date ?? post.date,
+    })),
+    ...content.listPages().map((page) => ({ url: absoluteUrl(`/${page.name}`) })),
+    { url: absoluteUrl("/tags") },
+    ...content.listTagsWithCounts().map(({ tag }) => ({ url: absoluteUrl(`/tags/${tag}`) })),
+  ];
+}

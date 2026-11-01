@@ -17,6 +17,61 @@ test("a Published Post's cover answers 200 as an SVG file", async ({ request }) 
   expect(await response.text()).toContain("<path");
 });
 
+test("a Post's co-located image answers 200 with its image type", async ({ request }) => {
+  const response = await request.get("/posts/typography-sample/flow.png");
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+});
+
+test("a file next to a Post that no Post uses as an image answers 404", async ({ request }) => {
+  const response = await request.get("/posts/typography-sample/index.mdx");
+
+  expect(response.status()).toBe(404);
+});
+
+test("a body image loads optimised, its box sized from the image before it loads", async ({
+  page,
+}) => {
+  await page.goto("/posts/typography-sample");
+  const image = page.getByRole("img", { name: "草稿經過審閱才發布的流程圖" });
+
+  await expect(image).toHaveAttribute("width", "1200");
+  await expect(image).toHaveAttribute("height", "600");
+  await expect(image).toHaveAttribute("src", /^\/_next\/image\?url=%2Fposts%2Ftypography-sample%2Fflow\.png/);
+  await image.scrollIntoViewIfNeeded();
+  await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+});
+
+test("a Post with a cover image opens with it instead of the generated cover", async ({ page }) => {
+  await page.goto("/posts/last-year-smoke-post");
+  const cover = page.locator("article img").first();
+
+  await expect(cover).toHaveAttribute("src", /url=%2Fposts%2Flast-year-smoke-post%2Fcover\.jpg/);
+  await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+});
+
+test("code blocks colour their tokens with the theme's code colours", async ({ page }) => {
+  await page.goto("/posts/typography-sample");
+  const keyword = page.locator("pre code span", { hasText: /^export$/ }).first();
+
+  const [colour, token] = await keyword.evaluate((span) => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--code-keyword)";
+    document.body.append(probe);
+    return [getComputedStyle(span).color, getComputedStyle(probe).color];
+  });
+  expect(colour).toBe(token);
+});
+
+test("a Callout shows its title and content in the Post", async ({ page }) => {
+  await page.goto("/posts/typography-sample");
+  const callout = page.locator("article aside", { hasText: "提示框裡可以放一般內文" });
+
+  await expect(callout).toBeVisible();
+  await expect(callout).toContainText("注意");
+});
+
 test("the Post list answers 200 and links to a Published Post and its Tags", async ({
   request,
 }) => {
@@ -226,6 +281,171 @@ test("the About page's #contact section lists the same contact links as the foot
   const contact = await hrefs(page.locator("#contact"));
   expect(contact).toContain("mailto:lumpa7223@gmail.com");
   expect(contact).toEqual(await hrefs(page.getByRole("contentinfo")));
+});
+
+/** The `<loc>`/`<link>` URLs of an XML document, as paths, in document order. */
+const paths = (xml: string, tag: string) =>
+  [...xml.matchAll(new RegExp(`<${tag}>([^<]*)</${tag}>`, "g"))].map((m) => new URL(m[1]).pathname);
+
+test("the RSS feed answers as RSS and lists Published Posts newest first, and no Pages", async ({
+  request,
+}) => {
+  const response = await request.get("/feed.xml");
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("application/rss+xml");
+  const xml = await response.text();
+  const items = [...xml.matchAll(/<item>[\s\S]*?<\/item>/g)].map((m) => paths(m[0], "link")[0]);
+  expect(items).toEqual([
+    "/posts/smoke-post",
+    "/posts/revised-smoke-post",
+    "/posts/typography-sample",
+    "/posts/last-year-smoke-post",
+  ]);
+  expect(xml).toContain("煙霧測試文章");
+  expect(xml).not.toContain("/about");
+});
+
+test("the sitemap answers as XML and lists every Published Post, Page and Tag page, and no taken-down or previous Slugs", async ({
+  request,
+}) => {
+  const response = await request.get("/sitemap.xml");
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("application/xml");
+  const locs = paths(await response.text(), "loc");
+  for (const path of [
+    "/",
+    "/posts",
+    "/posts/smoke-post",
+    "/posts/revised-smoke-post",
+    "/posts/typography-sample",
+    "/posts/last-year-smoke-post",
+    "/about",
+    "/tags",
+    "/tags/smoke",
+  ]) {
+    expect(locs, path).toContain(path);
+  }
+  expect(locs).not.toContain("/posts/taken-down-post");
+  expect(locs).not.toContain("/posts/old-smoke-post");
+});
+
+test("every page sets a canonical URL on the configured base URL", async ({ page }) => {
+  for (const path of [
+    "/",
+    "/posts",
+    "/posts/smoke-post",
+    "/tags",
+    "/tags/smoke",
+    "/about",
+  ]) {
+    await page.goto(path);
+
+    await expect(page.locator('link[rel="canonical"]'), path).toHaveAttribute(
+      "href",
+      // `pnpm smoke` builds with SITE_URL=https://dwen.example.
+      `https://dwen.example${path === "/" ? "" : path}`,
+    );
+  }
+});
+
+test("a Post's social preview image answers as a 1200×630 PNG", async ({ page, request }) => {
+  await page.goto("/posts/smoke-post");
+  const og = (property: string) =>
+    page.locator(`meta[property="${property}"]`).getAttribute("content");
+
+  expect(await og("og:image:width")).toBe("1200");
+  expect(await og("og:image:height")).toBe("630");
+  const image = new URL((await og("og:image"))!);
+  expect(image.origin).toBe("https://dwen.example");
+  const response = await request.get(image.pathname + image.search);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+});
+
+test("a Post with a cover image draws it behind the title in its social preview", async ({ page }) => {
+  await page.goto("/posts/last-year-smoke-post");
+  const og = new URL((await page.locator('meta[property="og:image"]').getAttribute("content"))!);
+  /** The colour of the image's top-left corner, outside the title card. */
+  const corner = (src: string) =>
+    page.evaluate(async (src) => {
+      const image = new Image();
+      image.src = src;
+      await image.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d")!;
+      context.drawImage(image, 0, 0);
+      return [...context.getImageData(4, 4, 1, 1).data.slice(0, 3)];
+    }, src);
+
+  const preview = await corner(og.pathname + og.search);
+  const cover = await corner("/posts/last-year-smoke-post/cover.jpg");
+  preview.forEach((channel, i) => expect(Math.abs(channel - cover[i])).toBeLessThan(16));
+});
+
+test("every page links a PNG favicon", async ({ page, request }) => {
+  await page.goto("/");
+  const href = await page.locator('link[rel="icon"]').getAttribute("href");
+
+  const response = await request.get(href!);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+});
+
+test("the theme toggle switches the theme and the choice persists across visits", async ({
+  browser,
+}) => {
+  const page = await browser.newPage({ colorScheme: "light" });
+  await page.goto("/posts/smoke-post");
+  const background = () =>
+    page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const lightBackground = await background();
+
+  await page.getByRole("banner").getByRole("button", { name: "切換深淺色" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const darkBackground = await background();
+  expect(darkBackground).not.toBe(lightBackground);
+
+  await page.goto("/tags");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await background()).toBe(darkBackground);
+
+  await page.getByRole("banner").getByRole("button", { name: "切換深淺色" }).click();
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  expect(await background()).toBe(lightBackground);
+  await page.close();
+});
+
+test("with no stored choice the theme follows the system preference", async ({ browser }) => {
+  const backgrounds: string[] = [];
+  for (const colorScheme of ["light", "dark"] as const) {
+    const page = await browser.newPage({ colorScheme });
+    await page.goto("/posts/smoke-post");
+    await expect(page.locator("html"), colorScheme).toHaveAttribute("data-theme", colorScheme);
+    backgrounds.push(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
+    await page.close();
+  }
+
+  expect(backgrounds[0]).not.toBe(backgrounds[1]);
+});
+
+test("a stored theme choice applies before the site's JavaScript loads, so it never flashes", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ colorScheme: "dark" });
+  await context.addInitScript(() => localStorage.setItem("theme", "light"));
+  // Hold back every bundle: only what ships inline in the HTML can set the theme.
+  await context.route("**/_next/static/**/*.js", (route) => route.abort());
+  const page = await context.newPage();
+
+  await page.goto("/posts/smoke-post", { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await context.close();
 });
 
 test("an unknown URL answers 404 with links back to the content", async ({ request }) => {

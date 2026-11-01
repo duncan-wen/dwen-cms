@@ -63,6 +63,80 @@ describe("loading a valid content directory", () => {
   });
 });
 
+describe("images", () => {
+  it("gives a Post every image its body references, keyed by the reference, with its dimensions", async () => {
+    const content = await loadContent(fixture("images"));
+
+    const result = content.resolveSlug("with-images");
+
+    expect(result.kind === "post" && result.post.images).toEqual({
+      "./diagram.png": { file: "diagram.png", width: 12, height: 8 },
+      "diagram.png": { file: "diagram.png", width: 12, height: 8 },
+    });
+  });
+
+  it("gives a Post its cover image from frontmatter, with its dimensions", async () => {
+    const content = await loadContent(fixture("images"));
+
+    const result = content.resolveSlug("with-images");
+
+    expect(result.kind === "post" && result.post.cover).toEqual({
+      file: "cover.png",
+      width: 21,
+      height: 9,
+    });
+  });
+
+  it("gives a Post without images no cover and no images", async () => {
+    const content = await loadContent(fixture("images"));
+
+    const result = content.resolveSlug("no-images");
+
+    expect(result.kind === "post" && result.post).toMatchObject({ cover: undefined, images: {} });
+  });
+
+  it("lists every image a Post uses, its cover first, each file once", async () => {
+    const content = await loadContent(fixture("images"));
+
+    expect(content.listPostImages("with-images").map((image) => image.file)).toEqual([
+      "cover.png",
+      "diagram.png",
+    ]);
+    expect(content.listPostImages("no-images")).toEqual([]);
+    expect(content.listPostImages("no-such-post")).toEqual([]);
+  });
+
+  it("reads a Post's image file with its media type, and nothing for a file the Post doesn't use", async () => {
+    const content = await loadContent(fixture("images"));
+
+    const image = await content.readPostImage("with-images", "diagram.png");
+
+    expect(image?.type).toBe("image/png");
+    expect(Buffer.from(image?.bytes ?? []).subarray(1, 4).toString()).toBe("PNG");
+    expect(await content.readPostImage("with-images", "index.mdx")).toBeUndefined();
+    expect(await content.readPostImage("no-images", "diagram.png")).toBeUndefined();
+  });
+
+  it.each([
+    ["missing-body-image", "posts/no-such-image/index.mdx", "body", "image-exists", '"./missing.png"'],
+    ["missing-cover", "posts/no-such-cover/index.mdx", "cover", "image-exists", '"missing.png"'],
+    ["image-outside-post", "posts/remote-image/index.mdx", "body", "image-exists", '"https://example.com/a.png"'],
+    ["unsupported-image", "posts/not-really-png/index.mdx", "body", "image-format", '"./fake.png"'],
+    ["cover-not-a-string", "posts/bad-cover/index.mdx", "cover", "image-path", "cover.jpg"],
+  ])("rejects fixture %s: %s %s breaks %s, naming %s", async (fixtureName, file, field, rule, named) => {
+    const error = await loadContent(fixture(fixtureName)).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file, field, rule }] });
+    expect((error as Error).message).toContain(named);
+  });
+
+  it("rejects a body that isn't valid MDX", async () => {
+    await expect(loadContent(fixture("mdx-syntax"))).rejects.toMatchObject({
+      problems: [{ file: "posts/broken-mdx/index.mdx", field: "body", rule: "mdx-syntax" }],
+    });
+  });
+});
+
 describe("Revisions", () => {
   it("gives a Post its latest Revision by date", async () => {
     const content = await loadContent(fixture("revisions"));
@@ -161,6 +235,12 @@ describe("Pages", () => {
     const content = await loadContent(fixture("pages"));
 
     expect(content.getPage("no-such-page")).toBeUndefined();
+  });
+
+  it("lists every Page in name order", async () => {
+    const content = await loadContent(fixture("pages"));
+
+    expect(content.listPages().map((page) => page.name)).toEqual(["about", "uses"]);
   });
 
   it("keeps Pages out of the Post list", async () => {

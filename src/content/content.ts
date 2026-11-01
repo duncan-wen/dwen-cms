@@ -1,6 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { createProcessor } from "@mdx-js/mdx";
 import matter from "gray-matter";
+import { imageSize } from "image-size";
 import { CORE_SCHEMA, load as loadYaml } from "js-yaml";
 
 export type Post = {
@@ -18,8 +20,20 @@ export type Post = {
    * only Corrections.
    */
   latestRevision: Revision | undefined;
+  /** The image from the `cover` field, shown instead of the generated cover; optional. */
+  cover: PostImage | undefined;
+  /** Every image the body references, keyed by the reference as the body writes it. */
+  images: Record<string, PostImage>;
   /** Raw MDX body, without frontmatter. */
   body: string;
+};
+
+/** An image stored next to a Post. */
+export type PostImage = {
+  /** Path relative to the Post's folder, with forward slashes. */
+  file: string;
+  width: number;
+  height: number;
 };
 
 /** Standalone undated content outside listings, such as the About page. */
@@ -58,7 +72,22 @@ export type Content = {
   listTagsWithCounts(): TagCount[];
   /** The Page in `pages/<name>/index.mdx`; undefined when there is none. */
   getPage(name: string): Page | undefined;
+  /** Every Page, in name order. */
+  listPages(): Page[];
+  /**
+   * Every image the Post uses: its cover first, then its body images, each
+   * file once. Empty for a Post without images or an unknown Slug.
+   */
+  listPostImages(slug: string): PostImage[];
+  /**
+   * An image the Post uses (one of listPostImages), by its `file`: its bytes
+   * and media type. Undefined for any other file.
+   */
+  readPostImage(slug: string, file: string): Promise<PostImageFile | undefined>;
 };
+
+/** An image file's bytes and its media type, e.g. `image/png`. */
+export type PostImageFile = { bytes: Uint8Array; type: string };
 
 export type TagCount = { tag: string; count: number };
 
@@ -92,6 +121,27 @@ const takenDownSlugAdvice = (slug: string) =>
   `"${slug}" is in the taken-down Slug list (${TAKEN_DOWN_FILE}); a taken-down Slug can never be reused as a current or previous Slug`;
 
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/** Image formats the site can size and optimise: the media type of each type image-size reports. */
+const IMAGE_FORMATS: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+  avif: "image/avif",
+};
+
+/** The media type of an image in one of IMAGE_FORMATS; undefined for anything else. */
+function imageFormat(bytes: Uint8Array) {
+  try {
+    const size = imageSize(bytes);
+    return size.type && Object.hasOwn(IMAGE_FORMATS, size.type)
+      ? { ...size, mediaType: IMAGE_FORMATS[size.type] }
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 /** The approved Tag list, relative to the content directory. */
 const TAGS_FILE = "tags.yml";
@@ -134,6 +184,9 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const tags = checkTags(data.tags, approvedTags, report);
     const previousSlugs = checkPreviousSlugs(data.previousSlugs, takenDownSlugs, report);
     const latestRevision = checkRevisions(data.revisions, date, report);
+    const postDir = path.join(postsDir, slug);
+    const cover = await checkCover(data.cover, postDir, report);
+    const images = await checkBodyImages(body, postDir, report);
 
     posts.push({
       slug,
@@ -143,6 +196,8 @@ export async function loadContent(contentDir: string): Promise<Content> {
       tags,
       previousSlugs,
       latestRevision,
+      cover,
+      images,
       body,
     });
   }
@@ -189,7 +244,26 @@ export async function loadContent(contentDir: string): Promise<Content> {
     getPage(name) {
       return pages.get(name);
     },
+    listPages() {
+      return [...pages.values()].sort((a, b) => a.name.localeCompare(b.name));
+    },
+    listPostImages,
+    async readPostImage(slug, file) {
+      if (!listPostImages(slug).some((image) => image.file === file)) return undefined;
+      const bytes = await readFile(path.join(postsDir, slug, file));
+      return { bytes, type: imageFormat(bytes)!.mediaType };
+    },
   };
+
+  function listPostImages(slug: string): PostImage[] {
+    const post = bySlug.get(slug);
+    if (!post) return [];
+    const byFile = new Map<string, PostImage>();
+    for (const image of [post.cover, ...Object.values(post.images)]) {
+      if (image && !byFile.has(image.file)) byFile.set(image.file, image);
+    }
+    return [...byFile.values()];
+  }
 }
 
 /**
@@ -479,6 +553,75 @@ function checkRevisions(
     }
   });
   return latest;
+}
+
+/** The Post's `cover`: optional, an image stored next to the Post. */
+async function checkCover(value: unknown, postDir: string, report: Report) {
+  if (value === undefined) return undefined;
+  if (requiredString(value) === undefined) {
+    report("cover", "image-path", "must be an image file next to the Post, e.g. cover: cover.jpg");
+    return undefined;
+  }
+  return checkImage(value as string, "cover", postDir, report);
+}
+
+/**
+ * Every Markdown image in the body, `![alt](./diagram.png)`, keyed by its
+ * reference. Code blocks are text, so an image written inside one isn't a reference.
+ */
+async function checkBodyImages(body: string, postDir: string, report: Report) {
+  let tree: MdNode;
+  try {
+    tree = createProcessor().parse(body) as MdNode;
+  } catch (error) {
+    report("body", "mdx-syntax", (error as Error).message.split("\n")[0]);
+    return {};
+  }
+  const refs = new Set<string>();
+  const walk = (node: MdNode) => {
+    if (node.type === "image" && typeof node.url === "string") refs.add(node.url);
+    node.children?.forEach(walk);
+  };
+  walk(tree);
+  const images: Record<string, PostImage> = {};
+  for (const ref of refs) {
+    const image = await checkImage(ref, "body", postDir, report);
+    if (image) images[ref] = image;
+  }
+  return images;
+}
+
+/** The parts of a Markdown syntax tree node checkBodyImages reads. */
+type MdNode = { type: string; url?: unknown; children?: MdNode[] };
+
+/**
+ * An image reference, from the body or the cover: a file next to the Post
+ * in a format the site can size. Returns its file and dimensions.
+ */
+async function checkImage(ref: string, field: string, postDir: string, report: Report) {
+  const file = path.posix.normalize(ref);
+  const advice = `referenced images must exist next to the Post, as a path relative to its folder`;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(ref) || path.posix.isAbsolute(file) || file.startsWith("../")) {
+    report(field, "image-exists", `"${ref}" isn't next to the Post; ${advice}`);
+    return undefined;
+  }
+  const bytes = await readFile(path.join(postDir, file)).catch(() => undefined);
+  if (bytes === undefined) {
+    report(field, "image-exists", `"${ref}" doesn't exist; ${advice}`);
+    return undefined;
+  }
+  const size = imageFormat(bytes);
+  if (!size?.width || !size.height) {
+    report(field, "image-format", `"${ref}" must be a PNG, JPEG, GIF, WebP or AVIF image`);
+    return undefined;
+  }
+  // A JPEG's EXIF orientation 5-8 rotates it a quarter turn when displayed.
+  const turned = (size.orientation ?? 1) >= 5;
+  return {
+    file,
+    width: turned ? size.height : size.width,
+    height: turned ? size.width : size.height,
+  };
 }
 
 function requiredString(value: unknown): string | undefined {

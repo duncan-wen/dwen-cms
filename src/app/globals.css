@@ -60,6 +60,19 @@
   --code-type: #e0b77a;
 }
 
+/* dark: follows the same rule as the tokens, not just the system preference. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
 /* The header seal lands like a stamp; motion-safe: skips it under reduced motion. */
 @theme {
   --animate-stamp: stamp 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
@@ -168,6 +181,19 @@
   & :where(code):not(:where(pre *, .not-prose *))::after {
     content: none;
   }
+
+  /* Highlighted code (Shiki's css-variables theme) takes its colours from the code tokens. */
+  --shiki-foreground: var(--color-ink);
+  --shiki-background: var(--color-paper-deep);
+  --shiki-token-keyword: var(--color-code-keyword);
+  --shiki-token-string: var(--color-code-string);
+  --shiki-token-string-expression: var(--color-code-string);
+  --shiki-token-comment: var(--color-code-comment);
+  --shiki-token-function: var(--color-code-function);
+  --shiki-token-constant: var(--color-code-type);
+  --shiki-token-parameter: var(--color-ink);
+  --shiki-token-punctuation: var(--color-ink-soft);
+  --shiki-token-link: var(--color-accent);
 
   & :where(pre):not(:where(.not-prose *)) {
     font-size: 13.5px;

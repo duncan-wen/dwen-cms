@@ -5,6 +5,7 @@ import { LinkRow } from "@/components/link-row";
 import { contactLinks } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { MdxBody } from "@/mdx/mdx-body";
+import { pageAlternates } from "@/page-alternates";
 
 /** The About Page, or a 404 when the content directory has none. */
 async function getAboutPage() {
@@ -13,7 +14,11 @@ async function getAboutPage() {
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getAboutPage();
-  return { title: page.title, description: page.description };
+  return {
+    title: page.title,
+    description: page.description,
+    alternates: pageAlternates("/about"),
+  };
 }
 
 export default async function AboutPage() {

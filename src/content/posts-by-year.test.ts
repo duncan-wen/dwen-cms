@@ -10,6 +10,8 @@ const post = (slug: string, date: string): Post => ({
   tags: ["meta"],
   previousSlugs: [],
   latestRevision: undefined,
+  cover: undefined,
+  images: {},
   body: "",
 });
 
