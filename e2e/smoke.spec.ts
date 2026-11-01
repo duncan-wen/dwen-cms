@@ -51,6 +51,19 @@ test("a Post page links to its Tags", async ({ request }) => {
   expect(await response.text()).toContain('href="/tags/smoke"');
 });
 
+test("a Post with a Revision shows 「更新於」 with the Revision's note", async ({ request }) => {
+  const html = await (await request.get("/posts/revised-smoke-post")).text();
+
+  expect(html).toContain("更新於");
+  expect(html).toContain("補上第二個段落");
+});
+
+test("a Post without a Revision shows no 「更新於」", async ({ request }) => {
+  const html = await (await request.get("/posts/smoke-post")).text();
+
+  expect(html).not.toContain("更新於");
+});
+
 test("an unknown Tag answers 404", async ({ request }) => {
   const response = await request.get("/tags/no-such-tag");
 

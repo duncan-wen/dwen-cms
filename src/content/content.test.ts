@@ -63,6 +63,60 @@ describe("loading a valid content directory", () => {
   });
 });
 
+describe("Revisions", () => {
+  it("gives a Post its latest Revision by date", async () => {
+    const content = await loadContent(fixture("revisions"));
+
+    const result = content.resolveSlug("revised");
+
+    expect(result.kind === "post" && result.post.latestRevision).toEqual({
+      date: "2026-10-20",
+      note: "補上效能比較",
+    });
+  });
+
+  it("gives a Post without Revisions no latest Revision", async () => {
+    const content = await loadContent(fixture("revisions"));
+
+    const result = content.resolveSlug("corrected");
+
+    expect(result.kind === "post" && result.post.latestRevision).toBeUndefined();
+  });
+
+  it("accepts a Revision dated the same day as the Post", async () => {
+    const content = await loadContent(fixture("revisions"));
+
+    const result = content.resolveSlug("same-day");
+
+    expect(result.kind === "post" && result.post.latestRevision).toEqual({
+      date: "2026-10-01",
+      note: "發布當天補上範例",
+    });
+  });
+
+  it("rejects a Revision dated before the Post, naming both dates", async () => {
+    const error = await loadContent(fixture("revision-before-post")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [
+        { file: "posts/time-travel/index.mdx", field: "revisions", rule: "revision-on-or-after-post" },
+      ],
+    });
+    expect((error as Error).message).toContain("2026-09-30");
+    expect((error as Error).message).toContain("2026-10-01");
+  });
+
+  it.each([
+    ["revisions-not-a-list", "posts/single-revision/index.mdx", "list"],
+    ["revision-bad-date", "posts/bad-revision-date/index.mdx", "date-format"],
+    ["revision-missing-note", "posts/silent-revision/index.mdx", "required"],
+  ])("rejects Revisions in fixture %s: %s breaks %s", async (fixtureName, file, rule) => {
+    await expect(loadContent(fixture(fixtureName))).rejects.toMatchObject({
+      problems: [{ file, field: "revisions", rule }],
+    });
+  });
+});
+
 describe("querying by Tag", () => {
   it("lists a Tag's Posts newest first", async () => {
     const content = await loadContent(fixture("valid"));

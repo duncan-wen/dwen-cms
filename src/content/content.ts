@@ -12,9 +12,18 @@ export type Post = {
   tags: string[];
   /** Slugs this Post had before, each redirected permanently to `slug`. */
   previousSlugs: string[];
+  /**
+   * The Revision with the latest date (of those sharing it, the one listed
+   * last), shown to Readers as 「更新於」; undefined when the Post has had
+   * only Corrections.
+   */
+  latestRevision: Revision | undefined;
   /** Raw MDX body, without frontmatter. */
   body: string;
 };
+
+/** A substantive change to a Published Post: when it happened and what changed. */
+export type Revision = { date: string; note: string };
 
 export type SlugResolution =
   | { kind: "post"; post: Post }
@@ -179,6 +188,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
       date: date ?? "",
       tags,
       previousSlugs,
+      latestRevision: checkRevisions(data.revisions, date, report),
       body,
     });
   }
@@ -320,6 +330,52 @@ function checkPreviousSlugs(currentSlugs: string[], posts: Post[], problems: Con
       }
     }
   }
+}
+
+/**
+ * Validates a Post's Revision entries and returns the latest valid one.
+ * `postDate` is undefined when the Post's own date is invalid, so the
+ * on-or-after rule isn't checked against it.
+ */
+function checkRevisions(
+  value: unknown,
+  postDate: string | undefined,
+  report: (field: string, rule: string, message: string) => void,
+): Revision | undefined {
+  if (value !== undefined && !Array.isArray(value)) {
+    report(
+      "revisions",
+      "list",
+      "must be a list of Revisions, each with a date and a note, e.g. revisions: [{ date: 2026-10-20, note: 補上效能比較 }]",
+    );
+    return undefined;
+  }
+  let latest: Revision | undefined;
+  ((value ?? []) as unknown[]).forEach((entry, index) => {
+    const which = `Revision ${index + 1}`;
+    const fields = (typeof entry === "object" && entry !== null ? entry : {}) as {
+      date?: unknown;
+      note?: unknown;
+    };
+    const date = isoDate(fields.date);
+    const note = requiredString(fields.note);
+    if (date === undefined) {
+      report("revisions", "date-format", `${which} needs a date written YYYY-MM-DD`);
+    } else if (postDate !== undefined && date < postDate) {
+      report(
+        "revisions",
+        "revision-on-or-after-post",
+        `${which} is dated ${date}, before the Post's date ${postDate}; Revision dates must be on or after the Post's date`,
+      );
+    }
+    if (note === undefined) {
+      report("revisions", "required", `${which} needs a note: non-empty text saying what changed`);
+    }
+    if (date !== undefined && note !== undefined && !(latest && latest.date > date)) {
+      latest = { date, note };
+    }
+  });
+  return latest;
 }
 
 function requiredString(value: unknown): string | undefined {
