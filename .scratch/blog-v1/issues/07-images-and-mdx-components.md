@@ -2,7 +2,7 @@
 
 **What to build:** Posts can include images stored next to them, rendered optimised and correctly sized, plus an optional cover image. Posts can use a callout and get syntax-highlighted code blocks. All MDX components come from a single component map, the extension point phase-2 Demos will plug into.
 
-**Blocked by:** 01
+**Blocked by:** 01, visual-design/01
 
 **Status:** ready-for-agent
 

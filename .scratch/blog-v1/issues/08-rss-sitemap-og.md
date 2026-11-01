@@ -2,7 +2,7 @@
 
 **What to build:** Readers can subscribe via RSS, search engines get a sitemap of all Published Posts and Pages, and each Post shared on social media shows a generated preview image with its title. The site's base URL comes from configuration and drives canonical URLs, RSS, sitemap and OG.
 
-**Blocked by:** 02
+**Blocked by:** 02, visual-design/06
 
 **Status:** ready-for-agent
 
