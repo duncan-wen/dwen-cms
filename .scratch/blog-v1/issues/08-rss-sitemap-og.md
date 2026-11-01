@@ -11,3 +11,7 @@
 - [ ] Each Post has a generated OG image that renders Traditional Chinese correctly
 - [ ] Every page sets a canonical URL from the configured base URL
 - [ ] Smoke tests confirm RSS, sitemap and an OG image are served with the right content types
+
+## Comments
+
+- The OG image draws the Post's generated cover (visual-design/06) behind its title, so a shared link matches the site. A favicon from the 「溫」 seal fits here too.
