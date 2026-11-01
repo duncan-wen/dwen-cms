@@ -52,6 +52,7 @@ export default async function PostPage({ params }: Props) {
   const result = await resolve(params);
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
+  const revision = post.latestRevision;
   return (
     <article className="prose prose-zinc max-w-none">
       <header className="not-prose mb-8">
@@ -59,6 +60,11 @@ export default async function PostPage({ params }: Props) {
         <time dateTime={post.date} className="mt-2 block text-sm text-zinc-500">
           {formatDate(post.date)}
         </time>
+        {revision && (
+          <p className="mt-1 text-sm text-zinc-500">
+            更新於 <time dateTime={revision.date}>{formatDate(revision.date)}</time>：{revision.note}
+          </p>
+        )}
         <TagList tags={post.tags} className="mt-3" />
       </header>
       <MdxBody source={post.body} />

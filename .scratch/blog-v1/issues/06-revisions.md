@@ -4,10 +4,10 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Frontmatter accepts optional Revision entries, each with a date and a note
-- [ ] The content check fails when a Revision date is before the Post's date
-- [ ] The content module exposes the Post's update date and note, taken from the latest Revision
-- [ ] The Post page shows 「更新於」 and the note only when a Revision exists
-- [ ] Unit tests cover update-date derivation and validation
+- [x] Frontmatter accepts optional Revision entries, each with a date and a note
+- [x] The content check fails when a Revision date is before the Post's date
+- [x] The content module exposes the Post's update date and note, taken from the latest Revision
+- [x] The Post page shows 「更新於」 and the note only when a Revision exists
+- [x] Unit tests cover update-date derivation and validation
