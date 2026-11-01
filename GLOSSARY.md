@@ -45,11 +45,11 @@ Content readers can't see; everything a Writing Agent produces starts here.
 _Avoid_: Pending, unpublished
 
 **Published**:
-Content readers can see; only an Owner action moves content from Draft to Published.
+Content readers can see; only an Owner action moves content from Draft to Published. Shown to readers as 「發布」.
 _Avoid_: Live, released
 
 **Review**:
-The Owner's act of approving a Draft for publication; an action, not a state.
+The Owner's act of approving a Draft for publication; an action, not a state. Shown to readers as 「審閱」.
 _Avoid_: In review, pending approval
 
 **Correction**:

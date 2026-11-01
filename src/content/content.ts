@@ -22,6 +22,16 @@ export type Post = {
   body: string;
 };
 
+/** Standalone undated content outside listings, such as the About page. */
+export type Page = {
+  /** The Page's folder name under `pages/`, lowercase English kebab-case. */
+  name: string;
+  title: string;
+  description: string;
+  /** Raw MDX body, without frontmatter. */
+  body: string;
+};
+
 /** A substantive change to a Published Post: when it happened and what changed. */
 export type Revision = { date: string; note: string };
 
@@ -46,6 +56,8 @@ export type Content = {
    * first, ties in name order. Approved Tags no Post uses are left out.
    */
   listTagsWithCounts(): TagCount[];
+  /** The Page in `pages/<name>/index.mdx`; undefined when there is none. */
+  getPage(name: string): Page | undefined;
 };
 
 export type TagCount = { tag: string; count: number };
@@ -72,6 +84,9 @@ export class ContentValidationError extends Error {
 /** A Post's file, relative to the content directory. */
 const postFile = (slug: string) => `posts/${slug}/index.mdx`;
 
+/** A Page's file, relative to the content directory. */
+const pageFile = (name: string) => `pages/${name}/index.mdx`;
+
 /** Advice for a taken-down Slug used as a current or previous Slug. */
 const takenDownSlugAdvice = (slug: string) =>
   `"${slug}" is in the taken-down Slug list (${TAKEN_DOWN_FILE}); a taken-down Slug can never be reused as a current or previous Slug`;
@@ -85,7 +100,7 @@ const TAGS_FILE = "tags.yml";
 const TAKEN_DOWN_FILE = "taken-down.yml";
 
 /**
- * Loads and validates every Post under `contentDir`.
+ * Loads and validates every Post and Page under `contentDir`.
  * Throws a ContentValidationError listing every problem found.
  */
 export async function loadContent(contentDir: string): Promise<Content> {
@@ -97,6 +112,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
   const posts: Post[] = [];
   const approvedTags = await loadApprovedTags(contentDir, problems);
   const takenDownSlugs = await loadTakenDownSlugs(contentDir, problems);
+  const pages = await loadPages(contentDir, problems);
 
   for (const slug of slugs) {
     const file = postFile(slug);
@@ -108,19 +124,9 @@ export async function loadContent(contentDir: string): Promise<Content> {
     }
     if (takenDownSlugs.has(slug)) report("slug", "taken-down-slug", takenDownSlugAdvice(slug));
 
-    const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
-    if (source === undefined) {
-      report("file", "required", "every Post folder needs an index.mdx");
-      continue;
-    }
-    let parsed: matter.GrayMatterFile<string>;
-    try {
-      parsed = matter(source, { engines: { yaml: parseYaml } });
-    } catch (error) {
-      report("frontmatter", "yaml-syntax", (error as Error).message.split("\n")[0]);
-      continue;
-    }
-    const { data, content: body } = parsed;
+    const parsed = await readMdx(contentDir, file, "every Post folder needs an index.mdx", report);
+    if (parsed === undefined) continue;
+    const { data, body } = parsed;
 
     const title = checkText(data.title, "title", report);
     const description = checkText(data.description, "description", report);
@@ -180,7 +186,55 @@ export async function loadContent(contentDir: string): Promise<Content> {
     listTagsWithCounts() {
       return [...tagCounts];
     },
+    getPage(name) {
+      return pages.get(name);
+    },
   };
+}
+
+/**
+ * Loads and validates every Page under `pages/`, keyed by name. The folder
+ * is optional: without it there are no Pages.
+ */
+async function loadPages(contentDir: string, problems: ContentProblem[]) {
+  const pages = new Map<string, Page>();
+  const entries = await readdir(path.join(contentDir, "pages"), { withFileTypes: true }).catch(
+    () => [],
+  );
+  for (const name of entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)) {
+    const file = pageFile(name);
+    const report: Report = (field, rule, message) => problems.push({ file, field, rule, message });
+
+    if (!KEBAB_CASE.test(name)) {
+      report("name", "kebab-case", "the folder name must be lowercase English kebab-case");
+    }
+    const parsed = await readMdx(contentDir, file, "every Page folder needs an index.mdx", report);
+    if (parsed === undefined) continue;
+    const title = checkText(parsed.data.title, "title", report);
+    const description = checkText(parsed.data.description, "description", report);
+    pages.set(name, { name, title: title ?? "", description: description ?? "", body: parsed.body });
+  }
+  return pages;
+}
+
+/**
+ * Reads an MDX file and splits its frontmatter from its body. Reports a
+ * missing file (with `missing` as the advice) or broken YAML and returns
+ * undefined.
+ */
+async function readMdx(contentDir: string, file: string, missing: string, report: Report) {
+  const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
+  if (source === undefined) {
+    report("file", "required", missing);
+    return undefined;
+  }
+  try {
+    const { data, content: body } = matter(source, { engines: { yaml: parseYaml } });
+    return { data, body };
+  } catch (error) {
+    report("frontmatter", "yaml-syntax", (error as Error).message.split("\n")[0]);
+    return undefined;
+  }
 }
 
 /**

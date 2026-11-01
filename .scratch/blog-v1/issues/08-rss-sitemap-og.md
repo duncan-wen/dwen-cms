@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] The RSS feed lists Published Posts, newest first
+- [ ] The RSS feed lists Published Posts, newest first, and no Pages
 - [ ] The sitemap lists every Published Post, Page and Tag page, and no taken-down Slugs
 - [ ] Each Post has a generated OG image that renders Traditional Chinese correctly
 - [ ] Every page sets a canonical URL from the configured base URL
