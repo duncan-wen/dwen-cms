@@ -1,76 +1,67 @@
 <title>dwen-cms 視覺方向</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!--
-  PROTOTYPE, throwaway, never merge. 第二版：已定案方向 A（編輯）＋ B 的等寬日期與目錄，細修成一個完整方向。
-  三個代表頁：#home、#list、#post（底部浮動列或 ← → 切換）；◐ 切換淺色和深色。
-  文章內頁是真實文章 why-mdx-in-git；列表其他四篇是範例標題；程式碼區塊和「更新於」那行是示意內容。
-  第一版（三個方向並排）在這個分支的上一個 commit。
+  PROTOTYPE, throwaway, never merge. 第三版：同一套底（宋體標題、墨綠、紙白、「溫」字方印），四種吸睛程度。
+    V 安靜：第二版，作為對照
+    W 墨綠封面：首頁頂部整片墨綠，超大標題、浮水印「溫」字，最新文章放大成封面文章
+    X 生成封面：每篇文章依 slug 生成一張等高線封面圖，首頁是有圖的文章網格（之後可以直接當 OG 圖）
+    Y 直排：首頁標題用中文直排，最後蓋上方印，像書法落款
+  切換：底部浮動列或 ← →；網址 hash 形如 #w-home、#x-post。
+  文章內頁是真實文章 why-mdx-in-git；列表其他四篇是範例；程式碼區塊和「更新於」是示意內容。
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/*
-  版面：一條置中、680px 的閱讀欄，所有內容都靠左對齊這條欄的邊。文章內頁在寬螢幕把目錄掛在右側空白，不擠窄閱讀欄。
-  唯一的大膽元素：「溫」字方印。出現在頁首、文章結尾的落款和 footer，其他地方都保持安靜。
-  字級（約 1.25 倍）：13 / 15 / 17 / 21 / 28 / 46。
-*/
+/* 共用 token：紙白、墨色、墨綠；band 是 W 的整片墨綠。 */
 :root {
-  --paper: #f5f6f1;      /* 偏冷的紙白，不是奶油色 */
-  --paper-deep: #eceee6; /* 程式碼區塊、目錄的底 */
-  --ink: #1b2420;        /* 帶綠的墨色 */
-  --ink-soft: #57635c;   /* 次要文字 */
-  --rule: #d9ddd3;       /* 分隔線、年份數字 */
-  --pine: #2c5a45;       /* 墨綠：方印、連結、強調 */
-  --pine-wash: #e1eae3;  /* 行內程式碼底 */
-  --on-pine: #f5f6f1;    /* 方印上的字 */
+  --paper: #f5f6f1; --paper-deep: #eceee6; --ink: #1b2420; --ink-soft: #57635c; --rule: #d9ddd3;
+  --pine: #2c5a45; --pine-wash: #e1eae3; --on-pine: #f5f6f1;
+  --band: #1f4434; --band-ink: #f2f4ee; --band-soft: #b9cbbf; --band-line: rgba(242, 244, 238, .16);
   --tk-k: #8a3b5c; --tk-s: #2f6b3f; --tk-c: #858d88; --tk-f: #2b5c8a; --tk-t: #8a5a1c;
   --bar-bg: #1b2420; --bar-fg: #f5f6f1; --bar-on: #f5f6f1; --bar-on-fg: #1b2420;
-
   --serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
   --sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --col: 680px;
+  --col: 680px; --wide: 1040px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --paper: #121614; --paper-deep: #191e1b; --ink: #e1e5df; --ink-soft: #97a29b; --rule: #2b332f;
+    --paper: #121614; --paper-deep: #1a1f1c; --ink: #e1e5df; --ink-soft: #97a29b; --rule: #2b332f;
     --pine: #8fc3a6; --pine-wash: #1e2c24; --on-pine: #121614;
+    --band: #17271f; --band-ink: #e8ece5; --band-soft: #9db5a6; --band-line: rgba(232, 236, 229, .12);
     --tk-k: #e29bb8; --tk-s: #9ccf9f; --tk-c: #6c7771; --tk-f: #93bde6; --tk-t: #e0b77a;
     --bar-bg: #e1e5df; --bar-fg: #121614; --bar-on: #121614; --bar-on-fg: #e1e5df;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #121614; --paper-deep: #191e1b; --ink: #e1e5df; --ink-soft: #97a29b; --rule: #2b332f;
+  --paper: #121614; --paper-deep: #1a1f1c; --ink: #e1e5df; --ink-soft: #97a29b; --rule: #2b332f;
   --pine: #8fc3a6; --pine-wash: #1e2c24; --on-pine: #121614;
+  --band: #17271f; --band-ink: #e8ece5; --band-soft: #9db5a6; --band-line: rgba(232, 236, 229, .12);
   --tk-k: #e29bb8; --tk-s: #9ccf9f; --tk-c: #6c7771; --tk-f: #93bde6; --tk-t: #e0b77a;
   --bar-bg: #e1e5df; --bar-fg: #121614; --bar-on: #121614; --bar-on-fg: #e1e5df;
 }
 
-body {
-  background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.9;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 0 112px; -webkit-font-smoothing: antialiased;
-}
+body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.9; padding-block: 0 112px; -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--pine); outline-offset: 3px; border-radius: 2px; }
 h1, h2, h3 { margin: 0; text-wrap: balance; font-family: var(--serif); }
-p, ul, ol { margin: 0; padding: 0; }
+p, ul { margin: 0; padding: 0; }
 ul { list-style: none; }
-time, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+time { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.col { max-width: var(--col); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
 
 /* 方印 */
-.seal { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 3px; flex: none;
-  background: var(--pine); color: var(--on-pine); font-family: var(--serif); font-weight: 900; font-size: 19px; line-height: 1; }
+.seal { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 3px; flex: none; background: var(--pine); color: var(--on-pine);
+  font-family: var(--serif); font-weight: 900; font-size: 19px; line-height: 1; }
 .seal.big { width: 44px; height: 44px; font-size: 28px; border-radius: 4px; }
 .seal.small { width: 22px; height: 22px; font-size: 14px; border-radius: 2px; }
 .hdr .seal { animation: stamp .45s cubic-bezier(.2, .9, .3, 1.2) both; }
 @keyframes stamp { from { transform: scale(1.3) rotate(-8deg); opacity: 0; } 55% { opacity: 1; } to { transform: none; } }
-@media (prefers-reduced-motion: reduce) { .hdr .seal { animation: none; } }
-
-.col { max-width: var(--col); margin-inline: auto; }
 
 /* 頁首 */
 .hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; padding-block: 28px 0; }
@@ -79,55 +70,45 @@ time, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .nav a { color: var(--ink-soft); padding-block: 4px; }
 .nav a:hover { color: var(--ink); }
 .nav a[aria-current] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--pine); }
-.theme-btn { background: none; border: 1px solid var(--rule); color: var(--ink-soft); width: 32px; height: 32px; border-radius: 50%;
-  cursor: pointer; font-size: 14px; display: grid; place-items: center; }
+.theme-btn { background: none; border: 1px solid var(--rule); color: var(--ink-soft); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; }
 .theme-btn:hover { color: var(--pine); border-color: var(--pine); }
 
-/* 文字連結 */
 .tlink { color: var(--pine); font-weight: 500; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; text-decoration-color: var(--rule); }
 .tlink:hover { text-decoration-color: var(--pine); }
+.tags { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--mono); font-size: 13px; }
+.tags a { color: var(--pine); }
+.tags a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* 首頁 */
+/* 安靜版首頁（V、X 的 hero 也用） */
 .hero { display: grid; gap: 24px; padding-block: 88px 80px; }
-.hero h1 { font-weight: 900; font-size: clamp(32px, 6.4vw, 46px); line-height: 1.32; letter-spacing: .01em; max-width: 13em; }
+.hero h1 { font-weight: 900; font-size: clamp(32px, 6.4vw, 46px); line-height: 1.32; letter-spacing: .01em; }
 .hero p { color: var(--ink-soft); max-width: 32em; }
-.hero .links { display: flex; gap: 28px; flex-wrap: wrap; }
+.links { display: flex; gap: 28px; flex-wrap: wrap; }
 .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
 .sec-head h2 { font-size: 21px; font-weight: 700; }
 .sec-head a { font-size: 15px; }
 
-/* 文章條目：日期一欄、內容一欄 */
-.entries { display: grid; }
 .entry { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 0 24px; padding-block: 28px; border-bottom: 1px solid var(--rule); }
 .entry time { font-size: 13px; color: var(--ink-soft); padding-top: 6px; }
 .entry .body { display: grid; gap: 6px; min-width: 0; }
 .entry h3 { font-size: 21px; font-weight: 700; line-height: 1.5; }
 .entry h3 a:hover { color: var(--pine); }
 .entry p { color: var(--ink-soft); font-size: 16px; line-height: 1.8; }
-.tags { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--mono); font-size: 13px; }
-.tags a { color: var(--pine); }
-.tags a:hover { text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 520px) {
-  .entry { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-  .entry time { padding-top: 0; }
-}
+.entry .thumb { display: none; }
+@media (max-width: 520px) { .entry { grid-template-columns: minmax(0, 1fr); gap: 4px; } .entry time { padding-top: 0; } }
 
-/* 文章列表：年份佔日期欄 */
+/* 文章列表 */
 .page-head { padding-block: 72px 40px; display: grid; gap: 10px; }
 .page-head h1 { font-size: 28px; font-weight: 900; }
 .page-head p { color: var(--ink-soft); font-size: 15px; }
 .year { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 0 24px; border-top: 1px solid var(--ink); }
 .year + .year { margin-top: 48px; }
-.year h2 { font-size: 28px; font-weight: 900; color: var(--rule); padding-top: 22px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.year h2 { font-size: 28px; font-weight: 900; color: var(--rule); padding-top: 22px; line-height: 1.2; }
 .year .entry { grid-template-columns: 56px minmax(0, 1fr); }
 .year .entry:last-child { border-bottom: 0; }
-@media (max-width: 520px) {
-  .year { grid-template-columns: minmax(0, 1fr); }
-  .year h2 { padding-top: 16px; }
-  .year .entry { grid-template-columns: 52px minmax(0, 1fr); gap: 0 12px; }
-}
+@media (max-width: 520px) { .year { grid-template-columns: minmax(0, 1fr); } .year h2 { padding-top: 16px; } .year .entry { grid-template-columns: 52px minmax(0, 1fr); gap: 0 12px; } }
 
-/* 文章內頁：寬螢幕把目錄掛在右側 */
+/* 文章內頁 */
 .post-wrap { display: grid; grid-template-columns: minmax(0, 1fr) min(var(--col), 100%) minmax(0, 1fr); }
 .post-wrap > article { grid-column: 2; min-width: 0; }
 .toc { display: none; }
@@ -145,183 +126,303 @@ time, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .post-head .meta { display: flex; gap: 8px 20px; flex-wrap: wrap; align-items: baseline; font-size: 13px; color: var(--ink-soft); }
 .revision { font-size: 15px; color: var(--ink-soft); line-height: 1.7; padding-left: 14px; border-left: 2px solid var(--pine); }
 .revision time { font-size: 13px; }
-
 .prose { display: grid; gap: 1.2em; line-height: 1.95; }
 .prose h2 { font-size: 21px; font-weight: 700; line-height: 1.5; margin-top: 1.4em; scroll-margin-top: 24px; }
 .prose ul { display: grid; gap: .55em; padding-left: 1.25em; list-style: disc; }
 .prose li::marker { color: var(--pine); }
-.prose strong { font-weight: 700; }
 .prose :not(pre) > code { font-family: var(--mono); font-size: .84em; background: var(--pine-wash); padding: .12em .42em; border-radius: 3px; }
-.code { display: grid; min-width: 0; background: var(--paper-deep); border-radius: 6px; overflow: hidden; }
+.code { display: grid; min-width: 0; margin: 0; background: var(--paper-deep); border-radius: 6px; overflow: hidden; }
 .code .file { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); padding: 10px 18px 0; }
-.code pre { margin: 0; overflow-x: auto; padding: 8px 18px 16px; font-family: var(--mono); font-size: 13.5px; line-height: 1.7; tab-size: 2; }
+.code pre { margin: 0; overflow-x: auto; padding: 8px 18px 16px; font-family: var(--mono); font-size: 13.5px; line-height: 1.7; }
 .k { color: var(--tk-k); } .s { color: var(--tk-s); } .c { color: var(--tk-c); font-style: italic; } .f { color: var(--tk-f); } .t { color: var(--tk-t); }
-
-/* 落款 */
 .colophon { display: flex; align-items: center; gap: 14px; margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--rule); }
 .colophon div { display: grid; line-height: 1.6; }
-.colophon b { font-family: var(--serif); font-weight: 700; font-size: 17px; }
+.colophon b { font-family: var(--serif); font-weight: 700; }
 .colophon span { font-size: 14px; color: var(--ink-soft); }
 .after { display: flex; gap: 28px; margin-top: 28px; flex-wrap: wrap; }
 
-/* 頁尾 */
 .ftr { margin-top: 112px; padding-block: 28px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; gap: 16px 24px; flex-wrap: wrap; font-size: 14px; color: var(--ink-soft); }
 .ftr .own { display: flex; align-items: center; gap: 10px; }
 .ftr nav { display: flex; gap: 20px; flex-wrap: wrap; }
 .ftr nav a:hover { color: var(--pine); }
 
+/* ───── W 墨綠封面 ───── */
+.band { background: var(--band); color: var(--band-ink); position: relative; overflow: hidden; }
+.band .hdr .brand, .band .nav a[aria-current] { color: var(--band-ink); }
+.band .nav a { color: var(--band-soft); }
+.band .nav a:hover { color: var(--band-ink); }
+.band .nav a[aria-current] { box-shadow: inset 0 -2px 0 var(--band-ink); }
+.band .seal { background: var(--band-ink); color: var(--band); }
+.band .theme-btn { border-color: var(--band-line); color: var(--band-soft); }
+.band .theme-btn:hover { color: var(--band-ink); border-color: var(--band-ink); }
+.band .tlink { color: var(--band-ink); text-decoration-color: var(--band-soft); }
+.band .tlink:hover { text-decoration-color: var(--band-ink); }
+.watermark { position: absolute; right: -0.08em; bottom: -0.2em; font-family: var(--serif); font-weight: 900; font-size: clamp(260px, 46vw, 560px); line-height: 1;
+  color: transparent; -webkit-text-stroke: 1.5px var(--band-line); pointer-events: none; user-select: none; }
+.w-hero { position: relative; display: grid; gap: 28px; padding-block: clamp(72px, 12vw, 128px) clamp(72px, 10vw, 112px); }
+.w-hero h1 { font-weight: 900; font-size: clamp(40px, 8.2vw, 76px); line-height: 1.22; letter-spacing: .01em; max-width: 9.5em; }
+.w-hero p { color: var(--band-soft); font-size: 18px; max-width: 30em; }
+.feature { display: grid; gap: 14px; padding-block: 56px 48px; border-bottom: 1px solid var(--rule); }
+.feature .label { font-size: 14px; color: var(--pine); font-weight: 500; }
+.feature h2 { font-size: clamp(28px, 4.6vw, 38px); font-weight: 900; line-height: 1.35; }
+.feature h2 a:hover { color: var(--pine); }
+.feature p { color: var(--ink-soft); font-size: 18px; }
+.feature .meta { display: flex; gap: 20px; align-items: baseline; font-size: 13px; color: var(--ink-soft); flex-wrap: wrap; }
+.post-band .post-head .back, .post-band .post-head .meta, .post-band .revision { color: var(--band-soft); }
+.post-band .post-head h1 { color: var(--band-ink); }
+.post-band .tags a { color: var(--band-ink); }
+.post-band .revision { border-left-color: var(--band-soft); }
+.post-band .post-head { padding-bottom: 56px; }
+
+/* ───── X 生成封面 ───── */
+.cover { display: block; width: 100%; background: var(--paper-deep); border-radius: 6px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px 32px; padding-top: 32px; }
+.card { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card .cover { aspect-ratio: 16 / 10; }
+.card h3 { font-size: 20px; font-weight: 700; line-height: 1.5; }
+.card:hover h3 { color: var(--pine); }
+.card p { color: var(--ink-soft); font-size: 15px; line-height: 1.75; }
+.card time { font-size: 13px; color: var(--ink-soft); }
+.card.lead { grid-column: 1 / -1; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+.card.lead .cover { aspect-ratio: 16 / 11; }
+.card.lead .txt { display: grid; gap: 12px; }
+.card.lead h3 { font-size: clamp(24px, 3.2vw, 32px); font-weight: 900; line-height: 1.4; }
+.card.lead p { font-size: 17px; }
+.card .txt { display: grid; gap: 8px; }
+@media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } .card.lead { grid-template-columns: minmax(0, 1fr); gap: 14px; } }
+.v-x .year .entry { grid-template-columns: 56px 120px minmax(0, 1fr); }
+.v-x .entry .thumb { display: block; aspect-ratio: 3 / 2; border-radius: 4px; margin-top: 6px; }
+@media (max-width: 520px) { .v-x .year .entry { grid-template-columns: 52px minmax(0, 1fr); } .v-x .entry .thumb { display: none; } }
+.post-cover { aspect-ratio: 21 / 9; margin-top: 48px; }
+.v-x .post-head { padding-top: 32px; }
+
+/* ───── Y 直排 ───── */
+.y-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 48px; align-items: end; padding-block: 72px 80px; }
+.y-hero .intro { display: grid; gap: 24px; padding-bottom: 8px; }
+.y-hero .intro p { color: var(--ink-soft); max-width: 22em; }
+.y-hero .intro .lead { font-family: var(--serif); font-weight: 700; color: var(--ink); font-size: 21px; line-height: 1.6; }
+.y-title { writing-mode: vertical-rl; font-weight: 900; font-size: clamp(40px, 5.4vw, 54px); line-height: 1.5; letter-spacing: .14em;
+  display: flex; flex-direction: column; align-items: flex-start; height: max-content; padding-left: 8px; }
+.y-title .tcy { text-combine-upright: all; -webkit-text-combine: horizontal; }
+.y-title .seal { writing-mode: horizontal-tb; margin-top: 16px; width: 40px; height: 40px; font-size: 25px; letter-spacing: 0; }
+.y-rule { border-left: 1px solid var(--rule); align-self: stretch; }
+@media (max-width: 640px) {
+  .y-hero { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 56px; }
+  .y-hero .y-title { order: -1; writing-mode: horizontal-tb; font-size: 34px; letter-spacing: .02em; line-height: 1.35; display: block; padding: 0; }
+  .y-title .seal { display: none; }
+  .y-title > span { display: block; }
+  .y-rule { display: none; }
+}
+
 /* 原型切換列（不屬於設計） */
-.proto { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 50;
-  display: flex; align-items: center; gap: 4px; padding: 5px; border-radius: 999px; background: var(--bar-bg); color: var(--bar-fg);
-  font: 13px/1 -apple-system, system-ui, sans-serif; box-shadow: 0 6px 24px rgba(0, 0, 0, .25); max-width: calc(100vw - 24px); flex-wrap: wrap; justify-content: center; }
-.proto button { background: none; border: 0; color: inherit; font: inherit; padding: 8px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.proto { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 50; display: flex; align-items: center; gap: 4px; padding: 5px;
+  border-radius: 999px; background: var(--bar-bg); color: var(--bar-fg); font: 13px/1 -apple-system, system-ui, sans-serif; box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+  max-width: calc(100vw - 24px); flex-wrap: wrap; justify-content: center; }
+.proto button { background: none; border: 0; color: inherit; font: inherit; padding: 8px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
 .proto button:hover { background: rgba(127, 127, 127, .25); }
 .proto button[aria-pressed="true"] { background: var(--bar-on); color: var(--bar-on-fg); }
-.proto .lbl { opacity: .6; padding: 0 8px; font-size: 11px; letter-spacing: .06em; }
-@media (max-width: 480px) { .proto .lbl { display: none; } .proto { border-radius: 16px; } }
+.proto .lbl { min-width: 6.5em; text-align: center; font-weight: 600; }
+.proto .sep { width: 1px; height: 18px; background: currentColor; opacity: .3; }
+@media (max-width: 560px) { .proto { border-radius: 16px; } }
+@media (prefers-reduced-motion: reduce) { .hdr .seal { animation: none; } }
 </style>
 
 <div id="app"></div>
 
 <nav class="proto" aria-label="原型切換">
-  <span class="lbl">PROTOTYPE</span>
+  <button id="prev" aria-label="上一個版本">←</button>
+  <span class="lbl" id="vlabel"></span>
+  <button id="next" aria-label="下一個版本">→</button>
+  <span class="sep"></span>
   <button data-page="home">首頁</button>
-  <button data-page="list">文章列表</button>
-  <button data-page="post">文章內頁</button>
-  <button id="theme">◐ 主題</button>
+  <button data-page="list">列表</button>
+  <button data-page="post">內頁</button>
+  <span class="sep"></span>
+  <button id="theme" aria-label="切換淺色或深色">◐</button>
 </nav>
 
 <script>
+const VARIANTS = [["v", "V 安靜"], ["w", "W 墨綠封面"], ["x", "X 生成封面"], ["y", "Y 直排"]];
 const PAGES = ["home", "list", "post"];
 const POSTS = [
-  { title: "為什麼這個網站的文章寫在 git 裡", date: "2026-11-01", tags: ["meta"], desc: "用 MDX 和 pull request 管理內容，讓 AI 起草、由我審核。" },
-  { title: "用 Playwright 為靜態網站寫冒煙測試", date: "2026-10-24", tags: ["testing"], desc: "不測樣式，只測讀者會撞到的事：網址、轉址、410 和 RSS。" },
-  { title: "讓 AI 代理遵守內容規則：從 frontmatter 驗證開始", date: "2026-10-15", tags: ["ai", "meta"], desc: "Writing Agent 交出的草稿，要先過哪些機器檢查，才輪到我審閱。" },
-  { title: "被移除的文章，網址該回 404 還是 410？", date: "2026-10-03", tags: ["nextjs"], desc: "兩者對搜尋引擎和讀者的意義不同，以及在 Next.js 裡怎麼做。" },
-  { title: "把 RAG 放進客服流程前，我先問的三個問題", date: "2025-12-20", tags: ["ai"], desc: "資料多新、答錯的代價多大、誰來看沒被回答的問題。" },
+  { slug: "why-mdx-in-git", title: "為什麼這個網站的文章寫在 git 裡", date: "2026-11-01", tags: ["meta"], desc: "用 MDX 和 pull request 管理內容，讓 AI 起草、由我審核。" },
+  { slug: "playwright-smoke-tests", title: "用 Playwright 為靜態網站寫冒煙測試", date: "2026-10-24", tags: ["testing"], desc: "不測樣式，只測讀者會撞到的事：網址、轉址、410 和 RSS。" },
+  { slug: "agent-content-rules", title: "讓 AI 代理遵守內容規則：從 frontmatter 驗證開始", date: "2026-10-15", tags: ["ai", "meta"], desc: "Writing Agent 交出的草稿，要先過哪些機器檢查，才輪到我審閱。" },
+  { slug: "404-or-410", title: "被移除的文章，網址該回 404 還是 410？", date: "2026-10-03", tags: ["nextjs"], desc: "兩者對搜尋引擎和讀者的意義不同，以及在 Next.js 裡怎麼做。" },
+  { slug: "rag-three-questions", title: "把 RAG 放進客服流程前，我先問的三個問題", date: "2025-12-20", tags: ["ai"], desc: "資料多新、答錯的代價多大、誰來看沒被回答的問題。" },
 ];
 const longDate = (d) => new Intl.DateTimeFormat("zh-TW", { dateStyle: "long", timeZone: "UTC" }).format(new Date(d + "T00:00:00Z"));
-const tags = (t) => `<ul class="tags" aria-label="標籤">${t.map((x) => `<li><a href="#">#${x}</a></li>`).join("")}</ul>`;
+const tags = (t) => `<ul class="tags" aria-label="標籤">${t.map((x) => `<li><a href="#" data-noop>#${x}</a></li>`).join("")}</ul>`;
+const cover = (slug, cls = "") => `<canvas class="cover ${cls}" data-cover="${slug}" aria-hidden="true"></canvas>`;
+const themeIcon = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 1a6 6 0 0 1 0 12z" fill="currentColor"/></svg>';
 
 const YAML = '<span class="c">---</span>\n<span class="f">title</span>: <span class="s">為什麼這個網站的文章寫在 git 裡</span>\n<span class="f">description</span>: <span class="s">用 MDX 和 pull request 管理內容，讓 AI 起草、由我審核。</span>\n<span class="f">date</span>: <span class="t">2026-11-01</span>\n<span class="f">tags</span>: [<span class="s">meta</span>]\n<span class="c">---</span>';
 const TS = '<span class="k">const</span> dateFormat = <span class="k">new</span> Intl.<span class="f">DateTimeFormat</span>(<span class="s">"zh-TW"</span>, { dateStyle: <span class="s">"long"</span>, timeZone: <span class="s">"UTC"</span> });\n\n<span class="c">/** 把 YYYY-MM-DD 轉成讀者看的日期，例如 2026年10月1日。 */</span>\n<span class="k">export function</span> <span class="f">formatDate</span>(date: <span class="t">string</span>): <span class="t">string</span> {\n  <span class="k">return</span> dateFormat.<span class="f">format</span>(<span class="k">new</span> <span class="f">Date</span>(<span class="s">`${date}T00:00:00Z`</span>));\n}';
 
-function header(page) {
+let v = "v", page = "home";
+
+const header = (width = "col") => {
   const cur = (k) => (page === k || (page === "post" && k === "list") ? ' aria-current="page"' : "");
-  return `<header class="hdr col">
-    <a class="brand" href="#home"><span class="seal" aria-hidden="true">溫</span>Duncan Wen</a>
-    <nav class="nav" aria-label="主要">
-      <a href="#list"${cur("list")}>文章</a><a href="#" data-noop>標籤</a><a href="#" data-noop>關於</a>
-      <button class="theme-btn" data-theme-toggle aria-label="切換淺色或深色"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 1a6 6 0 0 1 0 12z" fill="currentColor"/></svg></button>
-    </nav></header>`;
-}
-const footer = `<footer class="ftr col">
+  return `<div class="gut"><header class="hdr ${width}">
+    <a class="brand" href="#home" data-go="home"><span class="seal" aria-hidden="true">溫</span>Duncan Wen</a>
+    <nav class="nav" aria-label="主要"><a href="#list" data-go="list"${cur("list")}>文章</a><a href="#" data-noop>標籤</a><a href="#" data-noop>關於</a>
+      <button class="theme-btn" data-theme-toggle aria-label="切換淺色或深色">${themeIcon}</button></nav></header></div>`;
+};
+const footer = (width = "col") => `<div class="gut"><footer class="ftr ${width}">
   <span class="own"><span class="seal small" aria-hidden="true">溫</span>© 2026 Duncan Wen</span>
-  <nav aria-label="聯絡與訂閱"><a href="#" data-noop>GitHub</a><a href="#" data-noop>Email</a><a href="#" data-noop>LinkedIn</a><a href="#" data-noop>RSS</a></nav>
-</footer>`;
+  <nav aria-label="聯絡與訂閱"><a href="#" data-noop>GitHub</a><a href="#" data-noop>Email</a><a href="#" data-noop>LinkedIn</a><a href="#" data-noop>RSS</a></nav></footer></div>`;
+const entry = (p, date) => `<li class="entry"><time datetime="${p.date}">${date}</time>${v === "x" ? cover(p.slug, "thumb") : ""}<div class="body">
+  <h3><a href="#post" data-go="post">${p.title}</a></h3><p>${p.desc}</p>${tags(p.tags)}</div></li>`;
+const latest = (from = 0) => `<section class="gut"><div class="col">
+  <div class="sec-head"><h2>${from ? "更多文章" : "最新文章"}</h2><a class="tlink" href="#list" data-go="list">所有文章</a></div>
+  <ul>${POSTS.slice(from).map((p) => entry(p, p.date)).join("")}</ul></div></section>`;
 
-const entry = (p, date) => `<li class="entry"><time datetime="${p.date}">${date}</time><div class="body">
-  <h3><a href="#post">${p.title}</a></h3><p>${p.desc}</p>${tags(p.tags)}</div></li>`;
-
-function home() {
-  return `<main class="col">
-    <section class="hero">
+/* 首頁 */
+const HOME = {
+  v: () => header() + `<main><section class="gut"><div class="col hero">
       <h1>把 AI 做進真的產品裡，<br>再把過程寫下來。</h1>
       <p>我是 Duncan Wen，一名軟體工程師，專注在網頁開發與 AI 應用。這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。</p>
-      <div class="links"><a class="tlink" href="#" data-noop>關於我</a><a class="tlink" href="#" data-noop>聯絡我</a></div>
-    </section>
-    <section>
-      <div class="sec-head"><h2>最新文章</h2><a class="tlink" href="#list">所有文章</a></div>
-      <ul class="entries">${POSTS.map((p) => entry(p, p.date)).join("")}</ul>
-    </section></main>`;
-}
+      <div class="links"><a class="tlink" href="#" data-noop>關於我</a><a class="tlink" href="#" data-noop>聯絡我</a></div></div></section>${latest()}</main>` + footer(),
+  w: () => `<div class="band"><span class="watermark" aria-hidden="true">溫</span>${header("wide")}
+      <section class="gut"><div class="wide w-hero">
+        <h1>把 AI 做進<br>真的產品裡，<br>再把過程寫下來。</h1>
+        <p>我是 Duncan Wen，一名軟體工程師，專注在網頁開發與 AI 應用。這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。</p>
+        <div class="links"><a class="tlink" href="#" data-noop>關於我</a><a class="tlink" href="#" data-noop>聯絡我</a></div></div></section></div>
+    <main><section class="gut"><div class="col feature">
+      <span class="label">最新一篇</span>
+      <h2><a href="#post" data-go="post">${POSTS[0].title}</a></h2><p>${POSTS[0].desc}</p>
+      <div class="meta"><time>${POSTS[0].date}</time>${tags(POSTS[0].tags)}</div></div></section>${latest(1)}</main>` + footer(),
+  x: () => header("wide") + `<main><section class="gut"><div class="wide hero" style="padding-block:72px 40px">
+      <h1>把 AI 做進真的產品裡，<br>再把過程寫下來。</h1>
+      <p>我是 Duncan Wen，一名軟體工程師，專注在網頁開發與 AI 應用。這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。</p>
+      <div class="links"><a class="tlink" href="#" data-noop>關於我</a><a class="tlink" href="#" data-noop>聯絡我</a></div></div></section>
+    <section class="gut"><div class="wide"><div class="sec-head"><h2>最新文章</h2><a class="tlink" href="#list" data-go="list">所有文章</a></div>
+      <div class="grid">${POSTS.map((p, i) => `<a class="card${i === 0 ? " lead" : ""}" href="#post" data-go="post">${cover(p.slug)}
+        <div class="txt"><time datetime="${p.date}">${p.date}</time><h3>${p.title}</h3><p>${p.desc}</p></div></a>`).join("")}</div></div></section></main>` + footer("wide"),
+  y: () => header() + `<main><section class="gut"><div class="col y-hero">
+      <div class="intro"><p class="lead">我是 Duncan Wen，一名軟體工程師，專注在網頁開發與 AI 應用。</p>
+        <p>這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。</p>
+        <div class="links"><a class="tlink" href="#" data-noop>關於我</a><a class="tlink" href="#" data-noop>聯絡我</a></div></div>
+      <span class="y-rule" aria-hidden="true"></span>
+      <h1 class="y-title"><span>把<span class="tcy">AI</span>做進真的產品裡</span><span>再把過程寫下來<span class="seal" aria-hidden="true">溫</span></span></h1>
+    </div></section>${latest()}</main>` + footer(),
+};
 
 function list() {
   const years = {};
   POSTS.forEach((p) => (years[p.date.slice(0, 4)] ??= []).push(p));
-  return `<main class="col">
-    <div class="page-head"><h1>文章</h1><p>共 ${POSTS.length} 篇，由新到舊。</p></div>
-    ${Object.keys(years).sort().reverse().map((y) => `<section class="year" aria-label="${y} 年"><h2>${y}</h2>
-      <ul class="entries">${years[y].map((p) => entry(p, p.date.slice(5))).join("")}</ul></section>`).join("")}
-  </main>`;
+  const band = v === "w";
+  return (band ? `<div class="band">${header()}<section class="gut"><div class="col page-head" style="padding-bottom:56px"><h1>文章</h1><p style="color:var(--band-soft)">共 ${POSTS.length} 篇，由新到舊。</p></div></section></div>` : header())
+    + `<main class="gut"><div class="col">${band ? '<div style="height:48px"></div>' : `<div class="page-head"><h1>文章</h1><p>共 ${POSTS.length} 篇，由新到舊。</p></div>`}
+    ${Object.keys(years).sort().reverse().map((y) => `<section class="year" aria-label="${y} 年"><h2>${y}</h2><ul>${years[y].map((p) => entry(p, p.date.slice(5))).join("")}</ul></section>`).join("")}
+    </div></main>` + footer();
 }
 
 function post() {
   const p = POSTS[0];
-  return `<div class="post-wrap"><article>
-    <header class="post-head">
-      <a class="back" href="#list">文章</a>
-      <h1>${p.title}</h1>
+  const head = `<header class="post-head">
+      <a class="back" href="#list" data-go="list">文章</a><h1>${p.title}</h1>
       <div class="meta"><time datetime="${p.date}">${p.date}</time>${tags(p.tags)}</div>
-      <p class="revision">更新於 <time datetime="2026-11-08">2026-11-08</time>：補上手動轉貼時設定 canonical 網址的做法。</p>
-    </header>
-    <div class="prose">
+      <p class="revision">更新於 <time datetime="2026-11-08">2026-11-08</time>：補上手動轉貼時設定 canonical 網址的做法。</p></header>`;
+  const body = `<div class="prose">
       <p>這個網站的每一篇文章都是 repo 裡的一個 MDX 檔案，而不是存在 Hashnode 或 Ghost 這類平台上。</p>
       <h2 id="why">為什麼不用現成平台</h2>
-      <ul>
-        <li><strong>AI 擅長改檔案。</strong>讓 AI 起草文章時，最自然的工作方式就是在分支上改檔案，再開一個 pull request。</li>
+      <ul><li><strong>AI 擅長改檔案。</strong>讓 AI 起草文章時，最自然的工作方式就是在分支上改檔案，再開一個 pull request。</li>
         <li><strong>審核就是 code review。</strong>每一次變更都有完整的 diff 和歷史紀錄，合併之後才會上線。</li>
-        <li><strong>MDX 可以嵌入元件。</strong>之後的互動 Demo 可以直接放進文章裡。</li>
-      </ul>
+        <li><strong>MDX 可以嵌入元件。</strong>之後的互動 Demo 可以直接放進文章裡。</li></ul>
       <h2 id="shape">一篇文章長什麼樣子</h2>
       <p>每篇文章開頭是一段 frontmatter，內容檢查會逐一驗證每個欄位：</p>
-      <figure class="code" style="margin:0"><figcaption class="file">content/posts/why-mdx-in-git/index.mdx</figcaption><pre><code>${YAML}</code></pre></figure>
+      <figure class="code"><figcaption class="file">content/posts/why-mdx-in-git/index.mdx</figcaption><pre><code>${YAML}</code></pre></figure>
       <p>讀者看到的日期，也是一個自己寫的小函式：</p>
-      <figure class="code" style="margin:0"><figcaption class="file">src/format-date.ts</figcaption><pre><code>${TS}</code></pre></figure>
+      <figure class="code"><figcaption class="file">src/format-date.ts</figcaption><pre><code>${TS}</code></pre></figure>
       <h2 id="cost">代價</h2>
-      <p>代價是少了平台本身的社群流量，需要的話可以手動轉貼並加上 <code>canonical</code> 網址。</p>
-    </div>
-    <div class="colophon"><span class="seal big" aria-hidden="true">溫</span>
-      <div><b>Duncan Wen</b><span>寫於 ${longDate(p.date)}</span></div></div>
-    <div class="after"><a class="tlink" href="#list">所有文章</a><a class="tlink" href="#" data-noop>聯絡我</a></div>
-  </article>
-  <nav class="toc" aria-label="本文目錄"><p>本文目錄</p>
-    <a href="#why" data-toc>為什麼不用現成平台</a><a href="#shape" data-toc>一篇文章長什麼樣子</a><a href="#cost" data-toc>代價</a>
-  </nav></div>`;
+      <p>代價是少了平台本身的社群流量，需要的話可以手動轉貼並加上 <code>canonical</code> 網址。</p></div>
+    <div class="colophon"><span class="seal big" aria-hidden="true">溫</span><div><b>Duncan Wen</b><span>寫於 ${longDate(p.date)}</span></div></div>
+    <div class="after"><a class="tlink" href="#list" data-go="list">所有文章</a><a class="tlink" href="#" data-noop>聯絡我</a></div>`;
+  const toc = `<nav class="toc" aria-label="本文目錄"><p>本文目錄</p><a href="#why" data-toc>為什麼不用現成平台</a><a href="#shape" data-toc>一篇文章長什麼樣子</a><a href="#cost" data-toc>代價</a></nav>`;
+  if (v === "w") return `<div class="band post-band">${header()}<div class="gut"><div class="col">${head}</div></div></div>
+    <div class="gut post-wrap"><article style="padding-top:48px">${body}</article>${toc}</div>` + footer();
+  if (v === "x") return header() + `<div class="gut"><div class="col">${cover(p.slug, "post-cover")}</div></div>
+    <div class="gut post-wrap"><article>${head}${body}</article>${toc}</div>` + footer();
+  return header() + `<div class="gut post-wrap"><article>${head}${body}</article>${toc}</div>` + footer();
 }
 
-const VIEW = { home, list, post };
-const root = document.documentElement;
-let page = "home";
-let spy;
+/* 生成封面：依 slug 決定的等高線，像地形圖也像墨跡年輪 */
+function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { return () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function drawCovers() {
+  const css = getComputedStyle(root);
+  const bg = css.getPropertyValue("--paper-deep").trim(), ink = css.getPropertyValue("--pine").trim();
+  document.querySelectorAll("canvas[data-cover]").forEach((cv) => {
+    const dpr = Math.min(devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return;
+    cv.width = w * dpr; cv.height = h * dpr;
+    const g = cv.getContext("2d"); g.scale(dpr, dpr);
+    g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    const r = rng(hash(cv.dataset.cover));
+    const cx = w * (0.25 + r() * 0.5), cy = h * (0.3 + r() * 0.4);
+    const waves = Array.from({ length: 4 }, (_, j) => ({ amp: (0.22 / (j + 1)) * (0.6 + r()), ph: r() * 6.28, drift: (r() - 0.5) * 0.5 }));
+    const n = 22, step = Math.hypot(w, h) / n * 0.62;
+    g.strokeStyle = ink; g.lineJoin = "round";
+    for (let k = 1; k <= n; k++) {
+      g.beginPath();
+      for (let i = 0; i <= 160; i++) {
+        const a = (i / 160) * Math.PI * 2;
+        let m = 1; waves.forEach((wv, j) => (m += wv.amp * Math.sin((j + 2) * a + wv.ph + k * wv.drift)));
+        const rad = k * step * m;
+        const x = cx + Math.cos(a) * rad * 1.25, y = cy + Math.sin(a) * rad * 0.85;
+        i ? g.lineTo(x, y) : g.moveTo(x, y);
+      }
+      g.globalAlpha = k % 5 === 0 ? 0.85 : 0.38;
+      g.lineWidth = k % 5 === 0 ? 1.6 : 0.9;
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  });
+}
 
+const root = document.documentElement;
+let spy;
 function render() {
-  document.getElementById("app").innerHTML = header(page) + VIEW[page]() + footer;
+  root.classList.remove("v-v", "v-w", "v-x", "v-y"); root.classList.add("v-" + v);
+  document.getElementById("app").innerHTML = page === "home" ? HOME[v]() : page === "list" ? list() : post();
+  document.getElementById("vlabel").textContent = VARIANTS.find((x) => x[0] === v)[1];
   document.querySelectorAll("[data-page]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.page === page)));
+  const h = `#${v}-${page}`; if (location.hash !== h) history.replaceState(null, "", h);
   window.scrollTo(0, 0);
+  requestAnimationFrame(drawCovers);
   spy?.disconnect();
   if (page === "post") {
     const links = [...document.querySelectorAll("[data-toc]")];
-    spy = new IntersectionObserver((es) => es.forEach((e) => {
-      if (!e.isIntersecting) return;
-      links.forEach((a) => a.toggleAttribute("aria-current", a.getAttribute("href") === "#" + e.target.id));
-    }), { rootMargin: "0px 0px -70% 0px" });
-    document.querySelectorAll(".prose h2[id]").forEach((h) => spy.observe(h));
+    spy = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && links.forEach((a) => a.toggleAttribute("aria-current", a.getAttribute("href") === "#" + e.target.id))), { rootMargin: "0px 0px -70% 0px" });
+    document.querySelectorAll(".prose h2[id]").forEach((x) => spy.observe(x));
   }
 }
-function go(p) { if (p !== page) { page = p; if (location.hash !== "#" + p) history.replaceState(null, "", "#" + p); render(); } }
+const go = (patch) => { ({ v = v, page = page } = { v, page, ...patch }); render(); };
+const cycle = (d) => { const i = VARIANTS.findIndex((x) => x[0] === v); go({ v: VARIANTS[(i + d + VARIANTS.length) % VARIANTS.length][0] }); };
 function toggleTheme() {
   const cur = root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   root.dataset.theme = cur === "dark" ? "light" : "dark";
+  drawCovers();
 }
-
+document.getElementById("prev").onclick = () => cycle(-1);
+document.getElementById("next").onclick = () => cycle(1);
 document.addEventListener("click", (e) => {
-  const t = e.target.closest("a, button");
-  if (!t) return;
+  const t = e.target.closest("a, button"); if (!t) return;
   if (t.matches("[data-theme-toggle], #theme")) return toggleTheme();
-  if (t.dataset.page) return go(t.dataset.page);
+  if (t.dataset.page) return go({ page: t.dataset.page });
+  if (t.dataset.go) { e.preventDefault(); return go({ page: t.dataset.go }); }
   if (t.matches("[data-noop]")) return e.preventDefault();
-  const h = t.getAttribute("href") || "";
-  if (PAGES.includes(h.slice(1))) { e.preventDefault(); go(h.slice(1)); }
-  else if (t.matches("[data-toc]")) { e.preventDefault(); document.querySelector(h)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
+  if (t.matches("[data-toc]")) { e.preventDefault(); document.querySelector(t.getAttribute("href"))?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
 });
 addEventListener("keydown", (e) => {
   if (e.target.closest("input, textarea, [contenteditable]")) return;
-  const i = PAGES.indexOf(page);
-  if (e.key === "ArrowLeft") go(PAGES[(i + 2) % 3]);
-  if (e.key === "ArrowRight") go(PAGES[(i + 1) % 3]);
+  if (e.key === "ArrowLeft") cycle(-1);
+  if (e.key === "ArrowRight") cycle(1);
 });
-addEventListener("hashchange", () => { const h = location.hash.slice(1); if (PAGES.includes(h)) go(h); });
-page = PAGES.includes(location.hash.slice(1)) ? location.hash.slice(1) : "home";
+addEventListener("resize", () => requestAnimationFrame(drawCovers));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawCovers);
+addEventListener("hashchange", () => { const m = /^#([vwxy])-(home|list|post)$/.exec(location.hash); if (m) go({ v: m[1], page: m[2] }); });
+{ const m = /^#([vwxy])-(home|list|post)$/.exec(location.hash); if (m) { v = m[1]; page = m[2]; } }
 render();
 </script>
