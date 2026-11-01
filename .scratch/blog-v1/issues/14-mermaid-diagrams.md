@@ -10,7 +10,7 @@
 - [x] Diagram colours come from visual-design/01's tokens and switch with the theme toggle without a reload
 - [x] A wide diagram scrolls inside its own box at 375px; the page never scrolls horizontally
 - [x] Mermaid that fails to parse fails the content check, naming the Post and the block
-- [ ] The typography sample Post has a flowchart and an architecture diagram, and both look right in `pnpm shots`
+- [x] The typography sample Post has a flowchart and an architecture diagram, and both look right in `pnpm shots`
 
 ## Comments
 
@@ -22,3 +22,4 @@
 - Known limit: `beautiful-mermaid` misreads non-ASCII node IDs (`審閱[審閱]`), which Mermaid accepts, so the check passes but the drawing breaks. Write IDs in ASCII and labels in Chinese (`review{審閱}`); the write-post skill should say so.
 - "Look right in `pnpm shots`" stays unticked until the Owner checks the screenshots.
 - 2026-11-01 review fixes: the content check now also draws each block with `mermaidSvg`, so Mermaid the renderer can't draw (e.g. `flowchart LR;`) fails as `mermaid-render`, and a flowchart node ID that isn't ASCII fails as `mermaid-ascii-id`, telling the writer to use ASCII IDs with Chinese labels (this closes the known limit above). `beautiful-mermaid`'s patch also adds a `default` export condition, so the content module can import the renderer while next.config loads. Wide diagrams no longer shrink to about 9.5px labels on desktop: a diagram shrinks only as far as the body's small text (13px, the renderer's node-label size), and anything wider scrolls inside its own box at every width.
+- 2026-11-01: on the Owner's screenshot review, edges are straightened (the renderer left few-px jogs), and a sideways flowchart is drawn top-down on phones, and on desktop too when it's wider than the reading column, instead of being cut off at its scroll box's edge. The Owner then approved the diagrams and the promo images (15).
