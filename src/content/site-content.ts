@@ -1,8 +1,15 @@
 import path from "node:path";
 import { type Content, loadContent } from "./content";
 
-/** The site's content directory. */
-export const contentDir = path.join(process.cwd(), "content");
+/**
+ * The site's content directory: `CONTENT_DIR` if set (the smoke suite uses
+ * `e2e/content`), else `content`. Content is read only at build time, so the
+ * output's file trace leaves it out.
+ */
+export const contentDir = path.resolve(
+  /*turbopackIgnore: true*/ process.cwd(),
+  process.env.CONTENT_DIR ?? "content",
+);
 
 let content: Promise<Content> | undefined;
 

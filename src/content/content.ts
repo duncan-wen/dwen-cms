@@ -20,12 +20,16 @@ export type SlugResolution =
   | { kind: "post"; post: Post }
   /** An old Slug; `to` is the Post's current Slug. */
   | { kind: "redirect"; to: string }
+  /** A Slug whose Post was taken down; its URL answers 410 Gone. */
+  | { kind: "taken-down" }
   | { kind: "not-found" };
 
 export type Content = {
   /** Every Published Post, newest first; Posts sharing a date are in Slug order. */
   listPublishedPosts(): Post[];
   resolveSlug(slug: string): SlugResolution;
+  /** Every Slug in the taken-down Slug list, in Slug order. */
+  listTakenDownSlugs(): string[];
   /** The Posts carrying `tag`, in listPublishedPosts order; empty for an unused Tag. */
   listPostsByTag(tag: string): Post[];
   /**
@@ -59,10 +63,17 @@ export class ContentValidationError extends Error {
 /** A Post's file, relative to the content directory. */
 const postFile = (slug: string) => `posts/${slug}/index.mdx`;
 
+/** Advice for a taken-down Slug used as a current or previous Slug. */
+const takenDownSlugAdvice = (slug: string) =>
+  `"${slug}" is in the taken-down Slug list (${TAKEN_DOWN_FILE}); a taken-down Slug can never be reused as a current or previous Slug`;
+
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** The approved Tag list, relative to the content directory. */
 const TAGS_FILE = "tags.yml";
+
+/** The taken-down Slug list, relative to the content directory; optional. */
+const TAKEN_DOWN_FILE = "taken-down.yml";
 
 /**
  * Loads and validates every Post under `contentDir`.
@@ -76,6 +87,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
   const problems: ContentProblem[] = [];
   const posts: Post[] = [];
   const approvedTags = await loadApprovedTags(contentDir, problems);
+  const takenDownSlugs = await loadTakenDownSlugs(contentDir, problems);
 
   for (const slug of slugs) {
     const file = postFile(slug);
@@ -85,6 +97,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     if (!KEBAB_CASE.test(slug)) {
       report("slug", "kebab-case", "the folder name must be lowercase English kebab-case");
     }
+    if (takenDownSlugs.has(slug)) report("slug", "taken-down-slug", takenDownSlugAdvice(slug));
 
     const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
     if (source === undefined) {
@@ -146,8 +159,10 @@ export async function loadContent(contentDir: string): Promise<Content> {
       for (const previousSlug of (data.previousSlugs ?? []) as unknown[]) {
         if (typeof previousSlug === "string" && KEBAB_CASE.test(previousSlug)) {
           previousSlugs.push(previousSlug);
-        }
-        else {
+          if (takenDownSlugs.has(previousSlug)) {
+            report("previousSlugs", "taken-down-slug", takenDownSlugAdvice(previousSlug));
+          }
+        } else {
           report(
             "previousSlugs",
             "kebab-case",
@@ -195,7 +210,11 @@ export async function loadContent(contentDir: string): Promise<Content> {
       const post = bySlug.get(slug);
       if (post) return { kind: "post", post };
       const to = redirects.get(slug);
-      return to ? { kind: "redirect", to } : { kind: "not-found" };
+      if (to) return { kind: "redirect", to };
+      return takenDownSlugs.has(slug) ? { kind: "taken-down" } : { kind: "not-found" };
+    },
+    listTakenDownSlugs() {
+      return [...takenDownSlugs].sort();
     },
     listPostsByTag(tag) {
       return posts.filter((post) => post.tags.includes(tag));
@@ -211,35 +230,66 @@ export async function loadContent(contentDir: string): Promise<Content> {
  * returns undefined when the list can't be used, so Post Tags aren't
  * checked against a broken list.
  */
-async function loadApprovedTags(
+function loadApprovedTags(contentDir: string, problems: ContentProblem[]) {
+  return loadKebabCaseList(contentDir, problems, {
+    file: TAGS_FILE,
+    field: "tags",
+    missing: "the content directory needs an approved Tag list",
+    example: "must be a YAML list of Tags, e.g. - nextjs",
+  });
+}
+
+/**
+ * Reads the taken-down Slug list. The file is optional: without it no
+ * Slug is taken down.
+ */
+async function loadTakenDownSlugs(contentDir: string, problems: ContentProblem[]) {
+  return (
+    (await loadKebabCaseList(contentDir, problems, {
+      file: TAKEN_DOWN_FILE,
+      field: "slugs",
+      example: "must be a YAML list of Slugs, e.g. - old-post",
+    })) ?? new Set<string>()
+  );
+}
+
+/**
+ * Reads a data file holding a YAML list of kebab-case names. Reports
+ * problems with the file and returns undefined when the list can't be used.
+ * A missing file is a problem only when `missing` gives the message for it.
+ */
+async function loadKebabCaseList(
   contentDir: string,
   problems: ContentProblem[],
+  list: { file: string; field: string; example: string; missing?: string },
 ): Promise<Set<string> | undefined> {
   const report = (field: string, rule: string, message: string) =>
-    problems.push({ file: TAGS_FILE, field, rule, message });
+    problems.push({ file: list.file, field, rule, message });
 
-  const source = await readFile(path.join(contentDir, TAGS_FILE), "utf8").catch(() => undefined);
+  const source = await readFile(path.join(contentDir, list.file), "utf8").catch(() => undefined);
   if (source === undefined) {
-    report("file", "required", "the content directory needs an approved Tag list");
+    if (list.missing !== undefined) report("file", "required", list.missing);
     return undefined;
   }
-  let list: unknown;
+  let entries: unknown;
   try {
-    list = loadYaml(source, { schema: CORE_SCHEMA });
+    entries = loadYaml(source, { schema: CORE_SCHEMA });
   } catch (error) {
     report("file", "yaml-syntax", (error as Error).message.split("\n")[0]);
     return undefined;
   }
-  if (!Array.isArray(list)) {
-    report("tags", "list", "must be a YAML list of Tags, e.g. - nextjs");
+  if (!Array.isArray(entries)) {
+    report(list.field, "list", list.example);
     return undefined;
   }
-  const approved = new Set<string>();
-  for (const tag of list as unknown[]) {
-    if (typeof tag === "string" && KEBAB_CASE.test(tag)) approved.add(tag);
-    else report("tags", "kebab-case", `${JSON.stringify(tag)} must be lowercase English kebab-case`);
+  const names = new Set<string>();
+  for (const entry of entries as unknown[]) {
+    if (typeof entry === "string" && KEBAB_CASE.test(entry)) names.add(entry);
+    else {
+      report(list.field, "kebab-case", `${JSON.stringify(entry)} must be lowercase English kebab-case`);
+    }
   }
-  return approved;
+  return names;
 }
 
 /**

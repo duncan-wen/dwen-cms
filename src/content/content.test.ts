@@ -30,6 +30,13 @@ describe("loading a valid content directory", () => {
     expect(content.resolveSlug("renamed-post").kind).toBe("post");
   });
 
+  it("answers with a Takedown marker for a taken-down Slug", async () => {
+    const content = await loadContent(fixture("taken-down"));
+
+    expect(content.resolveSlug("removed-post")).toEqual({ kind: "taken-down" });
+    expect(content.resolveSlug("kept-post").kind).toBe("post");
+  });
+
   it("answers not-found for an unknown Slug", async () => {
     const content = await loadContent(fixture("valid"));
 
@@ -214,6 +221,27 @@ describe("validating Slugs", () => {
     });
     expect((error as Error).message).toContain('"shared-name"');
     expect((error as Error).message).toContain("posts/first/index.mdx");
+  });
+
+  it.each([
+    ["taken-down-slug-is-current", "posts/old-post/index.mdx", "slug"],
+    ["taken-down-slug-is-previous", "posts/new-post/index.mdx", "previousSlugs"],
+  ])("rejects a taken-down Slug reused in fixture %s: %s %s", async (fixtureName, file, field) => {
+    const error = await loadContent(fixture(fixtureName)).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file, field, rule: "taken-down-slug" }] });
+    expect((error as Error).message).toContain('"old-post"');
+    expect((error as Error).message).toContain("taken-down.yml");
+  });
+
+  it.each([
+    ["taken-down-file-broken-yaml", "file", "yaml-syntax"],
+    ["taken-down-file-not-a-list", "slugs", "list"],
+    ["taken-down-file-bad-entry", "slugs", "kebab-case"],
+  ])("rejects a taken-down Slug list in fixture %s: %s breaks %s", async (fixtureName, field, rule) => {
+    await expect(loadContent(fixture(fixtureName))).rejects.toMatchObject({
+      problems: [{ file: "taken-down.yml", field, rule }],
+    });
   });
 
   it("reports a bad Slug even when the Post's frontmatter is also broken", async () => {

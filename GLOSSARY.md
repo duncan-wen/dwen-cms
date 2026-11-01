@@ -61,5 +61,5 @@ A substantive change to a Published Post that changes what readers learn; shown 
 _Avoid_: Update, rewrite
 
 **Takedown**:
-Removing a Published Post entirely; its URL then returns 410 Gone. There is no "unpublished" state.
+Removing a Published Post entirely; its URL then returns 410 Gone. There is no "unpublished" state. Shown to readers as 「移除」.
 _Avoid_: Unpublish, archive
