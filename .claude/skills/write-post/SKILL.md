@@ -32,7 +32,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 
 Posts are written in **Traditional Chinese, Taiwan usage**: 程式, 軟體, 資料, 網路, 介面, 預設; full-width punctuation (，。：；！？「」); a space between Chinese and an English word, number with a unit in English, or `inline code` (`用 Python 寫`, `接了 MCP`). English product and tech names stay in English; a term the Reader may not know gets its Chinese gloss once, e.g. 手跟腳 (Tools).
 
-The Owner is a middle-aged Taiwanese software engineer, a father, and a stock and futures trader. The site is his tech brand, read first by employers and clients, then by fellow engineers. He speaks for himself, so the Post does too; the About page carries the site-wide AI disclosure.
+The Owner is a middle-aged Taiwanese software engineer, a parent, and a stock and futures trader. The site is the Owner's tech brand, read first by employers and clients, then by fellow engineers. The Owner speaks in the first person, so the Post does too; the About page carries the site-wide AI disclosure.
 
 ### Traits, from the samples below
 
