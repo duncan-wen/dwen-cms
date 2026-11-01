@@ -60,6 +60,19 @@
   --code-type: #e0b77a;
 }
 
+/* dark: follows the same rule as the tokens, not just the system preference. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
 /* The header seal lands like a stamp; motion-safe: skips it under reduced motion. */
 @theme {
   --animate-stamp: stamp 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
