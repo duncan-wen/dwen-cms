@@ -10,7 +10,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Triage state is recorded as a `**Status:** <role>` line near the top of each issue file and spec, written exactly so (see `triage-labels.md` for the role strings). `grep -rn '^\*\*Status:\*\*' .scratch` lists every ticket's state
 - Dependencies are a `**Blocked by:** NN, NN` line
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
-- **Shipping**: each ticket is built on its own branch `issue-<NN>-<slug>` off a freshly fetched `origin/main`, then opened as a PR to `main`. The PR body names the branch's preview URL, `https://dwen-cms-git-<branch>-duncan-wens-projects.vercel.app`, and the paths to check there. The Owner reviews that preview and merges.
+- **Shipping**: each ticket is built on its own branch `issue-<NN>-<slug>` off a freshly fetched `origin/main`, then opened as a PR to `main`. The PR body names the branch's preview URL, `https://dwen-cms-git-<branch>-duncan-wens-projects.vercel.app`, and the paths to check there. The Owner reviews that preview and merges. Previews sit behind Vercel login; check them yourself by sending `x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET` (from `.env.local`).
 - **Done**: when a ticket's work lands, tick every acceptance box it met and set `**Status:** done`, in the same commit as the code. A `Blocked by:` edge clears only when the blocking ticket reads `done` on `main`.
 
 ## When a skill says "publish to the issue tracker"

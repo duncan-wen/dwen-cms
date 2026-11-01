@@ -11,6 +11,7 @@
     "content:check": "tsx scripts/content-check.ts",
     "test": "vitest run",
     "test:smoke": "playwright test",
+    "smoke": "pnpm build && pnpm test:smoke",
     "check": "pnpm lint && pnpm typecheck && pnpm content:check && pnpm test",
     "prepare": "simple-git-hooks"
   },

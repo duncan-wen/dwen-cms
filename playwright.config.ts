@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 const port = 3100;
 
-/** Smoke tests run against a production build: `pnpm build` first. */
+/** Smoke tests run against a production build: `pnpm smoke` builds, then tests. */
 export default defineConfig({
   testDir: "e2e",
   forbidOnly: !!process.env.CI,
@@ -11,6 +11,7 @@ export default defineConfig({
   webServer: {
     command: `pnpm start --port ${port}`,
     url: `http://localhost:${port}/posts/why-mdx-in-git`,
-    reuseExistingServer: !process.env.CI,
+    // A leftover server on this port may be serving an older build.
+    reuseExistingServer: false,
   },
 });
