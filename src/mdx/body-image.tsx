@@ -18,7 +18,7 @@ export function BodyImage({ src, alt = "", width, height }: Props) {
       width={Number(width)}
       height={Number(height)}
       sizes={bodyColumnSizes}
-      className="h-auto max-w-full rounded-md dark:brightness-75"
+      className="h-auto max-w-full rounded-md dark:brightness-[.85]"
     />
   );
 }
