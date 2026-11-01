@@ -30,6 +30,13 @@ describe("compileMdx", () => {
     expect(html).not.toMatch(/color:#/);
   });
 
+  test("renders a GFM table as a table with a header row and body rows", async () => {
+    const { Body } = await compileMdx("| 風格 | 產圖時間 |\n| --- | --- |\n| 水墨 | 19 秒 |");
+
+    const html = renderToStaticMarkup(createElement(Body));
+    expect(html).toMatch(/<table[^>]*>.*<thead>.*<th>風格<\/th>.*<th>產圖時間<\/th>.*<\/thead>.*<tbody>.*<td>水墨<\/td>.*<td>19 秒<\/td>.*<\/tbody>.*<\/table>/s);
+  });
+
   test("renders a Callout from the component map as an aside around its content", async () => {
     const { Body } = await compileMdx('<Callout title="注意">\n\n先備份資料。\n\n</Callout>');
 

@@ -6,6 +6,7 @@ import { generateCover } from "@/cover/cover";
 import { ImageSeal, sealFont } from "@/og/image-seal";
 import { type Colours, lightColours } from "@/og/token-colours";
 import { serifFont } from "@/og/serif-font";
+import { OgTitle } from "@/og/og-title";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -57,9 +58,7 @@ export default async function OpenGraphImage({ params }: Props) {
           color: ink,
         }}
       >
-        <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.35, letterSpacing: "0.02em" }}>
-          {post.title}
-        </div>
+        <OgTitle post={post} width={size.width - 2 * 64 - 2 * 56} />
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 36 }}>
           <ImageSeal size={52} colours={colours} />
           <div style={{ fontSize: 30, fontWeight: 700 }}>{SIGNATURE_GLYPHS}</div>
@@ -68,7 +67,7 @@ export default async function OpenGraphImage({ params }: Props) {
     </div>,
     {
       ...size,
-      fonts: [await serifFont(700, post.title + SIGNATURE_GLYPHS), await sealFont()],
+      fonts: [await serifFont(700, (post.promo.titleLines?.join("") ?? post.title) + SIGNATURE_GLYPHS), await sealFont()],
     },
   );
 }
