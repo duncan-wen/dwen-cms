@@ -1,9 +1,11 @@
 import { evaluate } from "@mdx-js/mdx";
-import type { Root } from "hast";
+import rehypeShiki from "@shikijs/rehype";
+import type { Element, Root, RootContent } from "hast";
 import { toString } from "hast-util-to-string";
 import type { ReactElement } from "react";
 import * as runtime from "react/jsx-runtime";
 import rehypeSlug from "rehype-slug";
+import { createCssVariablesTheme } from "shiki";
 import { mdxComponents } from "./components";
 
 /** One entry of a Post's table of contents: an `h2` heading's id and text. */
@@ -12,8 +14,24 @@ export type Heading = { id: string; label: string };
 /** A compiled MDX body and the `h2` headings its table of contents links to. */
 export type CompiledMdx = { Body: () => ReactElement; headings: Heading[] };
 
-/** Compiles an MDX body; every heading gets a stable id from its text (rehype-slug, per ADR-0003). */
-export async function compileMdx(source: string): Promise<CompiledMdx> {
+/** Where a body image is served and its size, so it renders without layout shift. */
+export type BodyImageSource = { src: string; width: number; height: number };
+
+/**
+ * Code blocks colour each token with `var(--shiki-token-*)`, so globals.css
+ * maps them onto the theme's code tokens.
+ */
+const codeTheme = createCssVariablesTheme();
+
+/**
+ * Compiles an MDX body; every heading gets a stable id from its text (rehype-slug, per ADR-0003)
+ * and fenced code with a language is highlighted (Shiki). `images` maps each image reference
+ * the body writes, `./diagram.png`, to where it is served and its size.
+ */
+export async function compileMdx(
+  source: string,
+  images: Record<string, BodyImageSource> = {},
+): Promise<CompiledMdx> {
   const headings: Heading[] = [];
   const collectHeadings = () => (tree: Root) => {
     for (const node of tree.children) {
@@ -22,9 +40,26 @@ export async function compileMdx(source: string): Promise<CompiledMdx> {
       }
     }
   };
+  const resolveImages = () => (tree: Root) => {
+    const visit = (node: Root | RootContent) => {
+      if (node.type === "element" && node.tagName === "img") setImage(node);
+      if ("children" in node) node.children.forEach(visit);
+    };
+    const setImage = (img: Element) => {
+      const image = images[String(img.properties.src)];
+      if (image) Object.assign(img.properties, image);
+    };
+    visit(tree);
+  };
   const { default: Content } = await evaluate(source, {
     ...runtime,
-    rehypePlugins: [rehypeSlug, collectHeadings],
+    rehypePlugins: [
+      rehypeSlug,
+      collectHeadings,
+      resolveImages,
+      [rehypeShiki, // Load each language the first time a block uses it, not every bundled one up front.
+        { theme: codeTheme, langs: [], lazy: true, fallbackLanguage: "text" },],
+    ],
   });
   return { Body: () => <Content components={mdxComponents} />, headings };
 }

@@ -169,6 +169,19 @@
     content: none;
   }
 
+  /* Highlighted code (Shiki's css-variables theme) takes its colours from the code tokens. */
+  --shiki-foreground: var(--color-ink);
+  --shiki-background: var(--color-paper-deep);
+  --shiki-token-keyword: var(--color-code-keyword);
+  --shiki-token-string: var(--color-code-string);
+  --shiki-token-string-expression: var(--color-code-string);
+  --shiki-token-comment: var(--color-code-comment);
+  --shiki-token-function: var(--color-code-function);
+  --shiki-token-constant: var(--color-code-type);
+  --shiki-token-parameter: var(--color-ink);
+  --shiki-token-punctuation: var(--color-ink-soft);
+  --shiki-token-link: var(--color-accent);
+
   & :where(pre):not(:where(.not-prose *)) {
     font-size: 13.5px;
     line-height: 1.7;

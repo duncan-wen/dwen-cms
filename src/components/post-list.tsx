@@ -31,7 +31,7 @@ export function PostList({ posts }: Props) {
                   </time>
                   {/* The one copy of the cover on this row; phones skip it to keep the text wide. */}
                   <div className="hidden pt-1.5 sm:block">
-                    <PostCover slug={post.slug} className="aspect-[3/2] rounded" />
+                    <PostCover post={post} sizes="120px" className="aspect-[3/2] rounded" />
                   </div>
                   <div className="grid min-w-0 gap-1.5">
                     <h3 className="text-[21px] leading-normal font-bold">

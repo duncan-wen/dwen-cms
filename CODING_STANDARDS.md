@@ -21,4 +21,5 @@ Judgement calls for the reviewer. Lint, typecheck and the content check enforce 
 ## Components
 
 - A component's props are a named `type Props`.
+- An MDX body gets every component, and every override of a Markdown element, from the one map in `src/mdx/components.tsx`; Demos join it too. Images a Post shows are stored next to it and served through `postImageUrl`.
 - One way to do each thing. Reuse the shared piece instead of restyling or reformatting inline: dates through `src/format-date.ts`, page titles through `PageHeading`, standalone text links through `TextLink`, rows of links through `LinkRow`, the seal through `Seal`, covers through `PostCover`. A new shared piece joins this list.

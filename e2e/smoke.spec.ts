@@ -17,6 +17,61 @@ test("a Published Post's cover answers 200 as an SVG file", async ({ request }) 
   expect(await response.text()).toContain("<path");
 });
 
+test("a Post's co-located image answers 200 with its image type", async ({ request }) => {
+  const response = await request.get("/posts/typography-sample/flow.png");
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+});
+
+test("a file next to a Post that no Post uses as an image answers 404", async ({ request }) => {
+  const response = await request.get("/posts/typography-sample/index.mdx");
+
+  expect(response.status()).toBe(404);
+});
+
+test("a body image loads optimised, its box sized from the image before it loads", async ({
+  page,
+}) => {
+  await page.goto("/posts/typography-sample");
+  const image = page.getByRole("img", { name: "草稿經過審閱才發布的流程圖" });
+
+  await expect(image).toHaveAttribute("width", "1200");
+  await expect(image).toHaveAttribute("height", "600");
+  await expect(image).toHaveAttribute("src", /^\/_next\/image\?url=%2Fposts%2Ftypography-sample%2Fflow\.png/);
+  await image.scrollIntoViewIfNeeded();
+  await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+});
+
+test("a Post with a cover image opens with it instead of the generated cover", async ({ page }) => {
+  await page.goto("/posts/last-year-smoke-post");
+  const cover = page.locator("article img").first();
+
+  await expect(cover).toHaveAttribute("src", /url=%2Fposts%2Flast-year-smoke-post%2Fcover\.jpg/);
+  await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+});
+
+test("code blocks colour their tokens with the theme's code colours", async ({ page }) => {
+  await page.goto("/posts/typography-sample");
+  const keyword = page.locator("pre code span", { hasText: /^export$/ }).first();
+
+  const [colour, token] = await keyword.evaluate((span) => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--code-keyword)";
+    document.body.append(probe);
+    return [getComputedStyle(span).color, getComputedStyle(probe).color];
+  });
+  expect(colour).toBe(token);
+});
+
+test("a Callout shows its title and content in the Post", async ({ page }) => {
+  await page.goto("/posts/typography-sample");
+  const callout = page.locator("article aside", { hasText: "提示框裡可以放一般內文" });
+
+  await expect(callout).toBeVisible();
+  await expect(callout).toContainText("注意");
+});
+
 test("the Post list answers 200 and links to a Published Post and its Tags", async ({
   request,
 }) => {
