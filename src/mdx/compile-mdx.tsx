@@ -5,6 +5,7 @@ import { toString } from "hast-util-to-string";
 import type { ReactElement } from "react";
 import * as runtime from "react/jsx-runtime";
 import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
 import { createCssVariablesTheme } from "shiki";
 import { mdxComponents } from "./components";
 import { type MdNode, mermaidBlocks } from "./md-tree";
@@ -25,7 +26,7 @@ export type BodyImageSource = { src: string; width: number; height: number };
 const codeTheme = createCssVariablesTheme();
 
 /**
- * Compiles an MDX body; every heading gets a stable id from its text (rehype-slug, per ADR-0003)
+ * Compiles an MDX body, GitHub-flavoured (tables and the rest, remark-gfm per ADR-0003); every heading gets a stable id from its text (rehype-slug, per ADR-0003)
  * and fenced code with a language is highlighted (Shiki). `images` maps each image reference
  * the body writes, `./diagram.png`, to where it is served and its size.
  */
@@ -54,7 +55,7 @@ export async function compileMdx(
   };
   const { default: Content } = await evaluate(source, {
     ...runtime,
-    remarkPlugins: [remarkMermaid],
+    remarkPlugins: [remarkGfm, remarkMermaid],
     rehypePlugins: [
       rehypeSlug,
       collectHeadings,

@@ -6,12 +6,17 @@ import { generateCover } from "@/cover/cover";
 import { ImageSeal, sealFont } from "@/og/image-seal";
 import { type Colours, lightColours } from "@/og/token-colours";
 import { serifFont } from "@/og/serif-font";
+import { OgTitle, titleGlyphs } from "@/og/og-title";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "文章標題與 Duncan Wen 的印章";
+
+/** How far the title panel sits from the image's sides, and its own side padding, in pixels. */
+const PANEL_INSET = 64;
+const PANEL_PADDING_X = 56;
 
 /** The glyphs the image draws besides the title and the seal: the Owner's name by the seal. */
 const SIGNATURE_GLYPHS = "Duncan Wen";
@@ -46,20 +51,18 @@ export default async function OpenGraphImage({ params }: Props) {
           flexDirection: "column",
           justifyContent: "space-between",
           position: "absolute",
-          left: 64,
-          right: 64,
-          bottom: 64,
+          left: PANEL_INSET,
+          right: PANEL_INSET,
+          bottom: PANEL_INSET,
           minHeight: 300,
-          padding: "48px 56px",
+          padding: `48px ${PANEL_PADDING_X}px`,
           background: paper,
           borderRadius: 12,
           fontFamily: "Noto Serif TC",
           color: ink,
         }}
       >
-        <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.35, letterSpacing: "0.02em" }}>
-          {post.title}
-        </div>
+        <OgTitle post={post} width={size.width - 2 * PANEL_INSET - 2 * PANEL_PADDING_X} />
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 36 }}>
           <ImageSeal size={52} colours={colours} />
           <div style={{ fontSize: 30, fontWeight: 700 }}>{SIGNATURE_GLYPHS}</div>
@@ -68,7 +71,7 @@ export default async function OpenGraphImage({ params }: Props) {
     </div>,
     {
       ...size,
-      fonts: [await serifFont(700, post.title + SIGNATURE_GLYPHS), await sealFont()],
+      fonts: [await serifFont(700, titleGlyphs(post) + SIGNATURE_GLYPHS), await sealFont()],
     },
   );
 }

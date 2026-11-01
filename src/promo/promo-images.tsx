@@ -5,6 +5,7 @@ import { isoDate } from "@/format-date";
 import { type Colours, darkColours, lightColours } from "@/og/token-colours";
 import { serifFont } from "@/og/serif-font";
 import { SITE_NAME } from "@/site-name";
+import { titleGlyphs } from "@/og/og-title";
 import { CoverLines } from "./cover-lines";
 
 /**
@@ -211,7 +212,7 @@ function templateOf<T extends PromoTemplate>(name: T): Template<Extract<Promo, {
 
 /** Every text the images set in the serif face: titles, and what the template adds. */
 function serifGlyphs({ title, promo }: PromoPost) {
-  return (promo.titleLines?.join("") ?? title) + (templateOf(promo.template).serifText?.(promo) ?? "");
+  return titleGlyphs({ title, promo }) + (templateOf(promo.template).serifText?.(promo) ?? "");
 }
 
 type Props = { post: PromoPost; size: PromoSize; colours: Record<Template<Promo>["theme"], Colours> };

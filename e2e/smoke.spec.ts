@@ -139,6 +139,22 @@ test("a Callout shows its title and content in the Post", async ({ page }) => {
   await expect(callout).toContainText("注意");
 });
 
+test("a table shows its header and rows in the Post, its borders in the theme's rule colour", async ({ page }) => {
+  await page.goto("/posts/typography-sample");
+  const table = page.locator("article table");
+
+  await expect(table.locator("thead th")).toHaveText(["風格", "畫法", "產圖時間", "適合"]);
+  await expect(table.locator("tbody tr")).toHaveCount(2);
+  const rule = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--rule").trim());
+  const border = await table.locator("thead").evaluate((el) => getComputedStyle(el).borderBottomColor);
+  expect(border).toBe(await page.evaluate((hex) => {
+    const probe = document.createElement("div");
+    probe.style.color = hex;
+    document.body.append(probe);
+    return getComputedStyle(probe).color;
+  }, rule));
+});
+
 test("the Post list answers 200 and links to a Published Post and its Tags", async ({
   request,
 }) => {
