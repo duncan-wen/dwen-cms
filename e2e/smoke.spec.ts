@@ -113,6 +113,30 @@ test("the home page links to the About page", async ({ request }) => {
   expect(html).toContain('href="/about"');
 });
 
+test("the home page's 「聯絡我」 links to the About page's contact section", async ({ page }) => {
+  await page.goto("/");
+  const main = page.getByRole("main");
+
+  await expect(main.getByRole("link", { name: "聯絡我", exact: true })).toHaveAttribute(
+    "href",
+    "/about#contact",
+  );
+  await expect(main).not.toContainText("→");
+});
+
+test("the Post list groups Posts under year headings, newest year first", async ({ page }) => {
+  await page.goto("/posts");
+  const years = page.getByRole("main").getByRole("heading", { level: 2 });
+
+  await expect(years).toHaveText(["2026", "2025"]);
+  const lastYear = page.getByRole("region", { name: "2025 年" });
+  await expect(lastYear.getByRole("link", { name: "去年的煙霧測試文章" })).toHaveAttribute(
+    "href",
+    "/posts/last-year-smoke-post",
+  );
+  await expect(lastYear.locator("time")).toHaveText("12-20");
+});
+
 test("an unknown Tag answers 404", async ({ request }) => {
   const response = await request.get("/tags/no-such-tag");
 
