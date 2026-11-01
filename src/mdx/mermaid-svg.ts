@@ -31,7 +31,39 @@ export function mermaidSvg(source: string, idPrefix: string): string {
       .replace(/^\s*text \{ font-family:[^}]*\}\n/m, "")
       .replace(/(\s)id="([^"]*)"/g, `$1id="${idPrefix}-$2"`)
       .replace(/url\(#([^)]*)\)/g, `url(#${idPrefix}-$1)`)
+      .replace(/(<polyline class="edge"[^>]*points=")([^"]*)"/g, (_, head, points) => `${head}${straighten(points)}"`)
   );
+}
+
+/** A sideways step in an edge shorter than this, in px, reads as a flaw, not a turn. */
+const JOG_PX = 6;
+
+/**
+ * An edge's points without the renderer's jogs: where a line steps aside by a
+ * few px and carries on in the same direction, the rest of the line is moved
+ * back in line with what came before, so it runs straight. Repeated and
+ * collinear points are dropped.
+ */
+function straighten(points: string): string {
+  let line = points.split(" ").map((pair) => pair.split(",").map(Number) as [number, number]);
+  for (let i = 1; i < line.length; i++) {
+    const [x, y] = line[i];
+    const [px, py] = line[i - 1];
+    const dx = x - px;
+    const dy = y - py;
+    if (Math.hypot(dx, dy) >= JOG_PX) continue;
+    // Shift everything after the jog back by the step it took.
+    line = line.map((point, j) => (j < i ? point : [point[0] - dx, point[1] - dy]));
+  }
+  const kept = line.filter((point, i) => {
+    const prev = line[i - 1];
+    const next = line[i + 1];
+    if (!prev || !next) return true;
+    const same = point[0] === prev[0] && point[1] === prev[1];
+    const collinear = (prev[0] === point[0] && point[0] === next[0]) || (prev[1] === point[1] && point[1] === next[1]);
+    return !same && !collinear;
+  });
+  return kept.map(([x, y]) => `${x},${y}`).join(" ");
 }
 
 /** A flowchart header that reads sideways, with its keyword and direction. */

@@ -116,7 +116,7 @@ test("on a phone a sideways flowchart is drawn top-down and fits the column", as
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 });
 
-test("on a desktop the same flowchart stays left to right", async ({ page }) => {
+test("on a desktop a sideways flowchart too wide for the column is drawn top-down too", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/posts/typography-sample");
   const shown = page.locator("article figure:visible", { hasText: "靜態頁面" });
@@ -126,7 +126,9 @@ test("on a desktop the same flowchart stays left to right", async ({ page }) => 
     const box = figure.querySelector("svg")!.getBoundingClientRect();
     return [box.width, box.height];
   });
-  expect(width).toBeGreaterThan(height);
+  expect(height).toBeGreaterThan(width);
+  const [scrollWidth, clientWidth] = await shown.evaluate((figure) => [figure.scrollWidth, figure.clientWidth]);
+  expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
 });
 
 test("a Callout shows its title and content in the Post", async ({ page }) => {

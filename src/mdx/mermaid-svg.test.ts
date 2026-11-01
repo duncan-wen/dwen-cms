@@ -71,3 +71,21 @@ describe("the top-down version a phone shows", () => {
     expect(topDownFlowchart(source)).toBeUndefined();
   });
 });
+
+test("edges run straight, without the small jogs the renderer leaves where lines meet", () => {
+  const svg = mermaidSvg(
+    "flowchart TD\n  write[撰寫文章] --> review{審閱}\n  review -->|通過| publish[發布]\n  review -->|退回修改| write\n  publish --> list[出現在文章列表]",
+    "d",
+  );
+
+  const edges = [...svg.matchAll(/<polyline class="edge"[^>]*points="([^"]*)"/g)].map((m) =>
+    m[1].split(" ").map((pair) => pair.split(",").map(Number)),
+  );
+  expect(edges.length).toBeGreaterThan(0);
+  for (const points of edges) {
+    for (let i = 1; i < points.length; i++) {
+      const length = Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
+      expect(length).toBeGreaterThanOrEqual(6);
+    }
+  }
+});
