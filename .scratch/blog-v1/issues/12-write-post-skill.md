@@ -16,7 +16,7 @@
 **Status:** done
 
 - [x] All rule sections are written and match the content module's actual validation
-- [ ] The voice section is derived from the Owner's 2–3 sample texts (needs-info until provided)
+- [x] The voice section is derived from the Owner's 2–3 sample texts (needs-info until provided)
 - [x] A Writing Agent given only a topic produces a PR that passes CI
 
 ## Comments
@@ -37,3 +37,4 @@
 
 - 2026-11-01: built. The skill is `.claude/skills/write-post/SKILL.md`: seven steps from branch to Draft PR, the voice, and the rules for the Post file, Tags, images, Mermaid and promo images, each pointing at the check in `src/content/content.ts` that enforces it. Changing a Published Post (Correction vs. Revision, a new Slug, a Takedown) is disclosed in `CHANGING-A-POST.md` beside it. The voice section keeps the three samples verbatim and derives the traits from them (first person, real numbers and names, sensory detail, the 「……」 pause, tech and investing metaphors bridging to life, an opening that hooks on the result or event, a closing that looks forward); mode 1 fits tech Posts and leads them, mode 2 career and mindset, mode 3 travel and family. Posts are Traditional Chinese, Taiwan usage. `gh` can't upload images, so the PR body lists the promo PNGs and gives the Owner `explorer.exe promo/index.html`. Personal details the agent can't verify go in the PR body under 「請 Owner 確認」.
 - 2026-11-01: tested with one fresh general-purpose subagent given only the skill path and the topic 「我怎麼用 Claude Code 的 skills 把寫部落格變成工程流程」. It wrote `content/posts/claude-code-skills-blog-workflow/` on the local branch `blog-v1-12-test-post` (not pushed, not merged): mode 1, Tag `meta`, two Mermaid flowcharts (an architecture diagram with `subgraph`s and the topic-to-publish loop), real `pnpm content:check` error output as examples, and `promo` with the `flow` template and `titleLines`. `pnpm content:check`, `pnpm check` and `pnpm build:check` (CI's build of the real content) all pass, and the smoke suite reads only `e2e/content`. The three promo PNGs read right: the title breaks after 「skills，」, nothing overflows, five steps drawn. Voice: it opens on a short hook (這篇文章，我只給了一行題目。), uses 「……」 at turns, lands a futures metaphor (先把進場條件和停損寫成規則), cites verifiable numbers (129 行, 約 900 行) and closes forward (互動 Demo); it is more expository and less sensory than sample 1, and it listed four unverifiable personal details for the Owner. The voice box waits for the Owner.
+- 2026-11-01: the Owner read the test Post (`claude-code-skills-blog-workflow`, shot from a temporary copy in `e2e/content`) and its promo images, and approved the voice.
