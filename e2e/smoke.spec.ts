@@ -228,6 +228,96 @@ test("the About page's #contact section lists the same contact links as the foot
   expect(contact).toEqual(await hrefs(page.getByRole("contentinfo")));
 });
 
+/** The `<loc>`/`<link>` URLs of an XML document, as paths, in document order. */
+const paths = (xml: string, tag: string) =>
+  [...xml.matchAll(new RegExp(`<${tag}>([^<]*)</${tag}>`, "g"))].map((m) => new URL(m[1]).pathname);
+
+test("the RSS feed answers as RSS and lists Published Posts newest first, and no Pages", async ({
+  request,
+}) => {
+  const response = await request.get("/feed.xml");
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("application/rss+xml");
+  const xml = await response.text();
+  const items = [...xml.matchAll(/<item>[\s\S]*?<\/item>/g)].map((m) => paths(m[0], "link")[0]);
+  expect(items).toEqual([
+    "/posts/smoke-post",
+    "/posts/revised-smoke-post",
+    "/posts/typography-sample",
+    "/posts/last-year-smoke-post",
+  ]);
+  expect(xml).toContain("煙霧測試文章");
+  expect(xml).not.toContain("/about");
+});
+
+test("the sitemap answers as XML and lists every Published Post, Page and Tag page, and no taken-down or previous Slugs", async ({
+  request,
+}) => {
+  const response = await request.get("/sitemap.xml");
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("application/xml");
+  const locs = paths(await response.text(), "loc");
+  for (const path of [
+    "/",
+    "/posts",
+    "/posts/smoke-post",
+    "/posts/revised-smoke-post",
+    "/posts/typography-sample",
+    "/posts/last-year-smoke-post",
+    "/about",
+    "/tags",
+    "/tags/smoke",
+  ]) {
+    expect(locs, path).toContain(path);
+  }
+  expect(locs).not.toContain("/posts/taken-down-post");
+  expect(locs).not.toContain("/posts/old-smoke-post");
+});
+
+test("every page sets a canonical URL on the configured base URL", async ({ page }) => {
+  for (const path of [
+    "/",
+    "/posts",
+    "/posts/smoke-post",
+    "/tags",
+    "/tags/smoke",
+    "/about",
+  ]) {
+    await page.goto(path);
+
+    await expect(page.locator('link[rel="canonical"]'), path).toHaveAttribute(
+      "href",
+      // `pnpm smoke` builds with SITE_URL=https://dwen.example.
+      `https://dwen.example${path === "/" ? "" : path}`,
+    );
+  }
+});
+
+test("a Post's social preview image answers as a 1200×630 PNG", async ({ page, request }) => {
+  await page.goto("/posts/smoke-post");
+  const og = (property: string) =>
+    page.locator(`meta[property="${property}"]`).getAttribute("content");
+
+  expect(await og("og:image:width")).toBe("1200");
+  expect(await og("og:image:height")).toBe("630");
+  const image = new URL((await og("og:image"))!);
+  expect(image.origin).toBe("https://dwen.example");
+  const response = await request.get(image.pathname + image.search);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+});
+
+test("every page links a PNG favicon", async ({ page, request }) => {
+  await page.goto("/");
+  const href = await page.locator('link[rel="icon"]').getAttribute("href");
+
+  const response = await request.get(href!);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+});
+
 test("an unknown URL answers 404 with links back to the content", async ({ request }) => {
   const response = await request.get("/no-such-url");
 

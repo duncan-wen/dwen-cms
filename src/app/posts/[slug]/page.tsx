@@ -10,6 +10,7 @@ import { TagList } from "@/components/tag-list";
 import { getContent } from "@/content/site-content";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
+import { pageAlternates } from "@/page-alternates";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -35,7 +36,12 @@ async function resolve(params: Props["params"]) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const result = await resolve(params);
   if (result.kind === "taken-down") return { title: "文章已移除", robots: { index: false } };
-  return { title: result.post.title, description: result.post.description };
+  const { post } = result;
+  return {
+    title: post.title,
+    description: post.description,
+    alternates: pageAlternates(`/posts/${post.slug}`),
+  };
 }
 
 /** Rendered for a taken-down Slug, which the proxy answers with 410 Gone. */

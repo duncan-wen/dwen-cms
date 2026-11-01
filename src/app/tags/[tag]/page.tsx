@@ -4,6 +4,7 @@ import { PageHeading } from "@/components/page-heading";
 import { PostList } from "@/components/post-list";
 import { TextLink } from "@/components/text-link";
 import { getContent } from "@/content/site-content";
+import { pageAlternates } from "@/page-alternates";
 
 type Props = { params: Promise<{ tag: string }> };
 
@@ -23,7 +24,11 @@ async function findPosts(params: Props["params"]) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tag } = await findPosts(params);
-  return { title: `#${tag}`, description: `Duncan Wen 標記為 #${tag} 的文章。` };
+  return {
+    title: `#${tag}`,
+    description: `Duncan Wen 標記為 #${tag} 的文章。`,
+    alternates: pageAlternates(`/tags/${tag}`),
+  };
 }
 
 export default async function TagPage({ params }: Props) {

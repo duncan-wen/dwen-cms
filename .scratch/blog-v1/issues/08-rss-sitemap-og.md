@@ -4,14 +4,15 @@
 
 **Blocked by:** 02, visual-design/06
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The RSS feed lists Published Posts, newest first, and no Pages
-- [ ] The sitemap lists every Published Post, Page and Tag page, and no taken-down Slugs
-- [ ] Each Post has a generated OG image that renders Traditional Chinese correctly
-- [ ] Every page sets a canonical URL from the configured base URL
-- [ ] Smoke tests confirm RSS, sitemap and an OG image are served with the right content types
+- [x] The RSS feed lists Published Posts, newest first, and no Pages
+- [x] The sitemap lists every Published Post, Page and Tag page, and no taken-down Slugs
+- [x] Each Post has a generated OG image that renders Traditional Chinese correctly
+- [x] Every page sets a canonical URL from the configured base URL
+- [x] Smoke tests confirm RSS, sitemap and an OG image are served with the right content types
 
 ## Comments
 
 - The OG image draws the Post's generated cover (visual-design/06) behind its title, so a shared link matches the site. A favicon from the 「溫」 seal fits here too.
+- Built: `/feed.xml` (the `feed` package), `sitemap.ts`, `posts/[slug]/opengraph-image.tsx` (static per Published Post) and `icon.tsx` (the seal). Build-time images draw Noto Serif TC fetched from Google Fonts subset to the title's glyphs, so `next build` needs network access, as it already does for `next/font/google`; their colours are read from the light `:root` tokens in `globals.css`. `pnpm smoke` builds with `SITE_URL=https://dwen.example` to prove canonical, RSS, sitemap and OG URLs follow the configured base URL. `SITE_URL` is already set on Vercel Production.

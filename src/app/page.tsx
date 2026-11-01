@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 import { LinkRow } from "@/components/link-row";
 import { PostGrid } from "@/components/post-grid";
 import { Seal } from "@/components/seal";
 import { TextLink } from "@/components/text-link";
 import { getContent } from "@/content/site-content";
+import { pageAlternates } from "@/page-alternates";
+
+export const metadata: Metadata = { alternates: pageAlternates("/") };
 
 /** How many of the newest Posts the home page shows: one lead and two rows of two. */
 const LATEST_COUNT = 5;
