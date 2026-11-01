@@ -1,6 +1,6 @@
 # Spec: dwen-cms v1, Posts and Pages
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 

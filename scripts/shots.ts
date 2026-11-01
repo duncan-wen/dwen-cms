@@ -1,9 +1,10 @@
 // Screenshots pages of an e2e/content build in light and dark, wide and phone width.
 //   pnpm shots /posts/typography-sample /tags      build, then shoot each path
-//   pnpm shots --no-build /                         reuse the last e2e/content build
+//   pnpm shots --no-build /                         reuse the last build
+//   pnpm shots --content content /posts/<slug>      build the real content instead
 // Writes test-results/shots/<path>-<theme>-<width>.png, plus index.html showing this
-// run's shots on one page for the Owner, and fails if a page scrolls horizontally at
-// phone width.
+// run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
+// box other than a code block clips its content (scrollWidth past its width), at any width.
 import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -15,13 +16,16 @@ const widths = [1280, 375];
 
 const args = process.argv.slice(2);
 const build = !args.includes("--no-build");
-const paths = args.filter((arg) => arg !== "--no-build");
+const contentIndex = args.indexOf("--content");
+const contentDir = contentIndex === -1 ? "e2e/content" : args[contentIndex + 1];
+const contentArgs = contentIndex === -1 ? [] : [contentIndex, contentIndex + 1];
+const paths = args.filter((arg, i) => arg !== "--no-build" && !contentArgs.includes(i));
 if (paths.length === 0) paths.push("/");
 
 if (build) {
   const result = spawnSync("pnpm", ["build"], {
     stdio: "inherit",
-    env: { ...process.env, CONTENT_DIR: "e2e/content" },
+    env: { ...process.env, CONTENT_DIR: contentDir },
   });
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
@@ -58,11 +62,20 @@ for (const path of paths) {
       const scrolls = await page.evaluate(
         () => document.documentElement.scrollWidth > window.innerWidth,
       );
-      if (scrolls) overflowing.push(`${path} (${theme}, ${width}px)`);
-      console.log(`${response?.status()} ${file}${scrolls ? "  ← scrolls horizontally" : ""}`);
+      if (scrolls) overflowing.push(`${path} (${theme}, ${width}px): the page scrolls horizontally`);
+      // A box that clips sideways shows its content cut off in a screenshot; only code blocks may scroll.
+      const clipped = await page.evaluate(() =>
+        [...document.body.querySelectorAll("*")]
+          .filter((el) => !el.closest("pre") && el.scrollWidth > el.clientWidth + 1)
+          .filter((el) => getComputedStyle(el).overflowX !== "visible")
+          .map((el) => `<${el.tagName.toLowerCase()}${el.className ? ` class="${String(el.className).slice(0, 60)}"` : ""}>`),
+      );
+      for (const box of clipped) overflowing.push(`${path} (${theme}, ${width}px): ${box} clips its content`);
+      const flagged = scrolls || clipped.length > 0;
+      console.log(`${response?.status()} ${file}${flagged ? "  ← overflows" : ""}`);
       const label = `${theme === "light" ? "淺色" : "深色"}・${width >= 640 ? "桌機" : "手機"} ${width}px`;
       figures.push(
-        `<figure><figcaption>${label}${scrolls ? "（會左右捲動！）" : ""}</figcaption>` +
+        `<figure><figcaption>${label}${flagged ? "（內容超出版面！）" : ""}</figcaption>` +
           `<a href="${name}"><img src="${name}" alt="${path} ${label}" loading="lazy"></a></figure>`,
       );
       await page.close();
@@ -75,7 +88,7 @@ writeFileSync(`${outDir}/index.html`, contactSheet(sections));
 console.log(`Contact sheet: ${outDir}/index.html`);
 
 if (overflowing.length > 0) {
-  console.error(`Horizontal scrolling at:\n  ${overflowing.join("\n  ")}`);
+  console.error(`Overflow:\n  ${overflowing.join("\n  ")}`);
   process.exit(1);
 }
 process.exit(0);
