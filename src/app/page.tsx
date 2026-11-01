@@ -10,7 +10,7 @@ export default async function HomePage() {
   const latest = (await getContent()).listPublishedPosts().slice(0, LATEST_COUNT);
   return (
     <>
-      {/* From 640px the headline is set vertically on the right, ending in the seal like a signature. */}
+      {/* The headline ends in the seal like a signature: set vertically on the right from 640px, horizontally on phones. */}
       <section className="grid gap-8 pt-4 pb-16 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end sm:gap-12 sm:pt-8 sm:pb-20">
         <h1 className="text-[34px] leading-[1.35] font-black tracking-[0.02em] sm:order-3 sm:flex sm:flex-col sm:items-start sm:pl-2 sm:text-[clamp(40px,5.4vw,54px)] sm:leading-normal sm:tracking-[0.14em] sm:[writing-mode:vertical-rl]">
           <span className="block">
@@ -18,7 +18,7 @@ export default async function HomePage() {
           </span>
           <span className="block">
             再把過程寫下來
-            <span className="hidden tracking-normal sm:mt-4 sm:inline-block sm:[writing-mode:horizontal-tb]">
+            <span className="ml-3 inline-block align-middle tracking-normal sm:mt-4 sm:ml-0 sm:align-baseline sm:[writing-mode:horizontal-tb]">
               <Seal size="large" />
             </span>
           </span>
