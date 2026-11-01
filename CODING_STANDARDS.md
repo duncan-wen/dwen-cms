@@ -15,9 +15,10 @@ Judgement calls for the reviewer. Lint, typecheck and the content check enforce 
 
 ## Tests
 
-- Tests check behaviour through a public interface: the content module's queries and errors, or HTTP responses from the built site.
+- Tests check behaviour through a public interface: the content module's queries and errors, HTTP responses from the built site, or a pure module's exports (the cover generator, `src/format-date.ts`).
 - Each content rule has its own fixture directory under `src/content/fixtures/` that breaks only that rule, unless the test is about how rules combine.
 
 ## Components
 
 - A component's props are a named `type Props`.
+- One way to do each thing. Reuse the shared piece instead of restyling or reformatting inline: dates through `src/format-date.ts`, page titles through `PageHeading`, standalone text links through `TextLink`, rows of links through `LinkRow`, the seal through `Seal`, covers through `PostCover`. A new shared piece joins this list.

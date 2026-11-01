@@ -8,3 +8,4 @@ playwright-report/
 .env*.local
 build.log
 .vitest/
+.claude/worktrees/
