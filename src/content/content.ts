@@ -5,7 +5,7 @@ import matter from "gray-matter";
 import { imageSize } from "image-size";
 import { CORE_SCHEMA, load as loadYaml } from "js-yaml";
 import { type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
-import { mermaidSvg } from "../mdx/mermaid-svg";
+import { mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { DRAWN_DIAGRAM_TYPES, type ParsedMermaid, parseMermaid } from "../mdx/parse-mermaid";
 
 export type Post = {
@@ -666,6 +666,9 @@ async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
     }
     try {
       mermaidSvg(source, "check");
+      // A phone shows a sideways flowchart top-down (src/mdx/mermaid.tsx), so that copy must draw too.
+      const topDown = topDownFlowchart(source);
+      if (topDown) mermaidSvg(topDown, "check");
     } catch (error) {
       report(
         "body",

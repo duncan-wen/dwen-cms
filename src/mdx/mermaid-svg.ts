@@ -33,3 +33,18 @@ export function mermaidSvg(source: string, idPrefix: string): string {
       .replace(/url\(#([^)]*)\)/g, `url(#${idPrefix}-$1)`)
   );
 }
+
+/** A flowchart header that reads sideways, with its keyword and direction. */
+const SIDEWAYS_HEADER = /^(\s*(?:flowchart|graph))\s+(?:LR|RL)\b/;
+
+/**
+ * The same flowchart drawn top-down, for a phone, when the source draws it
+ * sideways (LR or RL), including any `direction` inside its subgraphs.
+ * Undefined when it already reads top-down or isn't a flowchart.
+ */
+export function topDownFlowchart(source: string): string | undefined {
+  if (!SIDEWAYS_HEADER.test(source)) return undefined;
+  return source
+    .replace(SIDEWAYS_HEADER, "$1 TB")
+    .replace(/^(\s*direction)\s+(?:LR|RL)\b/gm, "$1 TB");
+}

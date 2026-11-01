@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { mermaidSvg } from "./mermaid-svg";
+import { mermaidSvg, topDownFlowchart } from "./mermaid-svg";
 import { DRAWN_DIAGRAM_TYPES, parseMermaid } from "./parse-mermaid";
 
 describe("the diagram types the content check accepts", () => {
@@ -49,4 +49,25 @@ test("prefixes the SVG's ids and their references, so two diagrams on a page don
   expect(refs.length).toBeGreaterThan(0);
   for (const id of [...ids, ...refs]) expect(id).toMatch(/^mermaid-2-/);
   for (const ref of refs) expect(ids).toContain(ref);
+});
+
+describe("the top-down version a phone shows", () => {
+  test.each([
+    ["flowchart LR\n  A --> B", "flowchart TB\n  A --> B"],
+    ["graph RL\n  A --> B", "graph TB\n  A --> B"],
+    [
+      "flowchart LR\n  subgraph s[組]\n    direction LR\n    A --> B\n  end",
+      "flowchart TB\n  subgraph s[組]\n    direction TB\n    A --> B\n  end",
+    ],
+  ])("turns a sideways flowchart %j top-down", (source, expected) => {
+    expect(topDownFlowchart(source)).toBe(expected);
+  });
+
+  test.each([
+    "flowchart TD\n  A --> B",
+    "flowchart TB\n  A --> B",
+    "sequenceDiagram\n  A->>B: LR",
+  ])("leaves %j alone: it already reads top-down or isn't a flowchart", (source) => {
+    expect(topDownFlowchart(source)).toBeUndefined();
+  });
 });

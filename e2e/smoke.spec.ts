@@ -101,14 +101,32 @@ test("a mermaid block draws an SVG diagram whose colours follow the theme toggle
   await page.close();
 });
 
-test("a diagram wider than a phone scrolls inside its own box, not the page", async ({ page }) => {
+test("on a phone a sideways flowchart is drawn top-down and fits the column", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/posts/typography-sample");
-  const box = page.locator("article figure", { hasText: "靜態頁面" });
+  const shown = page.locator("article figure:visible", { hasText: "靜態頁面" });
 
-  const [scrollWidth, clientWidth] = await box.evaluate((figure) => [figure.scrollWidth, figure.clientWidth]);
-  expect(scrollWidth).toBeGreaterThan(clientWidth);
+  await expect(shown).toHaveCount(1);
+  const [width, height, scrollWidth, clientWidth] = await shown.evaluate((figure) => {
+    const box = figure.querySelector("svg")!.getBoundingClientRect();
+    return [box.width, box.height, figure.scrollWidth, figure.clientWidth];
+  });
+  expect(height).toBeGreaterThan(width);
+  expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+});
+
+test("on a desktop the same flowchart stays left to right", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/posts/typography-sample");
+  const shown = page.locator("article figure:visible", { hasText: "靜態頁面" });
+
+  await expect(shown).toHaveCount(1);
+  const [width, height] = await shown.evaluate((figure) => {
+    const box = figure.querySelector("svg")!.getBoundingClientRect();
+    return [box.width, box.height];
+  });
+  expect(width).toBeGreaterThan(height);
 });
 
 test("a Callout shows its title and content in the Post", async ({ page }) => {
