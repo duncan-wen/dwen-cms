@@ -2,6 +2,8 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { JetBrains_Mono, Noto_Serif_TC } from "next/font/google";
 import type { ReactNode } from "react";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 import { siteUrl } from "@/site-url";
 import "./globals.css";
 
@@ -28,8 +30,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-Hant" className={`${serif.variable} ${mono.variable}`}>
-      <body className="bg-paper text-ink antialiased">
-        <main className="mx-auto max-w-2xl px-4 py-12">{children}</main>
+      <body className="flex min-h-dvh flex-col bg-paper text-ink antialiased">
+        <SiteHeader />
+        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-12">{children}</main>
+        <SiteFooter />
         <Analytics />
       </body>
     </html>

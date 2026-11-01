@@ -106,6 +106,53 @@ test("a taken-down Slug answers 410 with an explanation and a link to the Post l
   expect(html).toContain('href="/posts"');
 });
 
+test("the header links home and to 文章, 標籤 and 關於, and each link resolves", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/posts/smoke-post");
+  const header = page.getByRole("banner");
+
+  await expect(header.getByRole("link", { name: "Duncan Wen" })).toHaveAttribute("href", "/");
+  const nav = header.getByRole("navigation", { name: "主要" });
+  for (const [name, href] of [
+    ["文章", "/posts"],
+    ["標籤", "/tags"],
+    ["關於", "/about"],
+  ]) {
+    await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
+    expect((await request.get(href)).status()).toBe(200);
+  }
+});
+
+test("the header marks the section the page belongs to", async ({ page }) => {
+  for (const [path, section] of [
+    ["/posts", "文章"],
+    ["/posts/smoke-post", "文章"],
+    ["/tags/smoke", "標籤"],
+    ["/about", "關於"],
+  ]) {
+    await page.goto(path);
+    const current = page.getByRole("navigation", { name: "主要" }).locator('[aria-current="page"]');
+    await expect(current, path).toHaveText(section);
+  }
+});
+
+test("the footer links to GitHub, Email, LinkedIn and RSS", async ({ page }) => {
+  await page.goto("/no-such-url");
+  const footer = page.getByRole("contentinfo");
+
+  await expect(footer).toContainText(`© ${new Date().getFullYear()}`);
+  for (const [name, href] of [
+    ["GitHub", "https://github.com/duncan-wen"],
+    ["lumpa7223@gmail.com", "mailto:lumpa7223@gmail.com"],
+    ["LinkedIn", "https://www.linkedin.com/in/duncan-wen"],
+    ["RSS", "/feed.xml"],
+  ]) {
+    await expect(footer.getByRole("link", { name })).toHaveAttribute("href", href);
+  }
+});
+
 test("an unknown URL answers 404 with links back to the content", async ({ request }) => {
   const response = await request.get("/no-such-url");
 
