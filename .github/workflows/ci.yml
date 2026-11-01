@@ -33,5 +33,7 @@ jobs:
       - run: pnpm check
       - name: Build real content (fails on warnings)
         run: pnpm build:check
+      - name: Install Chromium for the smoke tests
+        run: pnpm exec playwright install --with-deps chromium
       - name: Smoke tests (builds e2e/content)
         run: pnpm smoke
