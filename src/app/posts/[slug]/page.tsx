@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { LinkRow } from "@/components/link-row";
+import { MutedParagraph } from "@/components/muted-paragraph";
+import { PageHeading } from "@/components/page-heading";
+import { PostCover } from "@/components/post-cover";
+import { Seal } from "@/components/seal";
+import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
 import { getContent } from "@/content/site-content";
-import { formatDate } from "@/format-date";
-import { MdxBody } from "@/mdx/mdx-body";
+import { formatDate, isoDate } from "@/format-date";
+import { compileMdx } from "@/mdx/compile-mdx";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -37,13 +42,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 function TakenDown() {
   return (
     <>
-      <h1 className="text-3xl font-bold tracking-tight">這篇文章已移除</h1>
-      <p className="mt-4 text-lg text-zinc-700">
-        這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。
-      </p>
-      <Link href="/posts" className="mt-10 inline-block font-medium hover:underline">
-        所有文章 →
-      </Link>
+      <PageHeading size="page" title="這篇文章已移除">
+        <MutedParagraph>這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。</MutedParagraph>
+      </PageHeading>
+      <LinkRow
+        links={[
+          { href: "/posts", label: "所有文章" },
+          { href: "/", label: "回到首頁" },
+        ]}
+      />
     </>
   );
 }
@@ -53,21 +60,46 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
+  const { Body, headings } = await compileMdx(post.body);
   return (
-    <article className="prose prose-zinc max-w-none">
-      <header className="not-prose mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">{post.title}</h1>
-        <time dateTime={post.date} className="mt-2 block text-sm text-zinc-500">
-          {formatDate(post.date)}
-        </time>
-        {revision && (
-          <p className="mt-1 text-sm text-zinc-500">
-            更新於 <time dateTime={revision.date}>{formatDate(revision.date)}</time>：{revision.note}
+    <article>
+      <PostCover slug={post.slug} className="aspect-[21/9] rounded-md" />
+      {/* The table of contents hangs off the column's right edge, so the column never moves. */}
+      <div className="relative">
+        <PageHeading size="page" title={post.title}>
+          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] text-ink-soft">
+            <time dateTime={isoDate(post.date)}>{isoDate(post.date)}</time>
+            <TagList tags={post.tags} />
+          </div>
+          {revision && (
+            <p className="border-l-2 border-accent pl-3.5 text-[15px] leading-[1.7] text-ink-soft">
+              更新於{" "}
+              <time dateTime={isoDate(revision.date)} className="text-[13px]">
+                {isoDate(revision.date)}
+              </time>
+              ：{revision.note}
+            </p>
+          )}
+        </PageHeading>
+        <div className="prose prose-site max-w-none prose-h2:scroll-mt-6">
+          <Body />
+        </div>
+        <footer className="mt-14 flex items-center gap-3.5 border-t border-rule pt-7">
+          <Seal size="large" />
+          <p className="grid leading-[1.6]">
+            <b className="font-serif font-bold">Duncan Wen</b>
+            <span className="text-sm text-ink-soft">寫於 {formatDate(post.date)}</span>
           </p>
-        )}
-        <TagList tags={post.tags} className="mt-3" />
-      </header>
-      <MdxBody source={post.body} />
+        </footer>
+        <LinkRow
+          className="mt-7"
+          links={[
+            { href: "/posts", label: "所有文章" },
+            { href: "/about#contact", label: "聯絡我" },
+          ]}
+        />
+        <TableOfContents headings={headings} />
+      </div>
     </article>
   );
 }

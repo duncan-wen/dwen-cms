@@ -1,16 +1,16 @@
 import Link from "next/link";
 
-type Props = { tags: string[]; className?: string };
+type Props = { tags: string[] };
 
 /** A Post's Tags, each linking to its Tag page. */
-export function TagList({ tags, className = "" }: Props) {
+export function TagList({ tags }: Props) {
   return (
-    <ul className={`flex flex-wrap gap-2 text-sm ${className}`} aria-label="標籤">
+    <ul className="flex flex-wrap gap-x-3.5 gap-y-1 font-mono text-[13px]" aria-label="標籤">
       {tags.map((tag) => (
         <li key={tag}>
           <Link
             href={`/tags/${tag}`}
-            className="rounded bg-zinc-100 px-2 py-0.5 text-zinc-700 hover:bg-zinc-200"
+            className="text-accent underline-offset-[3px] hover:underline"
           >
             #{tag}
           </Link>

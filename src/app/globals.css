@@ -1,2 +1,177 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/*
+ * Colour tokens. Every colour on the site is one of these, defined once for
+ * light and once for dark. Dark applies under the system preference unless
+ * the page says data-theme="light", and always under data-theme="dark", so
+ * the theme toggle only has to set the attribute.
+ */
+:root {
+  color-scheme: light;
+  --paper: #f5f6f1;
+  --paper-deep: #eceee6;
+  --ink: #1b2420;
+  --ink-soft: #57635c;
+  --rule: #d9ddd3;
+  --accent: #2c5a45;
+  --accent-wash: #e1eae3;
+  --on-accent: #f5f6f1;
+  --code-keyword: #8a3b5c;
+  --code-string: #2f6b3f;
+  --code-comment: #858d88;
+  --code-function: #2b5c8a;
+  --code-type: #8a5a1c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #121614;
+    --paper-deep: #1a1f1c;
+    --ink: #e1e5df;
+    --ink-soft: #97a29b;
+    --rule: #2b332f;
+    --accent: #8fc3a6;
+    --accent-wash: #1e2c24;
+    --on-accent: #121614;
+    --code-keyword: #e29bb8;
+    --code-string: #9ccf9f;
+    --code-comment: #6c7771;
+    --code-function: #93bde6;
+    --code-type: #e0b77a;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #121614;
+  --paper-deep: #1a1f1c;
+  --ink: #e1e5df;
+  --ink-soft: #97a29b;
+  --rule: #2b332f;
+  --accent: #8fc3a6;
+  --accent-wash: #1e2c24;
+  --on-accent: #121614;
+  --code-keyword: #e29bb8;
+  --code-string: #9ccf9f;
+  --code-comment: #6c7771;
+  --code-function: #93bde6;
+  --code-type: #e0b77a;
+}
+
+/* The header seal lands like a stamp; motion-safe: skips it under reduced motion. */
+@theme {
+  --animate-stamp: stamp 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+
+  @keyframes stamp {
+    from {
+      transform: scale(1.3) rotate(-8deg);
+      opacity: 0;
+    }
+    55% {
+      opacity: 1;
+    }
+    to {
+      transform: none;
+    }
+  }
+}
+
+/* Drop Tailwind's palette so a literal colour class (text-zinc-500) generates nothing. */
+@theme {
+  --color-*: initial;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-accent-wash: var(--accent-wash);
+  --color-on-accent: var(--on-accent);
+  --color-code-keyword: var(--code-keyword);
+  --color-code-string: var(--code-string);
+  --color-code-comment: var(--code-comment);
+  --color-code-function: var(--code-function);
+  --color-code-type: var(--code-type);
+
+  /* --font-noto-serif-tc and --font-jetbrains-mono come from next/font in the root layout. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  --font-serif: var(--font-noto-serif-tc), "Songti TC", "PMingLiU", serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+  }
+
+  time {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+}
+
+/* Post bodies: the typography plugin's prose, recoloured through the tokens. */
+@utility prose-site {
+  --tw-prose-body: var(--color-ink);
+  --tw-prose-headings: var(--color-ink);
+  --tw-prose-lead: var(--color-ink-soft);
+  --tw-prose-links: var(--color-accent);
+  --tw-prose-bold: var(--color-ink);
+  --tw-prose-counters: var(--color-ink-soft);
+  --tw-prose-bullets: var(--color-accent);
+  --tw-prose-hr: var(--color-rule);
+  --tw-prose-quotes: var(--color-ink-soft);
+  --tw-prose-quote-borders: var(--color-accent);
+  --tw-prose-captions: var(--color-ink-soft);
+  --tw-prose-kbd: var(--color-ink);
+  --tw-prose-kbd-shadows: color-mix(in srgb, var(--color-ink) 10%, transparent);
+  --tw-prose-code: var(--color-ink);
+  --tw-prose-pre-code: var(--color-ink);
+  --tw-prose-pre-bg: var(--color-paper-deep);
+  --tw-prose-th-borders: var(--color-rule);
+  --tw-prose-td-borders: var(--color-rule);
+  line-height: 1.95;
+
+  & :where(a):not(:where(.not-prose *)) {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 5px;
+    text-decoration-color: var(--color-rule);
+  }
+
+  & :where(a):not(:where(.not-prose *)):hover {
+    text-decoration-color: var(--color-accent);
+  }
+
+  /* Inline code: a tinted chip instead of the plugin's backticks. */
+  & :where(code):not(:where(pre *, .not-prose *)) {
+    font-weight: 400;
+    font-size: 0.84em;
+    background-color: var(--color-accent-wash);
+    padding: 0.12em 0.42em;
+    border-radius: 3px;
+  }
+
+  & :where(code):not(:where(pre *, .not-prose *))::before,
+  & :where(code):not(:where(pre *, .not-prose *))::after {
+    content: none;
+  }
+
+  & :where(pre):not(:where(.not-prose *)) {
+    font-size: 13.5px;
+    line-height: 1.7;
+    border-radius: 6px;
+  }
+}

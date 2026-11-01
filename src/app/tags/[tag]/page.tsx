@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PageHeading } from "@/components/page-heading";
 import { PostList } from "@/components/post-list";
+import { TextLink } from "@/components/text-link";
 import { getContent } from "@/content/site-content";
 
 type Props = { params: Promise<{ tag: string }> };
@@ -29,11 +30,14 @@ export default async function TagPage({ params }: Props) {
   const { tag, posts } = await findPosts(params);
   return (
     <>
-      <h1 className="mb-10 text-3xl font-bold tracking-tight">#{tag}</h1>
-      <PostList posts={posts} titleAs="h2" />
-      <Link href="/tags" className="mt-10 inline-block font-medium hover:underline">
-        所有標籤 →
-      </Link>
+      <PageHeading
+        title={<span className="font-mono font-medium">#{tag}</span>}
+        summary={`共 ${posts.length} 篇，由新到舊。`}
+      />
+      <PostList posts={posts} />
+      <p className="mt-12">
+        <TextLink href="/tags">所有標籤</TextLink>
+      </p>
     </>
   );
 }

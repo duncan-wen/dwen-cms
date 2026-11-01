@@ -4,11 +4,11 @@
 
 **Blocked by:** 02, 06
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The Post opens with its generated cover and a left-aligned header, including the Revision note
-- [ ] The colophon shows the seal, the Owner's name and the long Chinese date
-- [ ] `h2` headings get stable ids from a rehype plugin
-- [ ] Wide screens show a table of contents linking to each `h2`; a Post with no `h2` shows none
-- [ ] At 375px the table of contents is hidden and nothing scrolls horizontally
-- [ ] A smoke test confirms a Post with `h2` headings renders a table of contents linking to their ids
+- [x] The Post opens with its generated cover and a left-aligned header, including the Revision note
+- [x] The colophon shows the seal, the Owner's name and the long Chinese date
+- [x] `h2` headings get stable ids from a rehype plugin
+- [x] Wide screens show a table of contents linking to each `h2`; a Post with no `h2` shows none
+- [x] At 375px the table of contents is hidden and nothing scrolls horizontally
+- [x] A smoke test confirms a Post with `h2` headings renders a table of contents linking to their ids

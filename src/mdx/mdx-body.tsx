@@ -1,9 +1,9 @@
-import { evaluate } from "@mdx-js/mdx";
-import * as runtime from "react/jsx-runtime";
-import { mdxComponents } from "./components";
+import { compileMdx } from "./compile-mdx";
+
+type Props = { source: string };
 
 /** Renders an MDX body (server component). */
-export async function MdxBody({ source }: { source: string }) {
-  const { default: Body } = await evaluate(source, { ...runtime });
-  return <Body components={mdxComponents} />;
+export async function MdxBody({ source }: Props) {
+  const { Body } = await compileMdx(source);
+  return <Body />;
 }
