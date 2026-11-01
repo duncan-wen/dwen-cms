@@ -4,7 +4,7 @@
 
 **Blocked by:** 04
 
-**Status:** needs-info
+**Status:** ready-for-agent
 
 - [ ] The taken-down Slug list is a data file in the content directory
 - [ ] Resolving a taken-down Slug returns a Takedown marker
@@ -20,3 +20,10 @@ The taken-down Slug list is optional: a missing file means no Slug is taken down
 
 - **(a) Smoke fixture content.** `src/content/site-content.ts` reads a `CONTENT_DIR` override; the smoke suite builds `e2e/content/` instead of `content/`, and `mdx-in-git` moves out of the real Post. CI pays one extra build.
 - **(b) Real content.** Smoke tests keep using `content/`; any Slug added only for a smoke test is named in the PR body.
+
+**Owner decision: (a).** Build it as part of this ticket:
+
+- `src/content/site-content.ts` reads `CONTENT_DIR` (default `content/`); `pnpm smoke` builds with `CONTENT_DIR=e2e/content`.
+- `e2e/content/` holds every Post, previous Slug and taken-down Slug the smoke suite needs. Smoke tests and `playwright.config.ts` stop naming real Posts.
+- Remove `previousSlugs: [mdx-in-git]` from `content/posts/why-mdx-in-git/index.mdx`; it was only there for the issue-04 smoke test.
+- CI keeps its `pnpm build` of real `content/` (the warnings check), then runs `pnpm smoke` instead of `pnpm test:smoke`.
