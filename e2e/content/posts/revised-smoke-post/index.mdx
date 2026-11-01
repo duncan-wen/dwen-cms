@@ -3,6 +3,15 @@ title: 改過的煙霧測試文章
 description: 更新過的煙霧測試文章，不會出現在正式網站。
 date: 2026-10-01
 tags: [smoke]
+promo:
+  template: terminal
+  points: [更新過一次，會顯示「更新於」]
+  lines:
+    - command: pnpm content:check e2e/content
+      comment: 先檢查內容
+    - command: pnpm smoke
+      comment: 建置後跑煙霧測試
+    - command: pnpm promo revised-smoke-post
 revisions:
   - date: 2026-10-15
     note: 補上第二個段落

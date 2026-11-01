@@ -3,6 +3,17 @@ title: 排版樣本文章
 description: 涵蓋每種內文元素的樣本，給截圖和煙霧測試用，不會出現在正式網站。
 date: 2026-09-01
 tags: [smoke]
+promo:
+  template: flow
+  points: [每種內文元素都放一份, 兩種主題都要好讀]
+  steps:
+    - name: 寫好內文
+      command: index.mdx
+    - name: 內容檢查
+      command: pnpm content:check
+    - name: 截圖
+      command: pnpm shots
+    - name: 審閱
 ---
 
 這篇文章集合內文會用到的元素：段落裡有 `inline code`、[一個連結](/posts)和**粗體**。
