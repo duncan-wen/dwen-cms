@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Post } from "@/content/content";
+import { isoDate } from "@/format-date";
 import { PostCover } from "./post-cover";
 
 type Props = { posts: Post[] };
@@ -24,8 +25,8 @@ export function PostGrid({ posts }: Props) {
                 className={`rounded-md ${lead ? "aspect-[16/11]" : "aspect-[16/10]"}`}
               />
               <div className={`grid min-w-0 ${lead ? "gap-3" : "gap-2"}`}>
-                <time dateTime={post.date} className="text-[13px] text-ink-soft">
-                  {post.date}
+                <time dateTime={isoDate(post.date)} className="text-[13px] text-ink-soft">
+                  {isoDate(post.date)}
                 </time>
                 <h3
                   className={

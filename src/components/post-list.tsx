@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Post } from "@/content/content";
 import { groupPostsByYear } from "@/content/posts-by-year";
+import { isoDate, monthDay } from "@/format-date";
 import { PostCover } from "./post-cover";
 import { TagList } from "./tag-list";
 
@@ -25,8 +26,8 @@ export function PostList({ posts }: Props) {
             {posts.map((post) => (
               <li key={post.slug} className="border-b border-rule py-7 last:border-b-0">
                 <article className="grid grid-cols-[52px_minmax(0,1fr)] gap-x-3 sm:grid-cols-[56px_120px_minmax(0,1fr)] sm:gap-x-6">
-                  <time dateTime={post.date} className="pt-1.5 text-[13px] text-ink-soft">
-                    {post.date.slice(5)}
+                  <time dateTime={isoDate(post.date)} className="pt-1.5 text-[13px] text-ink-soft">
+                    {monthDay(post.date)}
                   </time>
                   {/* The one copy of the cover on this row; phones skip it to keep the text wide. */}
                   <div className="hidden pt-1.5 sm:block">

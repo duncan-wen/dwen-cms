@@ -7,7 +7,7 @@ import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
 import { TextLink } from "@/components/text-link";
 import { getContent } from "@/content/site-content";
-import { formatDate } from "@/format-date";
+import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -67,14 +67,14 @@ export default async function PostPage({ params }: Props) {
         <header className="grid gap-[18px] pt-8 pb-10">
           <h1 className={pageTitle}>{post.title}</h1>
           <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] text-ink-soft">
-            <time dateTime={post.date}>{post.date}</time>
+            <time dateTime={isoDate(post.date)}>{isoDate(post.date)}</time>
             <TagList tags={post.tags} />
           </div>
           {revision && (
             <p className="border-l-2 border-accent pl-3.5 text-[15px] leading-[1.7] text-ink-soft">
               更新於{" "}
-              <time dateTime={revision.date} className="text-[13px]">
-                {revision.date}
+              <time dateTime={isoDate(revision.date)} className="text-[13px]">
+                {isoDate(revision.date)}
               </time>
               ：{revision.note}
             </p>

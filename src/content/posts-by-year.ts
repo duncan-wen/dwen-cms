@@ -1,3 +1,4 @@
+import { year as yearOf } from "../format-date";
 import type { Post } from "./content";
 
 /** The Posts published in one year, as YYYY. */
@@ -11,7 +12,7 @@ export type YearGroup = { year: string; posts: Post[] };
 export function groupPostsByYear(posts: Post[]): YearGroup[] {
   const groups: YearGroup[] = [];
   for (const post of posts) {
-    const year = post.date.slice(0, 4);
+    const year = yearOf(post.date);
     const last = groups.at(-1);
     if (last?.year === year) last.posts.push(post);
     else groups.push({ year, posts: [post] });
