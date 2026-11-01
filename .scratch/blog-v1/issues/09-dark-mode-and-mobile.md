@@ -2,7 +2,7 @@
 
 **What to build:** The site follows the Reader's system light/dark preference, with a manual toggle that remembers their choice. Every page works at phone width with no horizontal scrolling.
 
-**Blocked by:** 01
+**Blocked by:** 01, visual-design/01, visual-design/02
 
 **Status:** ready-for-agent
 
@@ -10,3 +10,7 @@
 - [ ] A toggle switches themes and the choice persists across visits
 - [ ] Post bodies, code blocks and lists are readable in both themes
 - [ ] No page scrolls horizontally at 375px width
+
+## Comments
+
+- The toggle goes in the header slot that visual-design/02 reserves, and only sets `data-theme` on `<html>`; the light and dark palettes come from visual-design/01's tokens.

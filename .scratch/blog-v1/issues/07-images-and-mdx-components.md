@@ -11,3 +11,7 @@
 - [ ] A referenced image that doesn't exist fails the content check
 - [ ] Callout and syntax-highlighted code blocks work in the sample Post
 - [ ] All MDX components are provided through one component map
+
+## Comments
+
+- Code-block colours follow visual-design/01's tokens in both themes; pick a highlighter whose output can be styled through CSS variables instead of a fixed theme.
