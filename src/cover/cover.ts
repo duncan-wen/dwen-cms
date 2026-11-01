@@ -41,6 +41,26 @@ export function generateCover(slug: string): Cover {
   return { width: WIDTH, height: HEIGHT, contours };
 }
 
+/**
+ * The cover as a standalone SVG document for use as a CSS mask. Only its alpha matters,
+ * so the stroke colour is arbitrary (not a design colour) and the page paints the lines
+ * in whatever colour the theme gives.
+ * It covers its box when scaled (`slice`), and its strokes keep their width at any size.
+ */
+export function coverSvg(slug: string): string {
+  const { width, height, contours } = generateCover(slug);
+  const paths = contours
+    .map(({ d, heavy }) => {
+      const stroke = heavy ? 'stroke-opacity="0.85" stroke-width="1.6"' : 'stroke-opacity="0.38" stroke-width="0.9"';
+      return `<path d="${d}" ${stroke} vector-effect="non-scaling-stroke"/>`;
+    })
+    .join("");
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid slice">` +
+    `<g fill="none" stroke="black" stroke-linejoin="round">${paths}</g></svg>`
+  );
+}
+
 /** FNV-1a over the Slug's code points. */
 function hash(text: string): number {
   let h = 2166136261;

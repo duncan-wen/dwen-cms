@@ -1,6 +1,6 @@
 # 06: Generated Post covers
 
-**What to build:** A pure function turns a Post's Slug into a contour-line cover: SVG path data from seeded noise, about 22 closed lines with every fifth one heavier. A cover component renders it as inline SVG stroked with the accent token on the deep-paper token, so it recolours with the theme and needs no client JavaScript. See the prototype's variant X and the spec's Implementation Decisions.
+**What to build:** A pure function turns a Post's Slug into a contour-line cover: SVG path data from seeded noise, about 22 closed lines with every fifth one heavier. A route writes it at build time as a static SVG file per Published Post (`/covers/<slug>.svg`), and a cover component paints the accent token on the deep-paper token through that file as a CSS `mask-image`, so it recolours with the theme, needs no client JavaScript, and each page carries only a URL. See the prototype's variant X and the spec's Implementation Decisions.
 
 **Blocked by:** 01
 

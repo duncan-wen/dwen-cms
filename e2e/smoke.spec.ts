@@ -9,6 +9,14 @@ test("a Published Post answers 200 with its title", async ({ request }) => {
   expect(await response.text()).toContain("煙霧測試文章");
 });
 
+test("a Published Post's cover answers 200 as an SVG file", async ({ request }) => {
+  const response = await request.get("/covers/smoke-post.svg");
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("image/svg+xml");
+  expect(await response.text()).toContain("<path");
+});
+
 test("the Post list answers 200 and links to a Published Post and its Tags", async ({
   request,
 }) => {
