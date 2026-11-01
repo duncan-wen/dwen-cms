@@ -7,6 +7,7 @@ import * as runtime from "react/jsx-runtime";
 import rehypeSlug from "rehype-slug";
 import { createCssVariablesTheme } from "shiki";
 import { mdxComponents } from "./components";
+import { type MdNode, mermaidBlocks } from "./md-tree";
 
 /** One entry of a Post's table of contents: an `h2` heading's id and text. */
 export type Heading = { id: string; label: string };
@@ -53,6 +54,7 @@ export async function compileMdx(
   };
   const { default: Content } = await evaluate(source, {
     ...runtime,
+    remarkPlugins: [remarkMermaid],
     rehypePlugins: [
       rehypeSlug,
       collectHeadings,
@@ -63,3 +65,22 @@ export async function compileMdx(
   });
   return { Body: () => <Content components={mdxComponents} />, headings };
 }
+
+/**
+ * Turns each ```mermaid block into `<Mermaid chart="…" id="mermaid-N" />`, so the
+ * diagram renders through the component map instead of as highlighted code.
+ */
+const remarkMermaid = () => (tree: MdNode) => {
+  mermaidBlocks(tree).forEach((block, index) => {
+    const attribute = (name: string, value: string) => ({ type: "mdxJsxAttribute", name, value });
+    const chart = block.value ?? "";
+    delete block.lang;
+    delete block.value;
+    Object.assign(block, {
+      type: "mdxJsxFlowElement",
+      name: "Mermaid",
+      attributes: [attribute("chart", chart), attribute("id", `mermaid-${index + 1}`)],
+      children: [],
+    });
+  });
+};

@@ -34,6 +34,10 @@ _Avoid_: Category, label, topic, 主題, 分類
 Standalone undated content outside listings, such as the About page.
 _Avoid_: Static page
 
+**Promo image**:
+A ready-to-post image of a Post for social media (文宣圖), written by `pnpm promo <slug>` at 1200×630, 1080×1080 and 1080×1350 from one of three brand templates: `contour` (the default), `flow` for a Post that mainly introduces a process, `terminal` for one mainly about coding. The Post's optional `promo` frontmatter picks the `template` and gives its `titleLines` (where the title breaks; each stays on one line, and the title shrinks until the longest fits), its key `points` (at least one; leave the field out to show the description), flow's `steps` (`name`, optional `command`) or terminal's `lines` (`command`, optional `comment`). Unlike the OG image it carries no seal.
+_Avoid_: Banner, social card, thumbnail
+
 **Demo**:
 An interactive AI showcase that stands on its own and can also be embedded in a Post; a Post containing a Demo is still a Post.
 _Avoid_: Playground, lab, project

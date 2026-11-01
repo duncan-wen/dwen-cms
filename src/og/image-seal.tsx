@@ -1,4 +1,4 @@
-import type { LightColours } from "./light-colours";
+import type { Colours } from "./token-colours";
 import { serifFont } from "./serif-font";
 
 /** The glyph the seal bears. */
@@ -7,7 +7,7 @@ const SEAL_GLYPH = "溫";
 type Props = {
   /** The seal's width and height in pixels. */
   size: number;
-  colours: Pick<LightColours, "accent" | "on-accent">;
+  colours: Pick<Colours, "accent" | "on-accent">;
   /** The glyph's size as a share of the seal's; the favicon sets it larger so it reads at 16px. */
   glyphScale?: number;
 };

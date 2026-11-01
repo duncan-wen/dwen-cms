@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { ImageSeal, sealFont } from "@/og/image-seal";
-import { lightColours } from "@/og/light-colours";
+import { lightColours } from "@/og/token-colours";
 
 export const size = { width: 64, height: 64 };
 export const contentType = "image/png";

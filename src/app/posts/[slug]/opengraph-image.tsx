@@ -4,7 +4,7 @@ import type { Post } from "@/content/content";
 import { getContent } from "@/content/site-content";
 import { generateCover } from "@/cover/cover";
 import { ImageSeal, sealFont } from "@/og/image-seal";
-import { type LightColours, lightColours } from "@/og/light-colours";
+import { type Colours, lightColours } from "@/og/token-colours";
 import { serifFont } from "@/og/serif-font";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -77,7 +77,7 @@ export default async function OpenGraphImage({ params }: Props) {
  * The image's full-bleed background: the Post's cover image, cropped to fill, or its
  * generated cover. A function, not a component: the image renderer can't await components.
  */
-async function coverLayer({ slug, cover }: Pick<Post, "slug" | "cover">, colours: LightColours) {
+async function coverLayer({ slug, cover }: Pick<Post, "slug" | "cover">, colours: Colours) {
   const fill = { position: "absolute", inset: 0 } as const;
   if (cover) {
     const image = (await (await getContent()).readPostImage(slug, cover.file))!;

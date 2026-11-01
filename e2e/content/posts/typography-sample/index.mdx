@@ -3,6 +3,17 @@ title: 排版樣本文章
 description: 涵蓋每種內文元素的樣本，給截圖和煙霧測試用，不會出現在正式網站。
 date: 2026-09-01
 tags: [smoke]
+promo:
+  template: flow
+  points: [每種內文元素都放一份, 兩種主題都要好讀]
+  steps:
+    - name: 寫好內文
+      command: index.mdx
+    - name: 內容檢查
+      command: pnpm content:check
+    - name: 截圖
+      command: pnpm shots
+    - name: 審閱
 ---
 
 這篇文章集合內文會用到的元素：段落裡有 `inline code`、[一個連結](/posts)和**粗體**。
@@ -42,6 +53,35 @@ pnpm content:check
 放在文章資料夾裡的圖片：
 
 ![草稿經過審閱才發布的流程圖](./flow.png)
+
+## 圖表
+
+用 Mermaid 畫的流程圖：
+
+```mermaid
+flowchart TD
+  write[撰寫文章] --> review{審閱}
+  review -->|通過| publish[發布]
+  review -->|退回修改| write
+  publish --> list[出現在文章列表]
+```
+
+橫向的架構圖，放不進內文欄（或在手機上）時會改成由上往下畫：
+
+```mermaid
+flowchart LR
+  subgraph repo[內容倉庫]
+    mdx[MDX 文章] --> check[內容檢查]
+  end
+  subgraph build[Vercel 建置]
+    check --> compile[編譯 MDX]
+    compile --> pages[靜態頁面]
+  end
+  subgraph readers[閱讀]
+    pages --> browser[瀏覽器]
+    pages --> rss[RSS 閱讀器]
+  end
+```
 
 ### 第三層標題
 
