@@ -11,6 +11,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Dependencies are a `**Blocked by:** NN, NN` line
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 - **Shipping**: each ticket is built on its own branch `issue-<NN>-<slug>` off a freshly fetched `origin/main`, then opened as a PR to `main`. The PR body names the branch's preview URL, `https://dwen-cms-git-<branch>-duncan-wens-projects.vercel.app`, and the paths to check there. The Owner reviews that preview and merges. Previews sit behind Vercel login; check them yourself by sending `x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET` (from `.env.local`).
+- **Preview env vars**: the Vercel CLI is logged in. Run `vercel link --yes --project dwen-cms` from the scratchpad, never the repo (linking writes `.vercel/` and edits `.gitignore`). A variable scoped with `--git-branch` needs that branch pushed first, and the push's own deployment starts before the variable exists, so `vercel redeploy` it once the variable is added.
 - **Done**: when a ticket's work lands, tick every acceptance box it met and set `**Status:** done`, in the same commit as the code. A `Blocked by:` edge clears only when the blocking ticket reads `done` on `main`.
 
 ## When a skill says "publish to the issue tracker"
