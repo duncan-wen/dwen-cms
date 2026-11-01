@@ -9,3 +9,4 @@ playwright-report/
 build.log
 .vitest/
 .claude/worktrees/
+/promo/

@@ -25,9 +25,30 @@ export type Post = {
   cover: PostImage | undefined;
   /** Every image the body references, keyed by the reference as the body writes it. */
   images: Record<string, PostImage>;
+  /** What the Post's promo images (文宣圖) show, from its `promo` frontmatter. */
+  promo: Promo;
   /** Raw MDX body, without frontmatter. */
   body: string;
 };
+
+/**
+ * What a Post's promo images show. Every template shows the title, set on
+ * `titleLines` (one line each, wrapping only when a line is too long), and the
+ * key `points`; flow adds numbered steps and terminal a box of commands.
+ */
+export type Promo = { titleLines: string[]; points: string[] } & (
+  | { template: "contour" }
+  | { template: "flow"; steps: FlowStep[] }
+  | { template: "terminal"; lines: TerminalLine[] }
+);
+
+export type PromoTemplate = Promo["template"];
+
+/** One step of a flow promo image: its name, and the command that runs it if any. */
+export type FlowStep = { name: string; command?: string };
+
+/** One line of a terminal promo image: a command, and the comment after it if any. */
+export type TerminalLine = { command: string; comment?: string };
 
 /** An image stored next to a Post. */
 export type PostImage = {
@@ -190,6 +211,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const tree = parseBody(body, report);
     const images = tree ? await checkBodyImages(tree, postDir, report) : {};
     if (tree) await checkDiagrams(tree, bodyLine, report);
+    const promo = checkPromo(data.promo, title, description, report);
 
     posts.push({
       slug,
@@ -201,6 +223,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
       latestRevision,
       cover,
       images,
+      promo,
       body,
     });
   }
@@ -671,6 +694,146 @@ async function checkImage(ref: string, field: string, postDir: string, report: R
     width: turned ? size.height : size.width,
     height: turned ? size.width : size.height,
   };
+}
+
+const PROMO_TEMPLATES: readonly string[] = ["contour", "flow", "terminal"] satisfies PromoTemplate[];
+
+/** The promo fields only one template takes, with that template. */
+const TEMPLATE_FIELDS = { steps: "flow", lines: "terminal" } as const satisfies Record<
+  string,
+  PromoTemplate
+>;
+
+/**
+ * The Post's `promo`: optional, and each of its fields too. Without them the
+ * promo images use the contour template, the title on one line and the
+ * description as the only point. `title` and `description` are undefined when
+ * the Post's own fields are invalid, so nothing is checked against them.
+ */
+function checkPromo(
+  value: unknown,
+  title: string | undefined,
+  description: string | undefined,
+  report: Report,
+): Promo {
+  const defaults: Promo = {
+    template: "contour",
+    titleLines: [title ?? ""],
+    points: [description ?? ""],
+  };
+  if (value === undefined) return defaults;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    report(
+      "promo",
+      "mapping",
+      "must be a mapping of promo fields, e.g. promo: { template: flow, titleLines: […], points: […], steps: […] }",
+    );
+    return defaults;
+  }
+  const fields = value as Record<string, unknown>;
+
+  const template = fields.template ?? "contour";
+  if (typeof template !== "string" || !PROMO_TEMPLATES.includes(template)) {
+    report(
+      "promo.template",
+      "promo-template",
+      `${JSON.stringify(template)} isn't a promo template; use contour (the default), flow or terminal`,
+    );
+  }
+  for (const [field, owner] of Object.entries(TEMPLATE_FIELDS)) {
+    if (fields[field] !== undefined && template !== owner) {
+      report(
+        `promo.${field}`,
+        "template-field",
+        `only the ${owner} template takes ${field}; set promo.template: ${owner}, or remove promo.${field}`,
+      );
+    }
+  }
+
+  const titleLines = checkPromoTexts(fields.titleLines, "titleLines", "Title line", report);
+  const noSpace = (text: string) => text.replace(/\s/g, "");
+  if (titleLines && title !== undefined && noSpace(titleLines.join("")) !== noSpace(title)) {
+    report(
+      "promo.titleLines",
+      "title-lines-match-title",
+      `must split the Post's title "${title}" into lines without changing its words, e.g. titleLines: [讓 AI 寫程式，, 也有工程流程]`,
+    );
+  }
+  const points = checkPromoTexts(fields.points, "points", "Point", report);
+  const shared = { titleLines: titleLines ?? defaults.titleLines, points: points ?? defaults.points };
+
+  if (template === "flow") {
+    const steps = checkPromoEntries(fields.steps, {
+      field: "steps",
+      needs: "the flow template needs steps, each with a name and an optional command, e.g. steps: [{ name: 釐清需求, command: /grilling }]",
+      which: "Step",
+      required: "name",
+      optional: "command",
+      report,
+    });
+    return { template, ...shared, steps: steps as FlowStep[] };
+  }
+  if (template === "terminal") {
+    const lines = checkPromoEntries(fields.lines, {
+      field: "lines",
+      needs: "the terminal template needs lines, each a command with an optional comment, e.g. lines: [{ command: pnpm promo my-post, comment: 產生文宣圖 }]",
+      which: "Line",
+      required: "command",
+      optional: "comment",
+      report,
+    });
+    return { template, ...shared, lines: lines as TerminalLine[] };
+  }
+  return { template: "contour", ...shared };
+}
+
+/**
+ * A promo field holding a list of texts, such as `points`. Returns undefined
+ * when it is absent or not a list, else its non-empty texts.
+ */
+function checkPromoTexts(value: unknown, field: string, which: string, report: Report) {
+  if (value === undefined) return undefined;
+  const entries = checkList(value, `promo.${field}`, `must be a list of texts, e.g. ${field}: […, …]`, report);
+  if (entries === undefined) return undefined;
+  const texts: string[] = [];
+  entries.forEach((entry, index) => {
+    const text = requiredString(entry);
+    if (text === undefined) report(`promo.${field}`, "required", `${which} ${index + 1} must be non-empty text`);
+    else texts.push(text);
+  });
+  return texts;
+}
+
+/**
+ * A template's list of entries, such as flow's `steps`: at least one, each
+ * with non-empty text for `required` and, if given, for `optional`. Returns
+ * the valid entries.
+ */
+function checkPromoEntries<Key extends string>(
+  value: unknown,
+  spec: { field: string; needs: string; which: string; required: Key; optional: Key; report: Report },
+): Partial<Record<Key, string>>[] {
+  const { field, needs, which, required, optional, report } = spec;
+  const entries = checkList(value, `promo.${field}`, needs, report);
+  if (entries === undefined) return [];
+  if (entries.length === 0) report(`promo.${field}`, "required", needs);
+  const valid: Partial<Record<Key, string>>[] = [];
+  entries.forEach((entry, index) => {
+    const fields = (typeof entry === "object" && entry !== null ? entry : {}) as Record<string, unknown>;
+    const main = requiredString(fields[required]);
+    const extra = requiredString(fields[optional]);
+    let ok = true;
+    if (main === undefined) {
+      report(`promo.${field}`, "required", `${which} ${index + 1} needs a ${required}: non-empty text`);
+      ok = false;
+    }
+    if (fields[optional] !== undefined && extra === undefined) {
+      report(`promo.${field}`, "required", `${which} ${index + 1}'s ${optional} must be non-empty text`);
+      ok = false;
+    }
+    if (ok) valid.push({ [required]: main, ...(extra === undefined ? {} : { [optional]: extra }) } as Partial<Record<Key, string>>);
+  });
+  return valid;
 }
 
 function requiredString(value: unknown): string | undefined {

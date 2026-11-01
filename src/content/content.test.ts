@@ -444,3 +444,69 @@ describe("validating Slugs", () => {
     ]);
   });
 });
+
+describe("promo images", () => {
+  it("gives a Post without promo frontmatter the contour template, its title on one line and its description as the point", async () => {
+    const content = await loadContent(fixture("valid"));
+
+    const result = content.resolveSlug("hello-world");
+
+    expect(result.kind === "post" && result.post.promo).toEqual({
+      template: "contour",
+      titleLines: ["你好，世界"],
+      points: ["第一篇文章"],
+    });
+  });
+});
+
+describe("promo frontmatter", () => {
+  const promoOf = async (slug: string) => {
+    const result = (await loadContent(fixture("promo"))).resolveSlug(slug);
+    return result.kind === "post" ? result.post.promo : undefined;
+  };
+
+  it("takes the title's line breaks and the key points from promo frontmatter", async () => {
+    expect(await promoOf("key-points")).toEqual({
+      template: "contour",
+      titleLines: ["讓 AI 寫程式，", "也有工程流程"],
+      points: ["先釐清需求", "再拆成票"],
+    });
+  });
+
+  it("gives the flow template its steps, each with a name and an optional command", async () => {
+    expect(await promoOf("process")).toEqual({
+      template: "flow",
+      titleLines: ["從需求到上線"],
+      points: ["一段流程。"],
+      steps: [{ name: "釐清需求", command: "/grilling" }, { name: "上線" }],
+    });
+  });
+
+  it("gives the terminal template its lines, each a command with an optional comment", async () => {
+    expect(await promoOf("coding")).toEqual({
+      template: "terminal",
+      titleLines: ["用指令安裝技能"],
+      points: ["一段程式。"],
+      lines: [{ command: "npx skills add mattpocock/skills", comment: "安裝" }, { command: "/tdd" }],
+    });
+  });
+});
+
+describe("validating promo frontmatter", () => {
+  it.each([
+    ["promo-not-a-mapping", "posts/promo-list/index.mdx", "promo", "mapping", "titleLines"],
+    ["promo-unknown-template", "posts/vertical-title/index.mdx", "promo.template", "promo-template", '"vertical"'],
+    ["promo-flow-without-steps", "posts/stepless-flow/index.mdx", "promo.steps", "required", "flow"],
+    ["promo-terminal-without-lines", "posts/lineless-terminal/index.mdx", "promo.lines", "required", "terminal"],
+    ["promo-step-without-name", "posts/nameless-step/index.mdx", "promo.steps", "required", "Step 2"],
+    ["promo-line-without-command", "posts/commandless-line/index.mdx", "promo.lines", "required", "Line 1"],
+    ["promo-title-lines-mismatch", "posts/other-title/index.mdx", "promo.titleLines", "title-lines-match-title", "標題，第二段"],
+    ["promo-blank-point", "posts/blank-point/index.mdx", "promo.points", "required", "Point 2"],
+    ["promo-steps-on-contour", "posts/contour-with-steps/index.mdx", "promo.steps", "template-field", "flow"],
+  ])("rejects fixture %s: %s %s breaks %s, naming %s", async (fixtureName, file, field, rule, named) => {
+    const error = await loadContent(fixture(fixtureName)).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file, field, rule }] });
+    expect((error as Error).message).toContain(named);
+  });
+});

@@ -12,6 +12,7 @@ const post = (slug: string, date: string): Post => ({
   latestRevision: undefined,
   cover: undefined,
   images: {},
+  promo: { template: "contour", titleLines: [slug], points: [] },
   body: "",
 });
 
