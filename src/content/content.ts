@@ -64,8 +64,8 @@ export class ContentValidationError extends Error {
 const postFile = (slug: string) => `posts/${slug}/index.mdx`;
 
 /** Advice for a taken-down Slug used as a current or previous Slug. */
-const takenDown = (slug: string) =>
-  `"${slug}" is in the taken-down Slug list (${TAKEN_DOWN_FILE}); no taken-down Slug may be used as a current or previous Slug`;
+const takenDownSlugAdvice = (slug: string) =>
+  `"${slug}" is in the taken-down Slug list (${TAKEN_DOWN_FILE}); a taken-down Slug can never be reused as a current or previous Slug`;
 
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -97,7 +97,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     if (!KEBAB_CASE.test(slug)) {
       report("slug", "kebab-case", "the folder name must be lowercase English kebab-case");
     }
-    if (takenDownSlugs.has(slug)) report("slug", "taken-down-slug", takenDown(slug));
+    if (takenDownSlugs.has(slug)) report("slug", "taken-down-slug", takenDownSlugAdvice(slug));
 
     const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
     if (source === undefined) {
@@ -160,7 +160,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
         if (typeof previousSlug === "string" && KEBAB_CASE.test(previousSlug)) {
           previousSlugs.push(previousSlug);
           if (takenDownSlugs.has(previousSlug)) {
-            report("previousSlugs", "taken-down-slug", takenDown(previousSlug));
+            report("previousSlugs", "taken-down-slug", takenDownSlugAdvice(previousSlug));
           }
         } else {
           report(
