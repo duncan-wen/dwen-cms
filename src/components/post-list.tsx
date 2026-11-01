@@ -21,10 +21,10 @@ export function PostList({ posts, titleAs: Heading }: Props) {
                 {post.title}
               </Link>
             </Heading>
-            <time dateTime={post.date} className="mt-1 block text-sm text-zinc-500">
+            <time dateTime={post.date} className="mt-1 block text-sm text-ink-soft">
               {formatDate(post.date)}
             </time>
-            <p className="mt-2 text-zinc-700">{post.description}</p>
+            <p className="mt-2 text-ink-soft">{post.description}</p>
             <TagList tags={post.tags} className="mt-3" />
           </article>
         </li>

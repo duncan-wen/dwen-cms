@@ -18,7 +18,7 @@ export default async function TagsPage() {
             <Link href={`/tags/${tag}`} className="text-lg font-medium hover:underline">
               #{tag}
             </Link>
-            <span className="ml-2 text-sm text-zinc-500">{count} 篇</span>
+            <span className="ml-2 text-sm text-ink-soft">{count} 篇</span>
           </li>
         ))}
       </ul>

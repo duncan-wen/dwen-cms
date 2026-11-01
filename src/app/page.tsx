@@ -11,7 +11,7 @@ export default async function HomePage() {
     <>
       <section className="mb-16">
         <h1 className="text-3xl font-bold tracking-tight">Duncan Wen</h1>
-        <p className="mt-4 text-lg text-zinc-700">
+        <p className="mt-4 text-lg text-ink-soft">
           嗨，我是 Duncan。我在這裡寫軟體工程與 AI 應用的實作筆記，也展示我做過的東西。
         </p>
         <Link href="/about" className="mt-4 inline-block font-medium hover:underline">

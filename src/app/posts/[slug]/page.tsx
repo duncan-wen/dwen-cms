@@ -38,7 +38,7 @@ function TakenDown() {
   return (
     <>
       <h1 className="text-3xl font-bold tracking-tight">這篇文章已移除</h1>
-      <p className="mt-4 text-lg text-zinc-700">
+      <p className="mt-4 text-lg text-ink-soft">
         這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。
       </p>
       <Link href="/posts" className="mt-10 inline-block font-medium hover:underline">
@@ -54,14 +54,14 @@ export default async function PostPage({ params }: Props) {
   const { post } = result;
   const revision = post.latestRevision;
   return (
-    <article className="prose prose-zinc max-w-none">
+    <article className="prose prose-site max-w-none">
       <header className="not-prose mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{post.title}</h1>
-        <time dateTime={post.date} className="mt-2 block text-sm text-zinc-500">
+        <time dateTime={post.date} className="mt-2 block text-sm text-ink-soft">
           {formatDate(post.date)}
         </time>
         {revision && (
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-ink-soft">
             更新於 <time dateTime={revision.date}>{formatDate(revision.date)}</time>：{revision.note}
           </p>
         )}
