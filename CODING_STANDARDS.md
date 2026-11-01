@@ -10,6 +10,7 @@ Judgement calls for the reviewer. Lint, typecheck and the content check enforce 
 ## Content rules
 
 - A content-check error names the file, the field and the rule, and its advice matches the spec's wording for that rule.
+- An error about one entry of a list names that entry: its value, or its position when it has no single value (`Revision 2`).
 - Every page, feed and image reads content through the content module's query interface, never from content files directly.
 
 ## Tests

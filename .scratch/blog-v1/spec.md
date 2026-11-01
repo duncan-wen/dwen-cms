@@ -4,7 +4,7 @@
 
 ## Problem Statement
 
-The Owner wants a personal tech-brand site that shows prospective employers and clients what they can do, with fellow engineers as a secondary audience. The Owner doesn't want to write every word by hand: Writing Agents should draft and revise content, while the Owner keeps sole control over what goes live. Hosted platforms like Hashnode or Ghost keep content out of the repo, where agents work best. They also can't embed the interactive Demos planned for later.
+The Owner wants a personal tech-brand site that shows prospective employers and clients what they can do, with fellow engineers as a secondary audience. The Owner doesn't want to write every word by hand: Writing Agents should draft and revise content, while the Owner keeps sole control over what gets Published. Hosted platforms like Hashnode or Ghost keep content out of the repo, where agents work best. They also can't embed the interactive Demos planned for later.
 
 ## Solution
 
@@ -24,7 +24,7 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
 8. As a Reader, I want to click a Tag and see every Post with that Tag, so that I can follow a topic I care about.
 9. As a Reader, I want a list of all Tags, so that I can see which topics the Owner covers.
 10. As a Reader, I want to see 「更新於」 with a short note on a Post that has had a Revision, so that I know the content changed since it was first published.
-11. As a Reader, I want Corrections such as typo fixes not to show an update date, so that update notices only appear when something meaningful changed.
+11. As a Reader, I want Corrections, such as a typo or a broken link, not to show 「更新於」, so that it only appears when something meaningful changed.
 12. As a Reader, I want an old link to a Post whose Slug changed to take me to the Post's new URL, so that bookmarks and shared links keep working.
 13. As a Reader, I want a link to a Post that was taken down to tell me clearly that it was removed, so that I'm not left wondering whether the site is broken.
 14. As a Reader, I want an About page, so that I can learn about the Owner's background and how they use AI to produce the site.
@@ -36,18 +36,18 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
 
 ### Owner
 
-20. As the Owner, I want content to go live only when I merge a pull request, so that nothing reaches Readers without my Review.
+20. As the Owner, I want content to become Published only when I merge a pull request, so that nothing reaches Readers without my Review.
 21. As the Owner, I want every pull request to get a preview URL, so that I can review a Draft exactly as Readers will see it, including on my phone.
 22. As the Owner, I want CI to fail a pull request whose content breaks the rules, so that I don't have to catch formatting mistakes by eye.
-23. As the Owner, I want a clear, readable error message when content is invalid, so that I or a Writing Agent can fix it quickly.
+23. As the Owner, I want a clear, readable error message when content is invalid, so that I or a Writing Agent can resolve it quickly.
 24. As the Owner, I want to approve new Tags explicitly, so that the Tag list stays small and consistent instead of growing with near-duplicates.
 25. As the Owner, I want Tag names forced to lowercase English, so that "RAG", "rag" and 「檢索增強生成」 don't become three different Tags.
-26. As the Owner, I want to change a Post's Slug without breaking old links, so that I can fix a poor URL after publishing.
+26. As the Owner, I want to change a Post's Slug without breaking old links, so that I can replace a poor URL after publishing.
 27. As the Owner, I want the build to fail if an old Slug collides with another Post's current Slug, so that redirects can never point to the wrong Post.
 28. As the Owner, I want to take down a Post by deleting it and recording its Slug as taken down, so that its URL answers 410 and search engines drop it.
-29. As the Owner, I want the build to fail if a taken-down Slug is reused by a live Post, so that a removed Post's URL isn't silently recycled.
-30. As the Owner, I want to mark a change as a Revision with a short note, so that Readers see meaningful updates explained.
-31. As the Owner, I want Corrections to need no extra metadata, so that small fixes stay cheap.
+29. As the Owner, I want the build to fail if a taken-down Slug is reused by a Published Post, so that a removed Post's URL isn't silently recycled.
+30. As the Owner, I want to mark a change as a Revision with a short note, so that Readers see meaningful changes explained.
+31. As the Owner, I want Corrections to need no extra metadata, so that small Corrections stay cheap.
 32. As the Owner, I want images stored next to the Post that uses them, so that taking down a Post removes its images too.
 33. As the Owner, I want a sitemap generated from the Published content, so that search engines discover every Post and Page.
 34. As the Owner, I want visit analytics, so that I can see which Posts reach Readers.
@@ -90,9 +90,9 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
   - optional Revision entries, each with a date and a short note
 - A Post's Slug is its folder name.
 - There is no draft field: a Draft is an unmerged PR, and everything on the main branch is Published.
-- A Post's update date comes from its most recent Revision entry; Corrections leave no trace in frontmatter.
+- A Post's latest Revision (its date and note, shown as 「更新於」) is the Revision entry with the most recent date; Corrections leave no trace in frontmatter.
 - Page frontmatter: title and description.
-- The approved Tag list and the taken-down Slug list are each a small data file in the content directory, both edited only through PRs.
+- The approved Tag list and the taken-down Slug list are each a small data file in the content directory, both changed only through PRs.
 
 ### Validation rules (enforced by the content module)
 
@@ -153,12 +153,13 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
   - Tag filtering and counts
   - Slug resolution for current, previous, taken-down and unknown Slugs
   - every validation rule, with readable errors
-  - Revision-derived update dates
+  - the latest Revision derived from a Post's Revision entries
 - **Seam 2, the built site (supporting):** a small Playwright smoke suite runs against a production build. It checks that:
   - each route answers 200
   - an old Slug redirects to the current Slug
   - a taken-down Slug answers 410
   - an unknown URL answers 404
+  - Reader-facing text shown only under a content condition (such as 「更新於」 for a Post with a Revision) appears exactly when that condition holds
   - RSS, sitemap and an OG image are served with the right content types
 - Visual layout, typography and dark mode are checked by the Owner on preview URLs, not by automated tests.
 - There's no prior art yet: this is a greenfield repo, and these suites set the pattern.
@@ -172,7 +173,7 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
 - Comments.
 - Categories and Series.
 - Newsletter and memberships.
-- A web editing UI for content.
+- A web UI for writing content.
 - Choosing and configuring a custom domain.
 - Search.
 
