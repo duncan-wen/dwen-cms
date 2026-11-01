@@ -54,3 +54,10 @@ test("an unknown Tag answers 404", async ({ request }) => {
 
   expect(response.status()).toBe(404);
 });
+
+test("a previous Slug permanently redirects to the Post's current URL", async ({ request }) => {
+  const response = await request.get("/posts/mdx-in-git", { maxRedirects: 0 });
+
+  expect([301, 308]).toContain(response.status());
+  expect(response.headers()["location"]).toBe("/posts/why-mdx-in-git");
+});

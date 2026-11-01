@@ -4,10 +4,10 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Frontmatter accepts an optional list of previous Slugs, validated as kebab-case
-- [ ] Resolving a previous Slug returns a redirect to the current Slug
-- [ ] Collisions fail the content check with a readable error
-- [ ] Requesting an old Slug answers a permanent redirect (301/308) to the new URL
-- [ ] Unit tests cover resolution and collisions; a smoke test covers the redirect
+- [x] Frontmatter accepts an optional list of previous Slugs, validated as kebab-case
+- [x] Resolving a previous Slug returns a redirect to the current Slug
+- [x] Collisions fail the content check with a readable error
+- [x] Requesting an old Slug answers a permanent redirect (301/308) to the new URL
+- [x] Unit tests cover resolution and collisions; a smoke test covers the redirect

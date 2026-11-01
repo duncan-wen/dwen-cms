@@ -22,6 +22,14 @@ describe("loading a valid content directory", () => {
     expect(result.post.body).toContain("這是內文。");
   });
 
+  it("redirects every previous Slug to the Post's current Slug", async () => {
+    const content = await loadContent(fixture("previous-slugs"));
+
+    expect(content.resolveSlug("old-name")).toEqual({ kind: "redirect", to: "renamed-post" });
+    expect(content.resolveSlug("older-name")).toEqual({ kind: "redirect", to: "renamed-post" });
+    expect(content.resolveSlug("renamed-post").kind).toBe("post");
+  });
+
   it("answers not-found for an unknown Slug", async () => {
     const content = await loadContent(fixture("valid"));
 
@@ -158,6 +166,54 @@ describe("validating Slugs", () => {
       "posts/你好/index.mdx",
     ]);
     expect(problems.every((p) => p.field === "slug" && p.rule === "kebab-case")).toBe(true);
+  });
+
+  it("rejects previous Slugs that aren't a list", async () => {
+    await expect(loadContent(fixture("previous-slugs-not-a-list"))).rejects.toMatchObject({
+      problems: [{ file: "posts/renamed/index.mdx", field: "previousSlugs", rule: "list" }],
+    });
+  });
+
+  it("rejects a previous Slug that isn't lowercase English kebab-case", async () => {
+    const error = await loadContent(fixture("previous-slug-bad-case")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/renamed/index.mdx", field: "previousSlugs", rule: "kebab-case" }],
+    });
+    expect((error as Error).message).toContain('"Old_Name"');
+  });
+
+  it("rejects a previous Slug that is another Post's current Slug", async () => {
+    const error = await loadContent(fixture("previous-slug-is-current")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [
+        {
+          file: "posts/renamed/index.mdx",
+          field: "previousSlugs",
+          rule: "previous-slug-is-current",
+        },
+      ],
+    });
+    expect((error as Error).message).toContain("posts/other-post/index.mdx");
+  });
+
+  it("rejects a previous Slug that two Posts claim, naming both", async () => {
+    const error = await loadContent(fixture("previous-slug-claimed-twice")).catch(
+      (e: unknown) => e,
+    );
+
+    expect(error).toMatchObject({
+      problems: [
+        {
+          file: "posts/second/index.mdx",
+          field: "previousSlugs",
+          rule: "previous-slug-claimed-twice",
+        },
+      ],
+    });
+    expect((error as Error).message).toContain('"shared-name"');
+    expect((error as Error).message).toContain("posts/first/index.mdx");
   });
 
   it("reports a bad Slug even when the Post's frontmatter is also broken", async () => {
