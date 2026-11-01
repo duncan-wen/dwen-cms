@@ -11,4 +11,8 @@
 - [x] The home page shows the latest Posts as a cover grid, newest one large
 - [x] `/posts` groups Posts under year headings with `MM-DD` dates and cover thumbnails (hidden on phones)
 - [x] Tag pages and `/tags` share the new list styling
-- [ ] No page scrolls horizontally at 375px; checked by the Owner in both themes on the preview
+- [x] No page scrolls horizontally at 375px; checked by the Owner in both themes on the preview
+
+## Comments
+
+- The Owner approved the look in both themes from `pnpm shots` screenshots on 2026-11-01, along with the home copy taken from the prototype.
