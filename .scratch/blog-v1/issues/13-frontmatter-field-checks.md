@@ -4,11 +4,11 @@
 
 **Blocked by:** 06
 
-**Status:** needs-triage
+**Status:** done
 
-- [ ] `tags`, `previousSlugs` and `revisions` each validate through their own helper
-- [ ] One helper owns the "must be a list" rule for frontmatter fields
-- [ ] Every existing unit test passes unchanged
+- [x] `tags`, `previousSlugs` and `revisions` each validate through their own helper
+- [x] One helper owns the "must be a list" rule for frontmatter fields
+- [x] Every existing unit test passes unchanged
 
 ## Comments
 

@@ -122,64 +122,12 @@ export async function loadContent(contentDir: string): Promise<Content> {
     }
     const { data, content: body } = parsed;
 
-
-    const title = requiredString(data.title);
-    if (title === undefined) report("title", "required", "must be a non-empty string");
-
-    const description = requiredString(data.description);
-    if (description === undefined) {
-      report("description", "required", "must be a non-empty string");
-    }
-
-    const date = data.date === undefined ? undefined : isoDate(data.date);
-    if (data.date === undefined) report("date", "required", "is missing");
-    else if (date === undefined) report("date", "date-format", "must be a date written YYYY-MM-DD");
-
-    const tags: string[] = [];
-    if (data.tags !== undefined && !Array.isArray(data.tags)) {
-      report("tags", "list", "must be a list, e.g. tags: [nextjs]");
-    } else if (!data.tags?.length) {
-      report("tags", "at-least-one-tag", "must list at least one Tag");
-    } else {
-      for (const tag of data.tags as unknown[]) {
-        const name = requiredString(tag);
-        if (name === undefined) {
-          report("tags", "non-empty-tag", "every Tag must be non-empty text");
-        } else if (name !== name.toLowerCase()) {
-          report("tags", "lowercase", `"${name}" must be lowercase; write "${name.toLowerCase()}"`);
-        } else if (approvedTags && !approvedTags.has(name)) {
-          report(
-            "tags",
-            "approved-tag",
-            `"${name}" isn't in the approved Tag list (${TAGS_FILE}); use an approved Tag, or add it there and give the reason in the PR`,
-          );
-        } else if (tags.includes(name)) {
-          report("tags", "duplicate-tag", `"${name}" is listed more than once`);
-        } else {
-          tags.push(name);
-        }
-      }
-    }
-
-    const previousSlugs: string[] = [];
-    if (data.previousSlugs !== undefined && !Array.isArray(data.previousSlugs)) {
-      report("previousSlugs", "list", "must be a list, e.g. previousSlugs: [old-slug]");
-    } else {
-      for (const previousSlug of (data.previousSlugs ?? []) as unknown[]) {
-        if (typeof previousSlug === "string" && KEBAB_CASE.test(previousSlug)) {
-          previousSlugs.push(previousSlug);
-          if (takenDownSlugs.has(previousSlug)) {
-            report("previousSlugs", "taken-down-slug", takenDownSlugAdvice(previousSlug));
-          }
-        } else {
-          report(
-            "previousSlugs",
-            "kebab-case",
-            `${JSON.stringify(previousSlug)} must be lowercase English kebab-case`,
-          );
-        }
-      }
-    }
+    const title = checkText(data.title, "title", report);
+    const description = checkText(data.description, "description", report);
+    const date = checkDate(data.date, report);
+    const tags = checkTags(data.tags, approvedTags, report);
+    const previousSlugs = checkPreviousSlugs(data.previousSlugs, takenDownSlugs, report);
+    const latestRevision = checkRevisions(data.revisions, date, report);
 
     posts.push({
       slug,
@@ -188,12 +136,12 @@ export async function loadContent(contentDir: string): Promise<Content> {
       date: date ?? "",
       tags,
       previousSlugs,
-      latestRevision: checkRevisions(data.revisions, date, report),
+      latestRevision,
       body,
     });
   }
 
-  checkPreviousSlugs(slugs, posts, problems);
+  checkPreviousSlugClaims(slugs, posts, problems);
 
   if (problems.length > 0) throw new ContentValidationError(problems);
 
@@ -273,7 +221,7 @@ async function loadKebabCaseList(
   problems: ContentProblem[],
   list: { file: string; field: string; example: string; missing?: string },
 ): Promise<Set<string> | undefined> {
-  const report = (field: string, rule: string, message: string) =>
+  const report: Report = (field, rule, message) =>
     problems.push({ file: list.file, field, rule, message });
 
   const source = await readFile(path.join(contentDir, list.file), "utf8").catch(() => undefined);
@@ -307,7 +255,11 @@ async function loadKebabCaseList(
  * current Slug (every Post folder, valid or not) or be claimed by two Posts.
  * Posts are checked in Slug order, so the later Post is the one reported.
  */
-function checkPreviousSlugs(currentSlugs: string[], posts: Post[], problems: ContentProblem[]) {
+function checkPreviousSlugClaims(
+  currentSlugs: string[],
+  posts: Post[],
+  problems: ContentProblem[],
+) {
   const current = new Set(currentSlugs);
   const claimedBy = new Map<string, string>();
   for (const post of [...posts].sort((a, b) => a.slug.localeCompare(b.slug))) {
@@ -332,6 +284,105 @@ function checkPreviousSlugs(currentSlugs: string[], posts: Post[], problems: Con
   }
 }
 
+/** Records one problem with a frontmatter field of the file being checked. */
+type Report = (field: string, rule: string, message: string) => void;
+
+/*
+ * The check helpers below validate frontmatter: each reports its problems
+ * and returns the parsed value (undefined, or only the valid entries, when
+ * the value is invalid). check<Field> owns one field's rules; checkText and
+ * checkList own one rule shared by several fields.
+ */
+
+/** A required text field such as `title`: non-empty text. */
+function checkText(value: unknown, field: string, report: Report): string | undefined {
+  const text = requiredString(value);
+  if (text === undefined) report(field, "required", "must be a non-empty string");
+  return text;
+}
+
+/** The Post's `date`: required, a real date written YYYY-MM-DD. */
+function checkDate(value: unknown, report: Report): string | undefined {
+  if (value === undefined) {
+    report("date", "required", "is missing");
+    return undefined;
+  }
+  const date = isoDate(value);
+  if (date === undefined) report("date", "date-format", "must be a date written YYYY-MM-DD");
+  return date;
+}
+
+/** The Post's `tags`: at least one lowercase, approved Tag, none repeated. */
+function checkTags(value: unknown, approvedTags: Set<string> | undefined, report: Report) {
+  const tags: string[] = [];
+  const entries = checkList(value, "tags", "must be a list, e.g. tags: [nextjs]", report);
+  if (entries === undefined) return tags;
+  if (entries.length === 0) report("tags", "at-least-one-tag", "must list at least one Tag");
+  for (const entry of entries) {
+    const name = requiredString(entry);
+    if (name === undefined) {
+      report("tags", "non-empty-tag", "every Tag must be non-empty text");
+    } else if (name !== name.toLowerCase()) {
+      report("tags", "lowercase", `"${name}" must be lowercase; write "${name.toLowerCase()}"`);
+    } else if (approvedTags && !approvedTags.has(name)) {
+      report(
+        "tags",
+        "approved-tag",
+        `"${name}" isn't in the approved Tag list (${TAGS_FILE}); use an approved Tag, or add it there and give the reason in the PR`,
+      );
+    } else if (tags.includes(name)) {
+      report("tags", "duplicate-tag", `"${name}" is listed more than once`);
+    } else {
+      tags.push(name);
+    }
+  }
+  return tags;
+}
+
+/**
+ * The Post's `previousSlugs`: optional kebab-case Slugs, none taken down.
+ * Rules spanning Posts are checked later by checkPreviousSlugClaims.
+ */
+function checkPreviousSlugs(value: unknown, takenDownSlugs: Set<string>, report: Report) {
+  const previousSlugs: string[] = [];
+  const entries = checkList(
+    value,
+    "previousSlugs",
+    "must be a list, e.g. previousSlugs: [old-slug]",
+    report,
+  );
+  for (const entry of entries ?? []) {
+    if (typeof entry === "string" && KEBAB_CASE.test(entry)) {
+      previousSlugs.push(entry);
+      if (takenDownSlugs.has(entry)) {
+        report("previousSlugs", "taken-down-slug", takenDownSlugAdvice(entry));
+      }
+    } else {
+      report("previousSlugs", "kebab-case", `${JSON.stringify(entry)} must be lowercase English kebab-case`);
+    }
+  }
+  return previousSlugs;
+}
+
+/**
+ * The "must be a list" rule for a frontmatter field. Returns the entries,
+ * an empty list when the field is absent, or undefined after reporting a
+ * value that isn't a list.
+ */
+function checkList(
+  value: unknown,
+  field: string,
+  message: string,
+  report: Report,
+): unknown[] | undefined {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) {
+    report(field, "list", message);
+    return undefined;
+  }
+  return value;
+}
+
 /**
  * Validates a Post's Revision entries and returns the latest valid one.
  * `postDate` is undefined when the Post's own date is invalid, so the
@@ -340,18 +391,16 @@ function checkPreviousSlugs(currentSlugs: string[], posts: Post[], problems: Con
 function checkRevisions(
   value: unknown,
   postDate: string | undefined,
-  report: (field: string, rule: string, message: string) => void,
+  report: Report,
 ): Revision | undefined {
-  if (value !== undefined && !Array.isArray(value)) {
-    report(
-      "revisions",
-      "list",
-      "must be a list of Revisions, each with a date and a note, e.g. revisions: [{ date: 2026-10-20, note: 補上效能比較 }]",
-    );
-    return undefined;
-  }
+  const entries = checkList(
+    value,
+    "revisions",
+    "must be a list of Revisions, each with a date and a note, e.g. revisions: [{ date: 2026-10-20, note: 補上效能比較 }]",
+    report,
+  );
   let latest: Revision | undefined;
-  ((value ?? []) as unknown[]).forEach((entry, index) => {
+  (entries ?? []).forEach((entry, index) => {
     const which = `Revision ${index + 1}`;
     const fields = (typeof entry === "object" && entry !== null ? entry : {}) as {
       date?: unknown;
