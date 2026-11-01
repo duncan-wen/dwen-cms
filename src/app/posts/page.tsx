@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeading } from "@/components/page-heading";
 import { PostList } from "@/components/post-list";
 import { getContent } from "@/content/site-content";
 
@@ -11,8 +12,8 @@ export default async function PostsPage() {
   const posts = (await getContent()).listPublishedPosts();
   return (
     <>
-      <h1 className="mb-10 text-3xl font-bold tracking-tight">文章</h1>
-      <PostList posts={posts} titleAs="h2" />
+      <PageHeading title="文章">共 {posts.length} 篇，由新到舊。</PageHeading>
+      <PostList posts={posts} />
     </>
   );
 }

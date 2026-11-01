@@ -4,11 +4,11 @@
 
 **Blocked by:** 02, 06
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Wide screens show the headline set vertically with the seal at its end; phones show it horizontally
-- [ ] 「聯絡我」 links to `/about#contact`; text links carry no trailing 「→」
-- [ ] The home page shows the latest Posts as a cover grid, newest one large
-- [ ] `/posts` groups Posts under year headings with `MM-DD` dates and cover thumbnails (hidden on phones)
-- [ ] Tag pages and `/tags` share the new list styling
+- [x] Wide screens show the headline set vertically with the seal at its end; phones show it horizontally
+- [x] 「聯絡我」 links to `/about#contact`; text links carry no trailing 「→」
+- [x] The home page shows the latest Posts as a cover grid, newest one large
+- [x] `/posts` groups Posts under year headings with `MM-DD` dates and cover thumbnails (hidden on phones)
+- [x] Tag pages and `/tags` share the new list styling
 - [ ] No page scrolls horizontally at 375px; checked by the Owner in both themes on the preview
