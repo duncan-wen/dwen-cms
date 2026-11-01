@@ -24,4 +24,5 @@ jobs:
             echo "::error::next build printed warnings (see above)"
             exit 1
           fi
-      - run: pnpm test:smoke
+      - name: Smoke tests (builds e2e/content)
+        run: pnpm smoke

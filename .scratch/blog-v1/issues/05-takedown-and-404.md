@@ -4,13 +4,13 @@
 
 **Blocked by:** 04
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The taken-down Slug list is a data file in the content directory
-- [ ] Resolving a taken-down Slug returns a Takedown marker
-- [ ] Reusing a taken-down Slug fails the content check
-- [ ] A taken-down Slug answers 410 with an explanation page; an unknown URL answers 404 with a way back to content
-- [ ] Unit tests cover resolution and the reuse rule; smoke tests cover 410 and 404
+- [x] The taken-down Slug list is a data file in the content directory
+- [x] Resolving a taken-down Slug returns a Takedown marker
+- [x] Reusing a taken-down Slug fails the content check
+- [x] A taken-down Slug answers 410 with an explanation page; an unknown URL answers 404 with a way back to content
+- [x] Unit tests cover resolution and the reuse rule; smoke tests cover 410 and 404
 
 ## Comments
 
