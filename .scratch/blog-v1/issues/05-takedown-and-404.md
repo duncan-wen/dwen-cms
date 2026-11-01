@@ -4,7 +4,7 @@
 
 **Blocked by:** 04
 
-**Status:** ready-for-agent
+**Status:** needs-info
 
 - [ ] The taken-down Slug list is a data file in the content directory
 - [ ] Resolving a taken-down Slug returns a Takedown marker
@@ -15,3 +15,8 @@
 ## Comments
 
 The taken-down Slug list is optional: a missing file means no Slug is taken down. `tags.yml` stays the only required data file, so existing fixture directories need no new file.
+
+**Owner decision needed before `/implement` (issue-04 retro):** the smoke suite builds the real `content/`, so testing 410 needs a real taken-down Slug, and that Slug can never be used again. Issue 04 already put a made-up previous Slug (`mdx-in-git`) into a Published Post for the same reason. Pick one, then set Status back to `ready-for-agent`:
+
+- **(a) Smoke fixture content.** `src/content/site-content.ts` reads a `CONTENT_DIR` override; the smoke suite builds `e2e/content/` instead of `content/`, and `mdx-in-git` moves out of the real Post. CI pays one extra build.
+- **(b) Real content.** Smoke tests keep using `content/`; any Slug added only for a smoke test is named in the PR body.
