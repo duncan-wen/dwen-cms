@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { pageTitle } from "@/components/page-styles";
 import { PostCover } from "@/components/post-cover";
 import { Seal } from "@/components/seal";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
+import { TextLink } from "@/components/text-link";
 import { getContent } from "@/content/site-content";
 import { formatDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
-
-const textLink =
-  "font-medium text-accent underline decoration-rule decoration-1 underline-offset-[5px] hover:decoration-accent";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -43,13 +41,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 function TakenDown() {
   return (
     <>
-      <h1 className="text-3xl font-bold tracking-tight">這篇文章已移除</h1>
-      <p className="mt-4 text-lg text-ink-soft">
+      <h1 className={`${pageTitle} pt-8`}>這篇文章已移除</h1>
+      <p className="mt-5 text-[17px] leading-[1.95] text-ink-soft">
         這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。
       </p>
-      <Link href="/posts" className="mt-10 inline-block font-medium hover:underline">
-        所有文章 →
-      </Link>
+      <p className="mt-10 flex flex-wrap gap-7">
+        <TextLink href="/posts">所有文章</TextLink>
+        <TextLink href="/">回到首頁</TextLink>
+      </p>
     </>
   );
 }
@@ -66,9 +65,7 @@ export default async function PostPage({ params }: Props) {
       {/* The table of contents hangs off the column's right edge, so the column never moves. */}
       <div className="relative">
         <header className="grid gap-[18px] pt-8 pb-10">
-          <h1 className="text-[clamp(30px,5.6vw,40px)] leading-[1.38] font-black text-balance">
-            {post.title}
-          </h1>
+          <h1 className={pageTitle}>{post.title}</h1>
           <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] text-ink-soft">
             <time dateTime={post.date}>{post.date}</time>
             <TagList tags={post.tags} />
@@ -94,12 +91,8 @@ export default async function PostPage({ params }: Props) {
           </p>
         </footer>
         <p className="mt-7 flex flex-wrap gap-7">
-          <Link href="/posts" className={textLink}>
-            所有文章
-          </Link>
-          <Link href="/about#contact" className={textLink}>
-            聯絡我
-          </Link>
+          <TextLink href="/posts">所有文章</TextLink>
+          <TextLink href="/about#contact">聯絡我</TextLink>
         </p>
         <TableOfContents headings={headings} />
       </div>

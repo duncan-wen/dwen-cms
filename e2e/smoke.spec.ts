@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
 
 // Smoke tests run against a build of e2e/content, never the real content.
 
@@ -206,6 +206,18 @@ test("the footer links to GitHub, Email, LinkedIn and RSS", async ({ page }) => 
   ]) {
     await expect(footer.getByRole("link", { name })).toHaveAttribute("href", href);
   }
+});
+
+test("the About page's #contact section lists the same contact links as the footer", async ({
+  page,
+}) => {
+  await page.goto("/about");
+  const hrefs = (scope: Locator) =>
+    scope.getByRole("link").evaluateAll((links) => links.map((a) => a.getAttribute("href")));
+
+  const contact = await hrefs(page.locator("#contact"));
+  expect(contact).toContain("mailto:lumpa7223@gmail.com");
+  expect(contact).toEqual(await hrefs(page.getByRole("contentinfo")));
 });
 
 test("an unknown URL answers 404 with links back to the content", async ({ request }) => {
