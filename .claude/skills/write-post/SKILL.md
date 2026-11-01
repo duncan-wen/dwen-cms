@@ -89,7 +89,7 @@ promo: { … }                         # optional; see Promo images
 
 The body starts with prose (the page shows the title), uses `##` and `###` for sections, and fences code with its language (```` ```ts ````, ```` ```bash ````) so it is highlighted. `<Callout title="注意">…</Callout>` boxes a tip or warning, with blank lines inside it around the Markdown. `e2e/content/posts/typography-sample/index.mdx` shows every body element.
 
-**Tags.** Pick from `content/tags.yml`, lowercase English kebab-case, none repeated. When no approved Tag fits, add one to `content/tags.yml` in the same PR and give the reason in the PR body; the Owner approves it by merging. Propose the broadest Tag that fits (`ai-agents`, not `claude-code-skills`), so the list stays small.
+**Tags.** Pick one to three from `content/tags.yml`, lowercase English kebab-case, none repeated; each entry's comment says what it covers. An approved Tag that means the same thing is the one to use, whatever the spelling you had in mind: singular or plural, synonym, abbreviation, Chinese or English (`ai-agents` covers "AI agent", "agent", 智能體). Only a topic no entry's comment covers earns a new Tag: add it to `content/tags.yml` under the right group with its own comment, in the same PR, and give the reason in the PR body; the Owner approves it by merging. Propose the broadest Tag that fits (`ai-agents`, not `claude-code-skills`), so the list stays small.
 
 ## Images
 
