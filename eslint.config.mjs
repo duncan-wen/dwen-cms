@@ -6,6 +6,13 @@ import nextTs from "eslint-config-next/typescript";
 const readContentThroughGetContent =
   "Pages read content through getContent() from @/content/site-content, never from files.";
 
+// A hex colour or a CSS colour function in code: text-[#123], style, SVG fill/stroke.
+// Palette classes (text-zinc-500) are handled in globals.css, which drops Tailwind's palette.
+const literalColour =
+  "/(^|[\\s\\[:(\"'=])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})(?![\\w-])|\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix)\\(/";
+const useColourToken =
+  "Colours come from the tokens in src/app/globals.css (bg-paper, text-accent, var(--accent)), never a literal.";
+
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -26,6 +33,18 @@ export default defineConfig([
             },
           ],
         },
+      ],
+    },
+  },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...[
+          `Literal[value=${literalColour}]`,
+          `TemplateElement[value.raw=${literalColour}]`,
+        ].map((selector) => ({ selector, message: useColourToken })),
       ],
     },
   },
