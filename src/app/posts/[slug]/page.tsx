@@ -11,6 +11,7 @@ import { getContent } from "@/content/site-content";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
 import { pageAlternates } from "@/page-alternates";
+import { postImageUrl } from "@/post-image-url";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -66,10 +67,23 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
-  const { Body, headings } = await compileMdx(post.body);
+  const { Body, headings } = await compileMdx(
+    post.body,
+    Object.fromEntries(
+      Object.entries(post.images).map(([ref, { file, width, height }]) => [
+        ref,
+        { src: postImageUrl(post.slug, file), width, height },
+      ]),
+    ),
+  );
   return (
     <article>
-      <PostCover slug={post.slug} className="aspect-[21/9] rounded-md" />
+      <PostCover
+        post={post}
+        sizes="(min-width: 672px) 640px, 100vw"
+        preload
+        className="aspect-[21/9] rounded-md"
+      />
       {/* The table of contents hangs off the column's right edge, so the column never moves. */}
       <div className="relative">
         <PageHeading size="page" title={post.title}>
