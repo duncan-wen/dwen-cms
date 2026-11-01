@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 Contact links:
 
@@ -12,11 +12,11 @@ Contact links:
 - Email: lumpa7223@gmail.com (shown as text, linked with `mailto:`)
 - LinkedIn: https://www.linkedin.com/in/duncan-wen
 
-- [ ] The header appears on every page and marks the current section
-- [ ] The header has a theme-toggle slot that 09 can fill without layout changes
-- [ ] The footer shows the seal, © year, GitHub, Email, LinkedIn and RSS, using the links above
-- [ ] Header and footer wrap cleanly at 375px with no horizontal scrolling
-- [ ] A smoke test confirms the nav links resolve and the footer links are present
+- [x] The header appears on every page and marks the current section
+- [x] The header has a theme-toggle slot that 09 can fill without layout changes
+- [x] The footer shows the seal, © year, GitHub, Email, LinkedIn and RSS, using the links above
+- [x] Header and footer wrap cleanly at 375px with no horizontal scrolling
+- [x] A smoke test confirms the nav links resolve and the footer links are present
 
 ## Comments
 
