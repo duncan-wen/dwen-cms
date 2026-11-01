@@ -35,7 +35,7 @@ Standalone undated content outside listings, such as the About page.
 _Avoid_: Static page
 
 **Promo image**:
-A ready-to-post image of a Post for social media (文宣圖), written by `pnpm promo <slug>` at 1200×630, 1080×1080 and 1080×1350 from one of three brand templates: `contour` (the default), `flow` for a Post that mainly introduces a process, `terminal` for one mainly about coding. The Post's optional `promo` frontmatter picks the `template` and gives its `titleLines` (where the title breaks), its key `points` (else the description), flow's `steps` (`name`, optional `command`) or terminal's `lines` (`command`, optional `comment`). Unlike the OG image it carries no seal.
+A ready-to-post image of a Post for social media (文宣圖), written by `pnpm promo <slug>` at 1200×630, 1080×1080 and 1080×1350 from one of three brand templates: `contour` (the default), `flow` for a Post that mainly introduces a process, `terminal` for one mainly about coding. The Post's optional `promo` frontmatter picks the `template` and gives its `titleLines` (where the title breaks; each stays on one line, and the title shrinks until the longest fits), its key `points` (at least one; leave the field out to show the description), flow's `steps` (`name`, optional `command`) or terminal's `lines` (`command`, optional `comment`). Unlike the OG image it carries no seal.
 _Avoid_: Banner, social card, thumbnail
 
 **Demo**:

@@ -155,6 +155,26 @@ describe("images", () => {
     });
     expect((error as Error).message).toContain("Mermaid block 1 (line 8)");
   });
+
+  it("rejects Mermaid that parses but the site's renderer can't draw, naming the block", async () => {
+    const error = await loadContent(fixture("mermaid-render")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/undrawable-diagram/index.mdx", field: "body", rule: "mermaid-render" }],
+    });
+    expect((error as Error).message).toContain("Mermaid block 1 (line 8)");
+  });
+
+  it("rejects a flowchart node ID that isn't ASCII, advising ASCII IDs with Chinese labels", async () => {
+    const error = await loadContent(fixture("mermaid-ascii-id")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/chinese-ids/index.mdx", field: "body", rule: "mermaid-ascii-id" }],
+    });
+    expect((error as Error).message).toContain("Mermaid block 1 (line 8)");
+    expect((error as Error).message).toContain('"審閱"');
+    expect((error as Error).message).toContain("review{審閱}");
+  });
 });
 
 describe("Revisions", () => {
@@ -446,14 +466,14 @@ describe("validating Slugs", () => {
 });
 
 describe("promo images", () => {
-  it("gives a Post without promo frontmatter the contour template, its title on one line and its description as the point", async () => {
+  it("gives a Post without promo frontmatter the contour template, no title lines (the title wraps) and its description as the point", async () => {
     const content = await loadContent(fixture("valid"));
 
     const result = content.resolveSlug("hello-world");
 
     expect(result.kind === "post" && result.post.promo).toEqual({
       template: "contour",
-      titleLines: ["你好，世界"],
+      titleLines: undefined,
       points: ["第一篇文章"],
     });
   });
@@ -476,7 +496,7 @@ describe("promo frontmatter", () => {
   it("gives the flow template its steps, each with a name and an optional command", async () => {
     expect(await promoOf("process")).toEqual({
       template: "flow",
-      titleLines: ["從需求到上線"],
+      titleLines: undefined,
       points: ["一段流程。"],
       steps: [{ name: "釐清需求", command: "/grilling" }, { name: "上線" }],
     });
@@ -485,7 +505,7 @@ describe("promo frontmatter", () => {
   it("gives the terminal template its lines, each a command with an optional comment", async () => {
     expect(await promoOf("coding")).toEqual({
       template: "terminal",
-      titleLines: ["用指令安裝技能"],
+      titleLines: undefined,
       points: ["一段程式。"],
       lines: [{ command: "npx skills add mattpocock/skills", comment: "安裝" }, { command: "/tdd" }],
     });
@@ -502,6 +522,8 @@ describe("validating promo frontmatter", () => {
     ["promo-line-without-command", "posts/commandless-line/index.mdx", "promo.lines", "required", "Line 1"],
     ["promo-title-lines-mismatch", "posts/other-title/index.mdx", "promo.titleLines", "title-lines-match-title", "標題，第二段"],
     ["promo-blank-point", "posts/blank-point/index.mdx", "promo.points", "required", "Point 2"],
+    ["promo-no-points", "posts/pointless/index.mdx", "promo.points", "at-least-one-point", "description"],
+    ["promo-blank-command", "posts/blank-command/index.mdx", "promo.steps", "non-empty-text", "Step 2's command"],
     ["promo-steps-on-contour", "posts/contour-with-steps/index.mdx", "promo.steps", "template-field", "flow"],
   ])("rejects fixture %s: %s %s breaks %s, naming %s", async (fixtureName, file, field, rule, named) => {
     const error = await loadContent(fixture(fixtureName)).catch((e: unknown) => e);

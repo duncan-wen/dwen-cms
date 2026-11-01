@@ -7,6 +7,7 @@ import * as runtime from "react/jsx-runtime";
 import rehypeSlug from "rehype-slug";
 import { createCssVariablesTheme } from "shiki";
 import { mdxComponents } from "./components";
+import { type MdNode, mermaidBlocks } from "./md-tree";
 
 /** One entry of a Post's table of contents: an `h2` heading's id and text. */
 export type Heading = { id: string; label: string };
@@ -53,7 +54,7 @@ export async function compileMdx(
   };
   const { default: Content } = await evaluate(source, {
     ...runtime,
-    remarkPlugins: [mermaidBlocks],
+    remarkPlugins: [remarkMermaid],
     rehypePlugins: [
       rehypeSlug,
       collectHeadings,
@@ -65,30 +66,21 @@ export async function compileMdx(
   return { Body: () => <Content components={mdxComponents} />, headings };
 }
 
-/** The parts of a Markdown syntax tree node mermaidBlocks reads and writes. */
-type MdNode = { type: string; lang?: string | null; value?: string; children?: MdNode[] };
-
 /**
  * Turns each ```mermaid block into `<Mermaid chart="…" id="mermaid-N" />`, so the
  * diagram renders through the component map instead of as highlighted code.
  */
-const mermaidBlocks = () => (tree: MdNode) => {
-  let count = 0;
-  const visit = (node: MdNode) => {
-    node.children?.forEach((child, index) => {
-      if (child.type === "code" && child.lang === "mermaid") {
-        count += 1;
-        const attribute = (name: string, value: string) => ({ type: "mdxJsxAttribute", name, value });
-        node.children![index] = {
-          type: "mdxJsxFlowElement",
-          name: "Mermaid",
-          attributes: [attribute("chart", child.value ?? ""), attribute("id", `mermaid-${count}`)],
-          children: [],
-        } as MdNode;
-      } else {
-        visit(child);
-      }
+const remarkMermaid = () => (tree: MdNode) => {
+  mermaidBlocks(tree).forEach((block, index) => {
+    const attribute = (name: string, value: string) => ({ type: "mdxJsxAttribute", name, value });
+    const chart = block.value ?? "";
+    delete block.lang;
+    delete block.value;
+    Object.assign(block, {
+      type: "mdxJsxFlowElement",
+      name: "Mermaid",
+      attributes: [attribute("chart", chart), attribute("id", `mermaid-${index + 1}`)],
+      children: [],
     });
-  };
-  visit(tree);
+  });
 };

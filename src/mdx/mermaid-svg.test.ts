@@ -12,13 +12,13 @@ describe("the diagram types the content check accepts", () => {
     ["erDiagram\n  A ||--o{ B : has", "er"],
     ["xychart-beta\n  x-axis [a, b]\n  bar [1, 2]", "xychart"],
   ])("%j parses as a drawn type (%s) and draws", async (source, type) => {
-    expect(await parseMermaid(source)).toBe(type);
+    expect((await parseMermaid(source)).diagramType).toBe(type);
     expect(DRAWN_DIAGRAM_TYPES.has(type)).toBe(true);
     expect(mermaidSvg(source, "d")).toMatch(/^<svg/);
   });
 
   test("leave out a type Mermaid parses but the site can't draw", async () => {
-    const type = await parseMermaid('pie\n  "a" : 1');
+    const { diagramType: type } = await parseMermaid('pie\n  "a" : 1');
 
     expect(DRAWN_DIAGRAM_TYPES.has(type)).toBe(false);
     expect(() => mermaidSvg('pie\n  "a" : 1', "d")).toThrow();

@@ -48,11 +48,11 @@ for (const post of posts) {
     await page.locator(`#${promoImageId(post.slug, size)}`).screenshot({ path: `${outDir}/${name}` });
     console.log(`${outDir}/${name}`);
     figures.push(
-      `<figure><figcaption>${size.label}</figcaption><a href="${name}"><img src="${name}" alt="${post.slug} ${size.label}"></a></figure>`,
+      `<figure><figcaption>${size.label}</figcaption><a href="${escapeHtml(name)}"><img src="${escapeHtml(name)}" alt="${escapeHtml(`${post.slug} ${size.label}`)}"></a></figure>`,
     );
   }
   sections.push(
-    `<section><h2>${escapeHtml(post.title)}（${post.slug}，${post.promo.template}）</h2><div class="row">${figures.join("")}</div></section>`,
+    `<section><h2>${escapeHtml(post.title)}（${escapeHtml(post.slug)}，${escapeHtml(post.promo.template)}）</h2><div class="row">${figures.join("")}</div></section>`,
   );
 }
 await browser.close();
@@ -77,5 +77,5 @@ ${sections.join("\n")}
 }
 
 function escapeHtml(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

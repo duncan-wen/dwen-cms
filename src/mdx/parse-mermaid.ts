@@ -1,27 +1,38 @@
 /**
- * The Mermaid diagram types the site draws (mermaidSvg's renderer), as
- * Mermaid's parser names them.
+ * The Mermaid diagram types the site draws (mermaidSvg's renderer), keyed as
+ * Mermaid's parser names them, each with the name a writer knows it by.
  */
-export const DRAWN_DIAGRAM_TYPES = new Set([
-  "flowchart-v2",
-  "stateDiagram",
-  "sequence",
-  "classDiagram",
-  "er",
-  "xychart",
+export const DRAWN_DIAGRAM_TYPES = new Map([
+  ["flowchart-v2", "flowchart"],
+  ["stateDiagram", "state"],
+  ["sequence", "sequence"],
+  ["classDiagram", "class"],
+  ["er", "ER"],
+  ["xychart", "xychart"],
 ]);
+
+/** What Mermaid's parser reads from a diagram. */
+export type ParsedMermaid = {
+  /** The diagram type, e.g. `flowchart-v2`. */
+  diagramType: string;
+  /** A flowchart's node IDs, as the source writes them; empty for other types. */
+  nodeIds: string[];
+};
 
 let mermaidModule: Promise<typeof import("mermaid").default> | undefined;
 
 /**
- * Parses Mermaid source with Mermaid's own parser, the reference grammar.
- * Returns the diagram type, e.g. `flowchart-v2`; throws a parse error.
- * Kept apart from mermaidSvg, whose renderer is ESM-only, so the content
- * check can run while next.config loads.
+ * Parses Mermaid source with Mermaid's own parser, the reference grammar;
+ * throws a parse error. The content check runs it before mermaidSvg's
+ * renderer, which reads less of Mermaid's grammar and gives vaguer errors.
  */
-export async function parseMermaid(source: string): Promise<string> {
+export async function parseMermaid(source: string): Promise<ParsedMermaid> {
   const mermaid = await loadMermaid();
-  return (await mermaid.parse(source)).diagramType;
+  const { diagramType } = await mermaid.parse(source);
+  if (diagramType !== "flowchart-v2") return { diagramType, nodeIds: [] };
+  const { db } = await mermaid.mermaidAPI.getDiagramFromText(source);
+  const vertices = (db as { getVertices(): Map<string, unknown> }).getVertices();
+  return { diagramType, nodeIds: [...vertices.keys()] };
 }
 
 /**

@@ -18,7 +18,6 @@ const NAMES = [
 ] as const;
 
 export type Colours = Record<(typeof NAMES)[number], string>;
-export type LightColours = Colours;
 
 /** Each theme's token block in src/app/globals.css, as its selector line starts it. */
 const BLOCKS = {

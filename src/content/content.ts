@@ -4,7 +4,9 @@ import { createProcessor } from "@mdx-js/mdx";
 import matter from "gray-matter";
 import { imageSize } from "image-size";
 import { CORE_SCHEMA, load as loadYaml } from "js-yaml";
-import { DRAWN_DIAGRAM_TYPES, parseMermaid } from "../mdx/parse-mermaid";
+import { type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
+import { mermaidSvg } from "../mdx/mermaid-svg";
+import { DRAWN_DIAGRAM_TYPES, type ParsedMermaid, parseMermaid } from "../mdx/parse-mermaid";
 
 export type Post = {
   slug: string;
@@ -32,17 +34,24 @@ export type Post = {
 };
 
 /**
- * What a Post's promo images show. Every template shows the title, set on
- * `titleLines` (one line each, wrapping only when a line is too long), and the
- * key `points`; flow adds numbered steps and terminal a box of commands.
+ * What a Post's promo images show. Every template shows the title and the key
+ * `points`; flow adds numbered steps and terminal a box of commands. The
+ * templates and their fields are PROMO_TEMPLATES'.
  */
-export type Promo = { titleLines: string[]; points: string[] } & (
-  | { template: "contour" }
-  | { template: "flow"; steps: FlowStep[] }
-  | { template: "terminal"; lines: TerminalLine[] }
-);
+export type Promo = ReturnType<(typeof PROMO_TEMPLATES)[PromoTemplate]>;
 
-export type PromoTemplate = Promo["template"];
+/** A promo image template's name, e.g. `flow`. */
+export type PromoTemplate = keyof typeof PROMO_TEMPLATES;
+
+/** The fields every promo template shows. */
+type PromoText = {
+  /**
+   * The title's lines, each kept on one line: the title shrinks until the
+   * longest fits. Undefined when the Post doesn't say; the title then wraps.
+   */
+  titleLines: string[] | undefined;
+  points: string[];
+};
 
 /** One step of a flow promo image: its name, and the command that runs it if any. */
 export type FlowStep = { name: string; command?: string };
@@ -609,11 +618,9 @@ function parseBody(body: string, report: Report): MdNode | undefined {
  */
 async function checkBodyImages(tree: MdNode, postDir: string, report: Report) {
   const refs = new Set<string>();
-  const walk = (node: MdNode) => {
+  for (const node of mdNodes(tree)) {
     if (node.type === "image" && typeof node.url === "string") refs.add(node.url);
-    node.children?.forEach(walk);
-  };
-  walk(tree);
+  }
   const images: Record<string, PostImage> = {};
   for (const ref of refs) {
     const image = await checkImage(ref, "body", postDir, report);
@@ -623,48 +630,61 @@ async function checkBodyImages(tree: MdNode, postDir: string, report: Report) {
 }
 
 /**
- * Every ```mermaid block in the body must parse as Mermaid and be a diagram
- * type the site can draw. Each problem names the block by its position among
- * the body's Mermaid blocks and its line in the file; `bodyLine` is how many
- * lines into the file the body starts.
+ * Every ```mermaid block in the body must parse as Mermaid, be a diagram type
+ * the site can draw, give a flowchart's nodes ASCII IDs, and draw with the
+ * site's renderer (mermaidSvg), which reads less than Mermaid does. Each
+ * problem names the block by its position among the body's Mermaid blocks and
+ * its line in the file; `bodyLine` is how many lines into the file the body starts.
  */
 async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
-  const blocks: MdNode[] = [];
-  const walk = (node: MdNode) => {
-    if (node.type === "code" && node.lang === "mermaid") blocks.push(node);
-    node.children?.forEach(walk);
-  };
-  walk(tree);
+  const blocks = mermaidBlocks(tree);
   for (const [index, block] of blocks.entries()) {
     const which = `Mermaid block ${index + 1} (line ${bodyLine + (block.position?.start.line ?? 1)})`;
     const source = block.value ?? "";
-    let diagramType: string;
+    let parsed: ParsedMermaid;
     try {
-      diagramType = await parseMermaid(source);
+      parsed = await parseMermaid(source);
     } catch (error) {
-      const reason = String((error as Error).message).split("\n")[0];
-      report("body", "mermaid-syntax", `${which} isn't valid Mermaid (${reason}); try it at https://mermaid.live`);
+      report("body", "mermaid-syntax", `${which} isn't valid Mermaid (${firstLine(error)}); try it at https://mermaid.live`);
       continue;
     }
-    if (!DRAWN_DIAGRAM_TYPES.has(diagramType)) {
+    if (!DRAWN_DIAGRAM_TYPES.has(parsed.diagramType)) {
       report(
         "body",
         "mermaid-diagram-type",
-        `${which} is a ${diagramType} diagram, which the site can't draw; use a flowchart, state, sequence, class, ER or xychart diagram`,
+        `${which} is a ${parsed.diagramType} diagram, which the site can't draw; use a ${DRAWN_DIAGRAM_TYPES_HINT} diagram`,
+      );
+      continue;
+    }
+    const nonAscii = parsed.nodeIds.filter((id) => /[^\x20-\x7e]/.test(id));
+    if (nonAscii.length > 0) {
+      report(
+        "body",
+        "mermaid-ascii-id",
+        `${which} has node IDs that aren't ASCII (${nonAscii.map((id) => JSON.stringify(id)).join(", ")}), which the site's renderer can't draw; write each ID in ASCII and its label in Chinese, e.g. review{審閱}`,
+      );
+    }
+    try {
+      mermaidSvg(source, "check");
+    } catch (error) {
+      report(
+        "body",
+        "mermaid-render",
+        `${which} is valid Mermaid, but the site's renderer can't draw it (${firstLine(error)})`,
       );
     }
   }
 }
 
-/** The parts of a Markdown syntax tree node the body checks read. */
-type MdNode = {
-  type: string;
-  url?: unknown;
-  lang?: string | null;
-  value?: string;
-  position?: { start: { line: number } };
-  children?: MdNode[];
-};
+/** The diagram types the site draws, as a writer names them: "flowchart, state, … or xychart". */
+const DRAWN_DIAGRAM_TYPES_HINT = new Intl.ListFormat("en", { type: "disjunction" }).format(
+  DRAWN_DIAGRAM_TYPES.values(),
+);
+
+/** The first line of a thrown error's message. */
+function firstLine(error: unknown): string {
+  return String((error as Error).message).split("\n")[0];
+}
 
 /**
  * An image reference, from the body or the cover: a file next to the Post
@@ -696,7 +716,42 @@ async function checkImage(ref: string, field: string, postDir: string, report: R
   };
 }
 
-const PROMO_TEMPLATES: readonly string[] = ["contour", "flow", "terminal"] satisfies PromoTemplate[];
+/**
+ * The promo templates, the default first, and the only place their names are
+ * written: each builds its Promo from the text every template shows and checks
+ * the fields only it takes.
+ */
+const PROMO_TEMPLATES = {
+  contour: (text: PromoText) => ({ template: "contour" as const, ...text }),
+  flow: (text: PromoText, fields: Record<string, unknown>, report: Report) => ({
+    template: "flow" as const,
+    ...text,
+    steps: checkPromoEntries(fields.steps, {
+      field: "steps",
+      needs: "the flow template needs steps, each with a name and an optional command, e.g. steps: [{ name: 釐清需求, command: /grilling }]",
+      which: "Step",
+      required: "name",
+      optional: "command",
+      entry: (name, command): FlowStep => (command === undefined ? { name } : { name, command }),
+      report,
+    }),
+  }),
+  terminal: (text: PromoText, fields: Record<string, unknown>, report: Report) => ({
+    template: "terminal" as const,
+    ...text,
+    lines: checkPromoEntries(fields.lines, {
+      field: "lines",
+      needs: "the terminal template needs lines, each a command with an optional comment, e.g. lines: [{ command: pnpm promo my-post, comment: 產生文宣圖 }]",
+      which: "Line",
+      required: "command",
+      optional: "comment",
+      entry: (command, comment): TerminalLine => (comment === undefined ? { command } : { command, comment }),
+      report,
+    }),
+  }),
+};
+
+const [DEFAULT_TEMPLATE, ...OTHER_TEMPLATES] = Object.keys(PROMO_TEMPLATES) as PromoTemplate[];
 
 /** The promo fields only one template takes, with that template. */
 const TEMPLATE_FIELDS = { steps: "flow", lines: "terminal" } as const satisfies Record<
@@ -706,9 +761,9 @@ const TEMPLATE_FIELDS = { steps: "flow", lines: "terminal" } as const satisfies 
 
 /**
  * The Post's `promo`: optional, and each of its fields too. Without them the
- * promo images use the contour template, the title on one line and the
- * description as the only point. `title` and `description` are undefined when
- * the Post's own fields are invalid, so nothing is checked against them.
+ * promo images use the default template, the title wrapping on its own and
+ * the description as the only point. `title` and `description` are undefined
+ * when the Post's own fields are invalid, so nothing is checked against them.
  */
 function checkPromo(
   value: unknown,
@@ -716,11 +771,8 @@ function checkPromo(
   description: string | undefined,
   report: Report,
 ): Promo {
-  const defaults: Promo = {
-    template: "contour",
-    titleLines: [title ?? ""],
-    points: [description ?? ""],
-  };
+  const defaultText: PromoText = { titleLines: undefined, points: [description ?? ""] };
+  const defaults = PROMO_TEMPLATES[DEFAULT_TEMPLATE](defaultText, {}, report);
   if (value === undefined) return defaults;
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     report(
@@ -732,12 +784,13 @@ function checkPromo(
   }
   const fields = value as Record<string, unknown>;
 
-  const template = fields.template ?? "contour";
-  if (typeof template !== "string" || !PROMO_TEMPLATES.includes(template)) {
+  const template = fields.template ?? DEFAULT_TEMPLATE;
+  if (!isPromoTemplate(template)) {
+    const others = new Intl.ListFormat("en", { type: "disjunction" }).format(OTHER_TEMPLATES);
     report(
       "promo.template",
       "promo-template",
-      `${JSON.stringify(template)} isn't a promo template; use contour (the default), flow or terminal`,
+      `${JSON.stringify(template)} isn't a promo template; use ${DEFAULT_TEMPLATE} (the default), ${others}`,
     );
   }
   for (const [field, owner] of Object.entries(TEMPLATE_FIELDS)) {
@@ -760,31 +813,19 @@ function checkPromo(
     );
   }
   const points = checkPromoTexts(fields.points, "points", "Point", report);
-  const shared = { titleLines: titleLines ?? defaults.titleLines, points: points ?? defaults.points };
+  if (Array.isArray(fields.points) && fields.points.length === 0) {
+    report(
+      "promo.points",
+      "at-least-one-point",
+      "must list at least one point; leave promo.points out to show the description instead",
+    );
+  }
+  const text = { titleLines, points: points ?? defaultText.points };
+  return isPromoTemplate(template) ? PROMO_TEMPLATES[template](text, fields, report) : defaults;
+}
 
-  if (template === "flow") {
-    const steps = checkPromoEntries(fields.steps, {
-      field: "steps",
-      needs: "the flow template needs steps, each with a name and an optional command, e.g. steps: [{ name: 釐清需求, command: /grilling }]",
-      which: "Step",
-      required: "name",
-      optional: "command",
-      report,
-    });
-    return { template, ...shared, steps: steps as FlowStep[] };
-  }
-  if (template === "terminal") {
-    const lines = checkPromoEntries(fields.lines, {
-      field: "lines",
-      needs: "the terminal template needs lines, each a command with an optional comment, e.g. lines: [{ command: pnpm promo my-post, comment: 產生文宣圖 }]",
-      which: "Line",
-      required: "command",
-      optional: "comment",
-      report,
-    });
-    return { template, ...shared, lines: lines as TerminalLine[] };
-  }
-  return { template: "contour", ...shared };
+function isPromoTemplate(name: unknown): name is PromoTemplate {
+  return typeof name === "string" && Object.hasOwn(PROMO_TEMPLATES, name);
 }
 
 /**
@@ -807,31 +848,41 @@ function checkPromoTexts(value: unknown, field: string, which: string, report: R
 /**
  * A template's list of entries, such as flow's `steps`: at least one, each
  * with non-empty text for `required` and, if given, for `optional`. Returns
- * the valid entries.
+ * the valid entries, each built by `entry` from those two texts.
  */
-function checkPromoEntries<Key extends string>(
+function checkPromoEntries<Entry>(
   value: unknown,
-  spec: { field: string; needs: string; which: string; required: Key; optional: Key; report: Report },
-): Partial<Record<Key, string>>[] {
-  const { field, needs, which, required, optional, report } = spec;
+  spec: {
+    field: string;
+    needs: string;
+    which: string;
+    required: string;
+    optional: string;
+    entry: (main: string, extra: string | undefined) => Entry;
+    report: Report;
+  },
+): Entry[] {
+  const { field, needs, which, required, optional, entry: build, report } = spec;
   const entries = checkList(value, `promo.${field}`, needs, report);
   if (entries === undefined) return [];
   if (entries.length === 0) report(`promo.${field}`, "required", needs);
-  const valid: Partial<Record<Key, string>>[] = [];
+  const valid: Entry[] = [];
   entries.forEach((entry, index) => {
     const fields = (typeof entry === "object" && entry !== null ? entry : {}) as Record<string, unknown>;
     const main = requiredString(fields[required]);
     const extra = requiredString(fields[optional]);
-    let ok = true;
     if (main === undefined) {
       report(`promo.${field}`, "required", `${which} ${index + 1} needs a ${required}: non-empty text`);
-      ok = false;
     }
-    if (fields[optional] !== undefined && extra === undefined) {
-      report(`promo.${field}`, "required", `${which} ${index + 1}'s ${optional} must be non-empty text`);
-      ok = false;
+    const blankExtra = fields[optional] !== undefined && extra === undefined;
+    if (blankExtra) {
+      report(
+        `promo.${field}`,
+        "non-empty-text",
+        `${which} ${index + 1}'s ${optional} must be non-empty text; give it one, or leave ${optional} out`,
+      );
     }
-    if (ok) valid.push({ [required]: main, ...(extra === undefined ? {} : { [optional]: extra }) } as Partial<Record<Key, string>>);
+    if (main !== undefined && !blankExtra) valid.push(build(main, extra));
   });
   return valid;
 }

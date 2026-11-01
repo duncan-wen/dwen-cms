@@ -12,3 +12,16 @@ index e7e087bcb6f29d0d8f36cd558e0183bc0f162fcb..643ae0931852ae0dbb06833399cfa71a
        "elk.layered.wrapping.strategy": "OFF",
        // Use SEPARATE when subgraphs have direction overrides (enables proper direction handling)
        // Use INCLUDE_CHILDREN otherwise (simpler cross-hierarchy edge routing)
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -10,7 +10,8 @@
+     ".": {
+       "bun": "./src/index.ts",
+       "import": "./dist/index.js",
+-      "types": "./dist/index.d.ts"
++      "types": "./dist/index.d.ts",
++      "default": "./dist/index.js"
+     }
+   },
+   "repository": {

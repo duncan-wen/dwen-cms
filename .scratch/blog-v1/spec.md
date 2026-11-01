@@ -33,6 +33,7 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
 17. As a Reader, I want an RSS feed, so that I can follow new Posts in my feed reader.
 18. As a Reader, I want a link to a Post shared on social media to show a preview image with the Post's title, so that I can tell what it's about before clicking.
 19. As a Reader, I want a sensible "not found" page for URLs that never existed, so that I can find my way back to the content.
+45. As a Reader, I want workflow and architecture diagrams in a Post drawn crisply in the site's colours, following the theme and readable on my phone, so that long tutorials are easy to follow.
 
 ### Owner
 
@@ -64,6 +65,8 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
 42. As a Writing Agent, I want clear rules for telling a Correction from a Revision, so that I label changes the way the Owner expects.
 43. As a Writing Agent, I want the rule "one concern per pull request", so that content changes never get mixed with code or styling changes.
 44. As a Writing Agent, when a Post needs a new MDX component, I want to open a separate PR for the component first, so that the Owner reviews code and content separately.
+46. As a Writing Agent, I want to draw a diagram by writing Mermaid in a Post, and have the content check tell me when the site can't draw it, so that I never ship a broken diagram.
+47. As a Writing Agent, I want `pnpm promo <slug>` to turn a Post into promo images (文宣圖) from brand templates, so that I can attach ready-to-post images to the Draft PR without an AI image model.
 
 ## Implementation Decisions
 
@@ -88,6 +91,7 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
   - optional cover image
   - optional list of previous Slugs
   - optional Revision entries, each with a date and a short note
+  - optional `promo`, what its promo images show: a `template` (`contour`, the default; `flow`; `terminal`), `titleLines` (where the title breaks), key `points`, flow's `steps` (a name and an optional command) and terminal's `lines` (a command and an optional comment)
 - A Post's Slug is its folder name.
 - There is no draft field: a Draft is an unmerged PR, and everything on the main branch is Published.
 - A Post's latest Revision (its date and note, shown as 「更新於」) is the Revision entry with the most recent date; Corrections leave no trace in frontmatter.
@@ -102,6 +106,8 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
 - No taken-down Slug is used as a current or previous Slug.
 - Revision dates are on or after the Post's date.
 - Referenced images exist next to the Post.
+- Every ```` ```mermaid ```` block parses as Mermaid, is a diagram type the site draws (flowchart, state, sequence, class, ER or xychart), gives a flowchart's nodes ASCII IDs (labels may be Chinese: `review{審閱}`), and draws with the site's renderer. Errors name the block by its position and line.
+- `promo` is a mapping; its `template` is a known template; `titleLines` split the title without changing its words; `points`, if given, list at least one non-empty point; flow needs at least one step and terminal at least one line, each with non-empty text, and an optional command or comment, if given, is non-empty too; `steps` and `lines` appear only on their own template.
 - Errors name the file, the field and the rule that failed.
 
 ### Routing and HTTP behaviour
@@ -125,6 +131,13 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
 - MDX goes through a single component map, the extension point where phase-2 Demo components will plug in. v1 provides an image component (optimised, works with co-located images), a callout, and syntax-highlighted code blocks.
 - Styling uses Tailwind with the typography plugin, in a minimal single-column reading layout. Dark mode follows the system preference, with a manual toggle that remembers the Reader's choice.
 - Each Post gets an OG image generated at build time with its title. It uses a font that renders Traditional Chinese correctly.
+- A ```` ```mermaid ```` block renders through the component map as an SVG drawn at build time in plain Node (`beautiful-mermaid`; Vercel's build has no browser), coloured by the theme's tokens so the toggle restyles it without a reload. A diagram wider than the reading column shrinks to fit it, but never so far that its labels drop below the body's small text; wider than that, it scrolls inside its own box, so the page never scrolls sideways.
+
+### Promo images
+
+- `pnpm promo <slug>…` draws each Post at 1200×630, 1080×1080 and 1080×1350 from the template its `promo` frontmatter picks, in the site's colour tokens and fonts, and writes the PNGs plus a contact sheet to the gitignored `promo/`. It runs on a workstation or in CI with Playwright, not in the Vercel build, and needs no AI model or API key.
+- Templates: **contour** (the Post's generated cover beside or above the title), **flow** (numbered steps as the hero) and **terminal** (dark tokens, a terminal box of commands).
+- Every image shows the title, the key points (else the description) and the byline. Each of `titleLines` stays on one line, the title shrinking until the longest fits; without them the title wraps. Promo images leave out the 「溫」 seal.
 - The site's base URL comes from configuration and is used for canonical URLs, RSS, sitemap and OG.
 
 ### Platform
@@ -161,7 +174,8 @@ A Traditional Chinese site built with Next.js on Vercel, with Posts and Pages st
   - an unknown URL answers 404
   - Reader-facing text shown only under a content condition (such as 「更新於」 for a Post with a Revision) appears exactly when that condition holds
   - RSS, sitemap and an OG image are served with the right content types
-- Visual layout, typography and dark mode are checked by the Owner on preview URLs, not by automated tests.
+  - a Mermaid block draws an SVG whose colours follow the theme toggle, and a wide one scrolls in its own box at 375px
+- Visual layout, typography and dark mode are checked by the Owner on preview URLs, not by automated tests. Promo images are checked by reading the PNGs `pnpm promo` writes.
 - There's no prior art yet: this is a greenfield repo, and these suites set the pattern.
 
 ## Out of Scope
