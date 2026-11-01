@@ -4,6 +4,7 @@ import { createProcessor } from "@mdx-js/mdx";
 import matter from "gray-matter";
 import { imageSize } from "image-size";
 import { CORE_SCHEMA, load as loadYaml } from "js-yaml";
+import { DRAWN_DIAGRAM_TYPES, parseMermaid } from "../mdx/parse-mermaid";
 
 export type Post = {
   slug: string;
@@ -176,7 +177,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
 
     const parsed = await readMdx(contentDir, file, "every Post folder needs an index.mdx", report);
     if (parsed === undefined) continue;
-    const { data, body } = parsed;
+    const { data, body, bodyLine } = parsed;
 
     const title = checkText(data.title, "title", report);
     const description = checkText(data.description, "description", report);
@@ -186,7 +187,9 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const latestRevision = checkRevisions(data.revisions, date, report);
     const postDir = path.join(postsDir, slug);
     const cover = await checkCover(data.cover, postDir, report);
-    const images = await checkBodyImages(body, postDir, report);
+    const tree = parseBody(body, report);
+    const images = tree ? await checkBodyImages(tree, postDir, report) : {};
+    if (tree) await checkDiagrams(tree, bodyLine, report);
 
     posts.push({
       slug,
@@ -304,7 +307,9 @@ async function readMdx(contentDir: string, file: string, missing: string, report
   }
   try {
     const { data, content: body } = matter(source, { engines: { yaml: parseYaml } });
-    return { data, body };
+    // The body is the end of the file, so its first line sits this many lines in.
+    const bodyLine = source.split("\n").length - body.split("\n").length;
+    return { data, body, bodyLine };
   } catch (error) {
     report("frontmatter", "yaml-syntax", (error as Error).message.split("\n")[0]);
     return undefined;
@@ -565,18 +570,21 @@ async function checkCover(value: unknown, postDir: string, report: Report) {
   return checkImage(value as string, "cover", postDir, report);
 }
 
+/** Parses an MDX body into its syntax tree; reports invalid MDX and returns undefined. */
+function parseBody(body: string, report: Report): MdNode | undefined {
+  try {
+    return createProcessor().parse(body) as MdNode;
+  } catch (error) {
+    report("body", "mdx-syntax", (error as Error).message.split("\n")[0]);
+    return undefined;
+  }
+}
+
 /**
  * Every Markdown image in the body, `![alt](./diagram.png)`, keyed by its
  * reference. Code blocks are text, so an image written inside one isn't a reference.
  */
-async function checkBodyImages(body: string, postDir: string, report: Report) {
-  let tree: MdNode;
-  try {
-    tree = createProcessor().parse(body) as MdNode;
-  } catch (error) {
-    report("body", "mdx-syntax", (error as Error).message.split("\n")[0]);
-    return {};
-  }
+async function checkBodyImages(tree: MdNode, postDir: string, report: Report) {
   const refs = new Set<string>();
   const walk = (node: MdNode) => {
     if (node.type === "image" && typeof node.url === "string") refs.add(node.url);
@@ -591,8 +599,49 @@ async function checkBodyImages(body: string, postDir: string, report: Report) {
   return images;
 }
 
-/** The parts of a Markdown syntax tree node checkBodyImages reads. */
-type MdNode = { type: string; url?: unknown; children?: MdNode[] };
+/**
+ * Every ```mermaid block in the body must parse as Mermaid and be a diagram
+ * type the site can draw. Each problem names the block by its position among
+ * the body's Mermaid blocks and its line in the file; `bodyLine` is how many
+ * lines into the file the body starts.
+ */
+async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
+  const blocks: MdNode[] = [];
+  const walk = (node: MdNode) => {
+    if (node.type === "code" && node.lang === "mermaid") blocks.push(node);
+    node.children?.forEach(walk);
+  };
+  walk(tree);
+  for (const [index, block] of blocks.entries()) {
+    const which = `Mermaid block ${index + 1} (line ${bodyLine + (block.position?.start.line ?? 1)})`;
+    const source = block.value ?? "";
+    let diagramType: string;
+    try {
+      diagramType = await parseMermaid(source);
+    } catch (error) {
+      const reason = String((error as Error).message).split("\n")[0];
+      report("body", "mermaid-syntax", `${which} isn't valid Mermaid (${reason}); try it at https://mermaid.live`);
+      continue;
+    }
+    if (!DRAWN_DIAGRAM_TYPES.has(diagramType)) {
+      report(
+        "body",
+        "mermaid-diagram-type",
+        `${which} is a ${diagramType} diagram, which the site can't draw; use a flowchart, state, sequence, class, ER or xychart diagram`,
+      );
+    }
+  }
+}
+
+/** The parts of a Markdown syntax tree node the body checks read. */
+type MdNode = {
+  type: string;
+  url?: unknown;
+  lang?: string | null;
+  value?: string;
+  position?: { start: { line: number } };
+  children?: MdNode[];
+};
 
 /**
  * An image reference, from the body or the cover: a file next to the Post

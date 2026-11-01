@@ -64,6 +64,53 @@ test("code blocks colour their tokens with the theme's code colours", async ({ p
   expect(colour).toBe(token);
 });
 
+test("a mermaid block draws an SVG diagram whose colours follow the theme toggle without a reload", async ({
+  browser,
+}) => {
+  const page = await browser.newPage({ colorScheme: "light" });
+  await page.goto("/posts/typography-sample");
+  const node = page.locator("article figure svg g.node", { hasText: "審閱" }).locator("polygon, rect").first();
+  /** The node's fill and text colours, next to the colour tokens they should be. */
+  const colours = () =>
+    node.evaluate((shape) => {
+      const token = (name: string) => {
+        const probe = document.createElement("span");
+        probe.style.color = `var(${name})`;
+        document.body.append(probe);
+        const colour = getComputedStyle(probe).color;
+        probe.remove();
+        return colour;
+      };
+      const text = shape.parentElement!.querySelector("text")!;
+      return {
+        fill: getComputedStyle(shape).fill,
+        text: getComputedStyle(text).fill,
+        expected: { fill: token("--accent-wash"), text: token("--ink") },
+      };
+    });
+
+  await expect(page.locator("article pre", { hasText: "flowchart" })).toHaveCount(0);
+  const light = await colours();
+  expect([light.fill, light.text]).toEqual([light.expected.fill, light.expected.text]);
+
+  await page.getByRole("banner").getByRole("button", { name: "切換深淺色" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const dark = await colours();
+  expect([dark.fill, dark.text]).toEqual([dark.expected.fill, dark.expected.text]);
+  expect(dark.fill).not.toBe(light.fill);
+  await page.close();
+});
+
+test("a diagram wider than a phone scrolls inside its own box, not the page", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto("/posts/typography-sample");
+  const box = page.locator("article figure", { hasText: "靜態頁面" });
+
+  const [scrollWidth, clientWidth] = await box.evaluate((figure) => [figure.scrollWidth, figure.clientWidth]);
+  expect(scrollWidth).toBeGreaterThan(clientWidth);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+});
+
 test("a Callout shows its title and content in the Post", async ({ page }) => {
   await page.goto("/posts/typography-sample");
   const callout = page.locator("article aside", { hasText: "提示框裡可以放一般內文" });

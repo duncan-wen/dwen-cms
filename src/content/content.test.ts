@@ -135,6 +135,26 @@ describe("images", () => {
       problems: [{ file: "posts/broken-mdx/index.mdx", field: "body", rule: "mdx-syntax" }],
     });
   });
+
+  it("rejects Mermaid that doesn't parse, naming the block by its position and line", async () => {
+    const error = await loadContent(fixture("mermaid-syntax")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/broken-diagram/index.mdx", field: "body", rule: "mermaid-syntax" }],
+    });
+    expect((error as Error).message).toContain("Mermaid block 2 (line 15)");
+  });
+
+  it("rejects a Mermaid diagram type the site can't draw, naming the block", async () => {
+    const error = await loadContent(fixture("mermaid-unsupported")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [
+        { file: "posts/unsupported-diagram/index.mdx", field: "body", rule: "mermaid-diagram-type" },
+      ],
+    });
+    expect((error as Error).message).toContain("Mermaid block 1 (line 8)");
+  });
 });
 
 describe("Revisions", () => {

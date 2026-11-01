@@ -136,6 +136,11 @@
   }
 }
 
+/* Mermaid diagrams (src/mdx/mermaid.tsx) take their colours from the tokens; their text is the sans face. */
+.mermaid-diagram text {
+  font-family: var(--font-sans);
+}
+
 /* Post bodies: the typography plugin's prose, recoloured through the tokens. */
 @utility prose-site {
   --tw-prose-body: var(--color-ink);

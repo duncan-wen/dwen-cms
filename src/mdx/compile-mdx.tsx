@@ -53,6 +53,7 @@ export async function compileMdx(
   };
   const { default: Content } = await evaluate(source, {
     ...runtime,
+    remarkPlugins: [mermaidBlocks],
     rehypePlugins: [
       rehypeSlug,
       collectHeadings,
@@ -63,3 +64,31 @@ export async function compileMdx(
   });
   return { Body: () => <Content components={mdxComponents} />, headings };
 }
+
+/** The parts of a Markdown syntax tree node mermaidBlocks reads and writes. */
+type MdNode = { type: string; lang?: string | null; value?: string; children?: MdNode[] };
+
+/**
+ * Turns each ```mermaid block into `<Mermaid chart="…" id="mermaid-N" />`, so the
+ * diagram renders through the component map instead of as highlighted code.
+ */
+const mermaidBlocks = () => (tree: MdNode) => {
+  let count = 0;
+  const visit = (node: MdNode) => {
+    node.children?.forEach((child, index) => {
+      if (child.type === "code" && child.lang === "mermaid") {
+        count += 1;
+        const attribute = (name: string, value: string) => ({ type: "mdxJsxAttribute", name, value });
+        node.children![index] = {
+          type: "mdxJsxFlowElement",
+          name: "Mermaid",
+          attributes: [attribute("chart", child.value ?? ""), attribute("id", `mermaid-${count}`)],
+          children: [],
+        } as MdNode;
+      } else {
+        visit(child);
+      }
+    });
+  };
+  visit(tree);
+};

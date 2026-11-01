@@ -1,0 +1,14 @@
+diff --git a/dist/index.js b/dist/index.js
+index e7e087bcb6f29d0d8f36cd558e0183bc0f162fcb..643ae0931852ae0dbb06833399cfa71a6a3df752 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -6166,6 +6166,9 @@ function mermaidToElk(graph, opts) {
+       "elk.layered.highDegreeNodes.threshold": "8",
+       "elk.layered.compaction.postCompaction.strategy": "LEFT_RIGHT_CONSTRAINT_LOCKING",
+       "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
++      // Patched (dwen-cms): break cycles by source order, so a loop back to an earlier
++      // node keeps that node above, not flipped below.
++      "elk.layered.cycleBreaking.strategy": "MODEL_ORDER",
+       "elk.layered.wrapping.strategy": "OFF",
+       // Use SEPARATE when subgraphs have direction overrides (enables proper direction handling)
+       // Use INCLUDE_CHILDREN otherwise (simpler cross-hierarchy edge routing)

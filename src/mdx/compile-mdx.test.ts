@@ -49,6 +49,19 @@ describe("compileMdx", () => {
     expect(html).toContain("/_next/image?url=%2Fposts%2Fa-post%2Fdiagram.png");
   });
 
+  test("renders a mermaid block as an SVG diagram coloured by the theme's tokens, not as code", async () => {
+    const { Body } = await compileMdx("```mermaid\nflowchart LR\n  A[草稿] --> B[發布]\n```");
+
+    const html = renderToStaticMarkup(createElement(Body));
+    expect(html).not.toContain("<pre");
+    expect(html).toMatch(/<figure[^>]*><svg[^>]*viewBox=/);
+    expect(html).toContain(">草稿</text>");
+    expect(html).toContain("--bg:var(--paper)");
+    expect(html).toContain("--fg:var(--ink)");
+    expect(html).not.toMatch(/#[0-9a-f]{3,6}\b/i);
+    expect(html).not.toContain("@import");
+  });
+
   test("gives a body with no h2 an empty table of contents, ignoring deeper headings", async () => {
     const { headings } = await compileMdx("段落\n\n### 第三層標題");
 
