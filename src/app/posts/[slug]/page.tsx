@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { pageTitle } from "@/components/page-styles";
+import { PageHeading } from "@/components/page-heading";
 import { PostCover } from "@/components/post-cover";
 import { Seal } from "@/components/seal";
 import { TableOfContents } from "@/components/table-of-contents";
@@ -41,11 +41,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 function TakenDown() {
   return (
     <>
-      <h1 className={`${pageTitle} pt-8`}>這篇文章已移除</h1>
-      <p className="mt-5 text-[17px] leading-[1.95] text-ink-soft">
-        這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。
-      </p>
-      <p className="mt-10 flex flex-wrap gap-7">
+      <PageHeading size="page" title="這篇文章已移除">
+        <p className="text-[17px] leading-[1.95] text-ink-soft">
+          這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。
+        </p>
+      </PageHeading>
+      <p className="flex flex-wrap gap-7">
         <TextLink href="/posts">所有文章</TextLink>
         <TextLink href="/">回到首頁</TextLink>
       </p>
@@ -64,8 +65,7 @@ export default async function PostPage({ params }: Props) {
       <PostCover slug={post.slug} className="aspect-[21/9] rounded-md" />
       {/* The table of contents hangs off the column's right edge, so the column never moves. */}
       <div className="relative">
-        <header className="grid gap-[18px] pt-8 pb-10">
-          <h1 className={pageTitle}>{post.title}</h1>
+        <PageHeading size="page" title={post.title}>
           <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] text-ink-soft">
             <time dateTime={isoDate(post.date)}>{isoDate(post.date)}</time>
             <TagList tags={post.tags} />
@@ -79,7 +79,7 @@ export default async function PostPage({ params }: Props) {
               ：{revision.note}
             </p>
           )}
-        </header>
+        </PageHeading>
         <div className="prose prose-site max-w-none prose-h2:scroll-mt-6">
           <Body />
         </div>

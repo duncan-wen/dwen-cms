@@ -12,7 +12,7 @@ export default async function PostsPage() {
   const posts = (await getContent()).listPublishedPosts();
   return (
     <>
-      <PageHeading title="文章">共 {posts.length} 篇，由新到舊。</PageHeading>
+      <PageHeading title="文章" summary={`共 ${posts.length} 篇，由新到舊。`} />
       <PostList posts={posts} />
     </>
   );

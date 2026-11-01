@@ -12,7 +12,7 @@ export default async function TagsPage() {
   const tags = (await getContent()).listTagsWithCounts();
   return (
     <>
-      <PageHeading title="標籤">共 {tags.length} 個標籤，文章多的在前。</PageHeading>
+      <PageHeading title="標籤" summary={`共 ${tags.length} 個標籤，文章多的在前。`} />
       <ul className="border-t border-ink">
         {tags.map(({ tag, count }) => (
           <li

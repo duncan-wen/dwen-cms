@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { pageTitle } from "@/components/page-styles";
+import { PageHeading } from "@/components/page-heading";
 import { TextLink } from "@/components/text-link";
 import { contactLinks } from "@/contact-links";
 import { getContent } from "@/content/site-content";
@@ -20,7 +20,7 @@ export default async function AboutPage() {
   const page = await getAboutPage();
   return (
     <article>
-      <h1 className={`${pageTitle} pt-8 pb-10`}>{page.title}</h1>
+      <PageHeading size="page" title={page.title} />
       <div className="prose prose-site max-w-none">
         <MdxBody source={page.body} />
       </div>

@@ -30,9 +30,10 @@ export default async function TagPage({ params }: Props) {
   const { tag, posts } = await findPosts(params);
   return (
     <>
-      <PageHeading title={<span className="font-mono font-medium">#{tag}</span>}>
-        共 {posts.length} 篇，由新到舊。
-      </PageHeading>
+      <PageHeading
+        title={<span className="font-mono font-medium">#{tag}</span>}
+        summary={`共 ${posts.length} 篇，由新到舊。`}
+      />
       <PostList posts={posts} />
       <p className="mt-12">
         <TextLink href="/tags">所有標籤</TextLink>
