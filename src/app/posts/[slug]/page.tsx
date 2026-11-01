@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { pageTitle, textLink } from "@/components/page-styles";
+import { pageTitle } from "@/components/page-styles";
 import { PostCover } from "@/components/post-cover";
 import { Seal } from "@/components/seal";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
+import { TextLink } from "@/components/text-link";
 import { getContent } from "@/content/site-content";
 import { formatDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
@@ -46,12 +46,8 @@ function TakenDown() {
         這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。
       </p>
       <p className="mt-10 flex flex-wrap gap-7">
-        <Link href="/posts" className={textLink}>
-          所有文章
-        </Link>
-        <Link href="/" className={textLink}>
-          回到首頁
-        </Link>
+        <TextLink href="/posts">所有文章</TextLink>
+        <TextLink href="/">回到首頁</TextLink>
       </p>
     </>
   );
@@ -95,12 +91,8 @@ export default async function PostPage({ params }: Props) {
           </p>
         </footer>
         <p className="mt-7 flex flex-wrap gap-7">
-          <Link href="/posts" className={textLink}>
-            所有文章
-          </Link>
-          <Link href="/about#contact" className={textLink}>
-            聯絡我
-          </Link>
+          <TextLink href="/posts">所有文章</TextLink>
+          <TextLink href="/about#contact">聯絡我</TextLink>
         </p>
         <TableOfContents headings={headings} />
       </div>

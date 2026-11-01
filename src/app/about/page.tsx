@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { pageTitle, textLink } from "@/components/page-styles";
+import { pageTitle } from "@/components/page-styles";
+import { TextLink } from "@/components/text-link";
 import { contactLinks } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { MdxBody } from "@/mdx/mdx-body";
@@ -29,9 +30,7 @@ export default async function AboutPage() {
         <ul className="mt-4 flex flex-wrap gap-x-7 gap-y-3">
           {contactLinks.map(({ href, label }) => (
             <li key={href}>
-              <a href={href} className={`${textLink} break-all`}>
-                {label}
-              </a>
+              <TextLink href={href}>{label}</TextLink>
             </li>
           ))}
         </ul>

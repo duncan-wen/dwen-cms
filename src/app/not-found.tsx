@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { pageTitle, textLink } from "@/components/page-styles";
+import { pageTitle } from "@/components/page-styles";
+import { TextLink } from "@/components/text-link";
 
 export const metadata: Metadata = { title: "找不到這個網址" };
 
@@ -12,12 +12,8 @@ export default function NotFound() {
         這個網址沒有任何內容，可能是網址打錯了。從這裡回到文章吧。
       </p>
       <nav className="mt-10 flex flex-wrap gap-7">
-        <Link href="/posts" className={textLink}>
-          所有文章
-        </Link>
-        <Link href="/" className={textLink}>
-          回到首頁
-        </Link>
+        <TextLink href="/posts">所有文章</TextLink>
+        <TextLink href="/">回到首頁</TextLink>
       </nav>
     </>
   );
