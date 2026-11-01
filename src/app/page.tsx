@@ -14,6 +14,9 @@ export default async function HomePage() {
         <p className="mt-4 text-lg text-zinc-700">
           嗨，我是 Duncan。我在這裡寫軟體工程與 AI 應用的實作筆記，也展示我做過的東西。
         </p>
+        <Link href="/about" className="mt-4 inline-block font-medium hover:underline">
+          關於我 →
+        </Link>
       </section>
       <section>
         <h2 className="mb-8 text-2xl font-bold tracking-tight">最新文章</h2>

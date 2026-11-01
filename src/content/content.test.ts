@@ -145,6 +145,43 @@ describe("querying by Tag", () => {
   });
 });
 
+describe("Pages", () => {
+  it("gets a Page by its name", async () => {
+    const content = await loadContent(fixture("pages"));
+
+    expect(content.getPage("about")).toMatchObject({
+      name: "about",
+      title: "關於",
+      description: "認識站主",
+    });
+    expect(content.getPage("about")?.body).toContain("這是關於頁的內文。");
+  });
+
+  it("gets nothing for an unknown Page name", async () => {
+    const content = await loadContent(fixture("pages"));
+
+    expect(content.getPage("no-such-page")).toBeUndefined();
+  });
+
+  it("keeps Pages out of the Post list", async () => {
+    const content = await loadContent(fixture("pages"));
+
+    expect(content.listPublishedPosts().map((post) => post.slug)).toEqual(["a-post"]);
+    expect(content.resolveSlug("about")).toEqual({ kind: "not-found" });
+  });
+
+  it.each([
+    ["page-missing-title", "pages/about/index.mdx", "title", "required"],
+    ["page-missing-description", "pages/about/index.mdx", "description", "required"],
+    ["page-missing-index", "pages/about/index.mdx", "file", "required"],
+    ["page-bad-name", "pages/About_Me/index.mdx", "name", "kebab-case"],
+  ])("rejects fixture %s: %s %s breaks %s", async (fixtureName, file, field, rule) => {
+    await expect(loadContent(fixture(fixtureName))).rejects.toMatchObject({
+      problems: [{ file, field, rule }],
+    });
+  });
+});
+
 describe("validating content", () => {
   it("rejects a Post with a missing required field, naming the file, field and rule", async () => {
     await expect(loadContent(fixture("missing-title"))).rejects.toMatchObject({

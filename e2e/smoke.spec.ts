@@ -64,6 +64,24 @@ test("a Post without a Revision shows no 「更新於」", async ({ request }) =
   expect(html).not.toContain("更新於");
 });
 
+test("the About page answers 200 with its Page content and the AI disclosure", async ({
+  request,
+}) => {
+  const response = await request.get("/about");
+
+  expect(response.status()).toBe(200);
+  const html = await response.text();
+  expect(html).toContain("關於煙霧測試");
+  expect(html).toContain("這個關於頁只給煙霧測試使用。");
+  expect(html).toContain("由 AI 協助撰寫");
+});
+
+test("the home page links to the About page", async ({ request }) => {
+  const html = await (await request.get("/")).text();
+
+  expect(html).toContain('href="/about"');
+});
+
 test("an unknown Tag answers 404", async ({ request }) => {
   const response = await request.get("/tags/no-such-tag");
 

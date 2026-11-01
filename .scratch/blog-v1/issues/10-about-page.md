@@ -4,10 +4,14 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The content module loads and validates Pages and exposes "get a Page by name"
-- [ ] `/about` renders from MDX, with placeholder copy and the AI disclosure
+- [x] The content module loads and validates Pages and exposes "get a Page by name"
+- [x] `/about` renders from MDX, with placeholder copy and the AI disclosure
 - [ ] Pages don't appear in Post lists or RSS
-- [ ] Unit test covers Page loading; smoke test confirms `/about` answers 200
+- [x] Unit test covers Page loading; smoke test confirms `/about` answers 200
 - [ ] Final copy is drafted from the Owner's sample texts once provided (follow-up)
+
+## Comments
+
+- Pages are kept out of the Post list (unit-tested), but there is no RSS feed yet, so the RSS half of that box moved to ticket 08. Of the boxes left open, only the Owner's final copy is outstanding here.
