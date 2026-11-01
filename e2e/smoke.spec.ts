@@ -64,6 +64,37 @@ test("a Post without a Revision shows no 「更新於」", async ({ request }) =
   expect(html).not.toContain("更新於");
 });
 
+test("a Post with h2 headings has a table of contents linking to each heading's id", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/posts/typography-sample");
+  const toc = page.getByRole("navigation", { name: "本文目錄" });
+
+  await expect(toc).toBeVisible();
+  for (const name of ["清單", "程式碼與引言"]) {
+    const href = await toc.getByRole("link", { name }).getAttribute("href");
+    expect(href, name).toMatch(/^#/);
+    const heading = page.locator(`h2[id="${decodeURIComponent(href!.slice(1))}"]`);
+    await expect(heading, name).toHaveText(name);
+  }
+});
+
+test("a Post without h2 headings has no table of contents", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+
+  await expect(page.getByRole("navigation", { name: "本文目錄" })).toHaveCount(0);
+});
+
+test("a Post ends with a colophon signed by the Owner with the long Chinese date", async ({
+  request,
+}) => {
+  const html = await (await request.get("/posts/typography-sample")).text();
+
+  expect(html).toContain("寫於");
+  expect(html).toContain("2026年9月1日");
+});
+
 test("the About page answers 200 with its Page content and the AI disclosure", async ({
   request,
 }) => {
