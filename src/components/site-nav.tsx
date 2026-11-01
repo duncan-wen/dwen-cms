@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "./theme-toggle";
 
 const sections = [
   { href: "/posts", label: "文章" },
@@ -31,8 +32,7 @@ export function SiteNav() {
           </Link>
         );
       })}
-      {/* Reserved for blog-v1/09's theme toggle, sized so filling it moves nothing. */}
-      <div data-theme-toggle-slot className="size-8 flex-none" />
+      <ThemeToggle />
     </nav>
   );
 }

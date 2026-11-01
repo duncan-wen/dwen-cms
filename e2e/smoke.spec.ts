@@ -283,6 +283,59 @@ test("the About page's #contact section lists the same contact links as the foot
   expect(contact).toEqual(await hrefs(page.getByRole("contentinfo")));
 });
 
+test("the theme toggle switches the theme and the choice persists across visits", async ({
+  browser,
+}) => {
+  const page = await browser.newPage({ colorScheme: "light" });
+  await page.goto("/posts/smoke-post");
+  const background = () =>
+    page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const lightBackground = await background();
+
+  await page.getByRole("banner").getByRole("button", { name: "切換深淺色" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const darkBackground = await background();
+  expect(darkBackground).not.toBe(lightBackground);
+
+  await page.goto("/tags");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await background()).toBe(darkBackground);
+
+  await page.getByRole("banner").getByRole("button", { name: "切換深淺色" }).click();
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  expect(await background()).toBe(lightBackground);
+  await page.close();
+});
+
+test("with no stored choice the theme follows the system preference", async ({ browser }) => {
+  const backgrounds: string[] = [];
+  for (const colorScheme of ["light", "dark"] as const) {
+    const page = await browser.newPage({ colorScheme });
+    await page.goto("/posts/smoke-post");
+    await expect(page.locator("html"), colorScheme).not.toHaveAttribute("data-theme");
+    backgrounds.push(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
+    await page.close();
+  }
+
+  expect(backgrounds[0]).not.toBe(backgrounds[1]);
+});
+
+test("a stored theme choice applies before the site's JavaScript loads, so it never flashes", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ colorScheme: "dark" });
+  await context.addInitScript(() => localStorage.setItem("theme", "light"));
+  // Hold back every bundle: only what ships inline in the HTML can set the theme.
+  await context.route("**/_next/static/**/*.js", (route) => route.abort());
+  const page = await context.newPage();
+
+  await page.goto("/posts/smoke-post", { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await context.close();
+});
+
 test("an unknown URL answers 404 with links back to the content", async ({ request }) => {
   const response = await request.get("/no-such-url");
 
