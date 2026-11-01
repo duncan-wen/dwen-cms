@@ -4,9 +4,9 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The generator returns identical paths for the same Slug and different paths for different Slugs (unit-tested)
-- [ ] The cover component renders at any aspect ratio without distortion or clipping gaps
-- [ ] Covers recolour in dark mode with no client JavaScript
-- [ ] The generator can be called outside React, so blog-v1/08's OG image can reuse it
+- [x] The generator returns identical paths for the same Slug and different paths for different Slugs (unit-tested)
+- [x] The cover component renders at any aspect ratio without distortion or clipping gaps
+- [x] Covers recolour in dark mode with no client JavaScript
+- [x] The generator can be called outside React, so blog-v1/08's OG image can reuse it
