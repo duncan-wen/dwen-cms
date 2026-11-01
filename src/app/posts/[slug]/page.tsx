@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { LinkRow } from "@/components/link-row";
+import { MutedParagraph } from "@/components/muted-paragraph";
 import { PageHeading } from "@/components/page-heading";
 import { PostCover } from "@/components/post-cover";
 import { Seal } from "@/components/seal";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
-import { TextLink } from "@/components/text-link";
 import { getContent } from "@/content/site-content";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
@@ -42,14 +43,14 @@ function TakenDown() {
   return (
     <>
       <PageHeading size="page" title="這篇文章已移除">
-        <p className="text-[17px] leading-[1.95] text-ink-soft">
-          這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。
-        </p>
+        <MutedParagraph>這個網址的文章已經被我移除，不會再回來了。歡迎看看其他文章。</MutedParagraph>
       </PageHeading>
-      <p className="flex flex-wrap gap-7">
-        <TextLink href="/posts">所有文章</TextLink>
-        <TextLink href="/">回到首頁</TextLink>
-      </p>
+      <LinkRow
+        links={[
+          { href: "/posts", label: "所有文章" },
+          { href: "/", label: "回到首頁" },
+        ]}
+      />
     </>
   );
 }
@@ -90,10 +91,13 @@ export default async function PostPage({ params }: Props) {
             <span className="text-sm text-ink-soft">寫於 {formatDate(post.date)}</span>
           </p>
         </footer>
-        <p className="mt-7 flex flex-wrap gap-7">
-          <TextLink href="/posts">所有文章</TextLink>
-          <TextLink href="/about#contact">聯絡我</TextLink>
-        </p>
+        <LinkRow
+          className="mt-7"
+          links={[
+            { href: "/posts", label: "所有文章" },
+            { href: "/about#contact", label: "聯絡我" },
+          ]}
+        />
         <TableOfContents headings={headings} />
       </div>
     </article>

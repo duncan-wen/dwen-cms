@@ -19,7 +19,7 @@ export default async function TagsPage() {
             key={tag}
             className="flex items-baseline justify-between gap-6 border-b border-rule py-5 last:border-b-0"
           >
-            <Link href={`/tags/${tag}`} className="font-mono text-lg text-ink hover:text-accent">
+            <Link href={`/tags/${tag}`} className="font-mono text-lg text-ink underline-offset-[3px] hover:underline">
               #{tag}
             </Link>
             <span className="text-[13px] text-ink-soft">{count} 篇</span>

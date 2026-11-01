@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeading } from "@/components/page-heading";
-import { TextLink } from "@/components/text-link";
+import { LinkRow } from "@/components/link-row";
 import { contactLinks } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { MdxBody } from "@/mdx/mdx-body";
@@ -27,13 +27,7 @@ export default async function AboutPage() {
       {/* The contact links live in code, so the home page's and Posts' 「聯絡我」 always land here. */}
       <section id="contact" className="mt-14 scroll-mt-6 border-t border-rule pt-8">
         <h2 className="text-[22px] leading-[1.5] font-bold">聯絡我</h2>
-        <ul className="mt-4 flex flex-wrap gap-x-7 gap-y-3">
-          {contactLinks.map(({ href, label }) => (
-            <li key={href}>
-              <TextLink href={href}>{label}</TextLink>
-            </li>
-          ))}
-        </ul>
+        <LinkRow className="mt-4" links={contactLinks} />
       </section>
       {/* The site-wide AI disclosure lives in code, so rewriting the Page's copy can't drop it. */}
       <aside className="mt-12 border-t border-rule pt-6 text-sm leading-[1.8] text-ink-soft">

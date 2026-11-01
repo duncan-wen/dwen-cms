@@ -1,3 +1,4 @@
+import { LinkRow } from "@/components/link-row";
 import { PostGrid } from "@/components/post-grid";
 import { Seal } from "@/components/seal";
 import { TextLink } from "@/components/text-link";
@@ -29,10 +30,12 @@ export default async function HomePage() {
             我是 Duncan Wen，一名軟體工程師，專注在網頁開發與 AI 應用。
           </p>
           <p className="max-w-[22em] text-ink-soft">這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。</p>
-          <p className="flex flex-wrap gap-7">
-            <TextLink href="/about">關於我</TextLink>
-            <TextLink href="/about#contact">聯絡我</TextLink>
-          </p>
+          <LinkRow
+            links={[
+              { href: "/about", label: "關於我" },
+              { href: "/about#contact", label: "聯絡我" },
+            ]}
+          />
         </div>
       </section>
       <section>
