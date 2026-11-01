@@ -56,6 +56,9 @@ export class ContentValidationError extends Error {
   }
 }
 
+/** A Post's file, relative to the content directory. */
+const postFile = (slug: string) => `posts/${slug}/index.mdx`;
+
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** The approved Tag list, relative to the content directory. */
@@ -75,7 +78,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
   const approvedTags = await loadApprovedTags(contentDir, problems);
 
   for (const slug of slugs) {
-    const file = `posts/${slug}/index.mdx`;
+    const file = postFile(slug);
     const report = (field: string, rule: string, message: string) =>
       problems.push({ file, field, rule, message });
 
@@ -140,13 +143,15 @@ export async function loadContent(contentDir: string): Promise<Content> {
     if (data.previousSlugs !== undefined && !Array.isArray(data.previousSlugs)) {
       report("previousSlugs", "list", "must be a list, e.g. previousSlugs: [old-slug]");
     } else {
-      for (const old of (data.previousSlugs ?? []) as unknown[]) {
-        if (typeof old === "string" && KEBAB_CASE.test(old)) previousSlugs.push(old);
+      for (const previousSlug of (data.previousSlugs ?? []) as unknown[]) {
+        if (typeof previousSlug === "string" && KEBAB_CASE.test(previousSlug)) {
+          previousSlugs.push(previousSlug);
+        }
         else {
           report(
             "previousSlugs",
             "kebab-case",
-            `${JSON.stringify(old)} must be lowercase English kebab-case`,
+            `${JSON.stringify(previousSlug)} must be lowercase English kebab-case`,
           );
         }
       }
@@ -170,7 +175,9 @@ export async function loadContent(contentDir: string): Promise<Content> {
   posts.sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
   const bySlug = new Map(posts.map((post) => [post.slug, post]));
   const redirects = new Map(
-    posts.flatMap((post) => post.previousSlugs.map((old) => [old, post.slug] as const)),
+    posts.flatMap((post) =>
+      post.previousSlugs.map((previousSlug) => [previousSlug, post.slug] as const),
+    ),
   );
   const counts = new Map<string, number>();
   for (const tag of posts.flatMap((post) => post.tags)) {
@@ -243,24 +250,23 @@ async function loadApprovedTags(
 function checkPreviousSlugs(currentSlugs: string[], posts: Post[], problems: ContentProblem[]) {
   const current = new Set(currentSlugs);
   const claimedBy = new Map<string, string>();
-  const postFile = (slug: string) => `posts/${slug}/index.mdx`;
   for (const post of [...posts].sort((a, b) => a.slug.localeCompare(b.slug))) {
     const report = (rule: string, message: string) =>
       problems.push({ file: postFile(post.slug), field: "previousSlugs", rule, message });
-    for (const old of post.previousSlugs) {
-      const claimant = claimedBy.get(old);
-      if (current.has(old)) {
+    for (const previousSlug of post.previousSlugs) {
+      const claimant = claimedBy.get(previousSlug);
+      if (current.has(previousSlug)) {
         report(
           "previous-slug-is-current",
-          `"${old}" is the current Slug of ${postFile(old)}; no previous Slug may equal any current Slug`,
+          `"${previousSlug}" is the current Slug of ${postFile(previousSlug)}; no previous Slug may equal any current Slug`,
         );
       } else if (claimant !== undefined && claimant !== post.slug) {
         report(
           "previous-slug-claimed-twice",
-          `"${old}" is already a previous Slug of ${postFile(claimant)}; no two Posts may claim the same previous Slug`,
+          `"${previousSlug}" is already a previous Slug of ${postFile(claimant)}; no two Posts may claim the same previous Slug`,
         );
       } else {
-        claimedBy.set(old, post.slug);
+        claimedBy.set(previousSlug, post.slug);
       }
     }
   }
