@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_NAME } from "@/site-name";
 
 /**
  * A page's `alternates` metadata: its canonical URL, resolved against the configured
@@ -9,6 +10,6 @@ import type { Metadata } from "next";
 export function pageAlternates(path: string): Metadata["alternates"] {
   return {
     canonical: path,
-    types: { "application/rss+xml": [{ url: "/feed.xml", title: "Duncan Wen" }] },
+    types: { "application/rss+xml": [{ url: "/feed.xml", title: SITE_NAME }] },
   };
 }

@@ -57,8 +57,8 @@ export async function compileMdx(
       rehypeSlug,
       collectHeadings,
       resolveImages,
-      [rehypeShiki, // Load each language the first time a block uses it, not every bundled one up front.
-        { theme: codeTheme, langs: [], lazy: true, fallbackLanguage: "text" },],
+      // Load each language the first time a block uses it, not every bundled one up front.
+      [rehypeShiki, { theme: codeTheme, langs: [], lazy: true, fallbackLanguage: "text" }],
     ],
   });
   return { Body: () => <Content components={mdxComponents} />, headings };

@@ -1,24 +1,14 @@
 "use client";
 
-import { type Theme, themeStorageKey } from "@/theme";
+import { useTheme } from "next-themes";
 
-/** Switches between the light and dark themes and remembers the choice for later visits. */
+/**
+ * Switches between the light and dark themes; next-themes (the root layout's
+ * ThemeProvider) remembers the choice for later visits.
+ */
 export function ThemeToggle() {
-  function toggle() {
-    const root = document.documentElement;
-    const current: Theme =
-      root.dataset.theme === "dark" ||
-      (root.dataset.theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)
-        ? "dark"
-        : "light";
-    const next: Theme = current === "dark" ? "light" : "dark";
-    root.dataset.theme = next;
-    try {
-      localStorage.setItem(themeStorageKey, next);
-    } catch {
-      // Storage blocked: the switch still holds for this page.
-    }
-  }
+  const { resolvedTheme, setTheme } = useTheme();
+  const toggle = () => setTheme(resolvedTheme === "dark" ? "light" : "dark");
 
   // Both icons render; CSS shows the one for the theme you'd switch to, so the server
   // markup never depends on the Reader's theme.

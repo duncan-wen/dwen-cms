@@ -1,8 +1,10 @@
 import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
+import type { Post } from "@/content/content";
 import { getContent } from "@/content/site-content";
 import { generateCover } from "@/cover/cover";
-import { lightColours } from "@/og/light-colours";
+import { ImageSeal, sealFont } from "@/og/image-seal";
+import { type LightColours, lightColours } from "@/og/light-colours";
 import { serifFont } from "@/og/serif-font";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -11,7 +13,8 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "文章標題與 Duncan Wen 的印章";
 
-const SIGNATURE = "溫Duncan Wen";
+/** The glyphs the image draws besides the title and the seal: the Owner's name by the seal. */
+const SIGNATURE_GLYPHS = "Duncan Wen";
 
 export const dynamicParams = false;
 
@@ -21,37 +24,22 @@ export async function generateStaticParams() {
 }
 
 /**
- * A Post's social preview, generated at build time: its cover's contour lines behind
- * its title, signed with the seal, so a shared link looks like the site.
+ * A Post's social preview, generated at build time: its cover behind its title, signed
+ * with the seal, so a shared link looks like the site. The cover is the Post's cover
+ * image when it has one, else its generated cover's contour lines.
  */
 export default async function OpenGraphImage({ params }: Props) {
   const { slug } = await params;
   const result = (await getContent()).resolveSlug(slug);
   if (result.kind !== "post") notFound();
-  const { title } = result.post;
-  const cover = generateCover(slug);
-  const { paper, "paper-deep": paperDeep, ink, accent, "on-accent": onAccent } = await lightColours();
+  const { post } = result;
+  const colours = await lightColours();
+  const { paper, "paper-deep": paperDeep, ink } = colours;
+  const cover = await coverLayer(post, colours);
 
   return new ImageResponse(
     <div style={{ display: "flex", width: "100%", height: "100%", background: paperDeep }}>
-      <svg
-        width={size.width}
-        height={size.height}
-        viewBox={`0 0 ${cover.width} ${cover.height}`}
-        preserveAspectRatio="xMidYMid slice"
-        style={{ position: "absolute", inset: 0 }}
-      >
-        <g fill="none" stroke={accent} strokeLinejoin="round">
-          {cover.contours.map(({ d, heavy }) => (
-            <path
-              key={d}
-              d={d}
-              strokeOpacity={heavy ? 0.85 : 0.38}
-              strokeWidth={heavy ? 2.4 : 1.3}
-            />
-          ))}
-        </g>
-      </svg>
+      {cover}
       <div
         style={{
           display: "flex",
@@ -70,32 +58,46 @@ export default async function OpenGraphImage({ params }: Props) {
         }}
       >
         <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.35, letterSpacing: "0.02em" }}>
-          {title}
+          {post.title}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 36 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 52,
-              height: 52,
-              borderRadius: 5,
-              background: accent,
-              color: onAccent,
-              fontSize: 33,
-              fontWeight: 900,
-            }}
-          >
-            溫
-          </div>
-          <div style={{ fontSize: 30, fontWeight: 700 }}>Duncan Wen</div>
+          <ImageSeal size={52} colours={colours} />
+          <div style={{ fontSize: 30, fontWeight: 700 }}>{SIGNATURE_GLYPHS}</div>
         </div>
       </div>
     </div>,
     {
       ...size,
-      fonts: [await serifFont(700, title + SIGNATURE), await serifFont(900, "溫")],
+      fonts: [await serifFont(700, post.title + SIGNATURE_GLYPHS), await sealFont()],
     },
+  );
+}
+
+/**
+ * The image's full-bleed background: the Post's cover image, cropped to fill, or its
+ * generated cover. A function, not a component: the image renderer can't await components.
+ */
+async function coverLayer({ slug, cover }: Pick<Post, "slug" | "cover">, colours: LightColours) {
+  const fill = { position: "absolute", inset: 0 } as const;
+  if (cover) {
+    const image = (await (await getContent()).readPostImage(slug, cover.file))!;
+    const src = `data:${image.type};base64,${Buffer.from(image.bytes).toString("base64")}`;
+    return <img src={src} alt="" width={size.width} height={size.height} style={{ ...fill, objectFit: "cover" }} />;
+  }
+  const { width, height, contours } = generateCover(slug);
+  return (
+    <svg
+      width={size.width}
+      height={size.height}
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="xMidYMid slice"
+      style={fill}
+    >
+      <g fill="none" stroke={colours.accent} strokeLinejoin="round">
+        {contours.map(({ d, heavy }) => (
+          <path key={d} d={d} strokeOpacity={heavy ? 0.85 : 0.38} strokeWidth={heavy ? 2.4 : 1.3} />
+        ))}
+      </g>
+    </svg>
   );
 }

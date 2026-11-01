@@ -364,6 +364,28 @@ test("a Post's social preview image answers as a 1200×630 PNG", async ({ page, 
   expect(response.headers()["content-type"]).toBe("image/png");
 });
 
+test("a Post with a cover image draws it behind the title in its social preview", async ({ page }) => {
+  await page.goto("/posts/last-year-smoke-post");
+  const og = new URL((await page.locator('meta[property="og:image"]').getAttribute("content"))!);
+  /** The colour of the image's top-left corner, outside the title card. */
+  const corner = (src: string) =>
+    page.evaluate(async (src) => {
+      const image = new Image();
+      image.src = src;
+      await image.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d")!;
+      context.drawImage(image, 0, 0);
+      return [...context.getImageData(4, 4, 1, 1).data.slice(0, 3)];
+    }, src);
+
+  const preview = await corner(og.pathname + og.search);
+  const cover = await corner("/posts/last-year-smoke-post/cover.jpg");
+  preview.forEach((channel, i) => expect(Math.abs(channel - cover[i])).toBeLessThan(16));
+});
+
 test("every page links a PNG favicon", async ({ page, request }) => {
   await page.goto("/");
   const href = await page.locator('link[rel="icon"]').getAttribute("href");
@@ -403,7 +425,7 @@ test("with no stored choice the theme follows the system preference", async ({ b
   for (const colorScheme of ["light", "dark"] as const) {
     const page = await browser.newPage({ colorScheme });
     await page.goto("/posts/smoke-post");
-    await expect(page.locator("html"), colorScheme).not.toHaveAttribute("data-theme");
+    await expect(page.locator("html"), colorScheme).toHaveAttribute("data-theme", colorScheme);
     backgrounds.push(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
     await page.close();
   }

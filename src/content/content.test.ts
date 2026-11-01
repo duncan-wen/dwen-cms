@@ -95,12 +95,24 @@ describe("images", () => {
     expect(result.kind === "post" && result.post).toMatchObject({ cover: undefined, images: {} });
   });
 
-  it("reads a Post's image file, and nothing for a file the Post doesn't use", async () => {
+  it("lists every image a Post uses, its cover first, each file once", async () => {
+    const content = await loadContent(fixture("images"));
+
+    expect(content.listPostImages("with-images").map((image) => image.file)).toEqual([
+      "cover.png",
+      "diagram.png",
+    ]);
+    expect(content.listPostImages("no-images")).toEqual([]);
+    expect(content.listPostImages("no-such-post")).toEqual([]);
+  });
+
+  it("reads a Post's image file with its media type, and nothing for a file the Post doesn't use", async () => {
     const content = await loadContent(fixture("images"));
 
     const image = await content.readPostImage("with-images", "diagram.png");
 
-    expect(Buffer.from(image ?? []).subarray(1, 4).toString()).toBe("PNG");
+    expect(image?.type).toBe("image/png");
+    expect(Buffer.from(image?.bytes ?? []).subarray(1, 4).toString()).toBe("PNG");
     expect(await content.readPostImage("with-images", "index.mdx")).toBeUndefined();
     expect(await content.readPostImage("no-images", "diagram.png")).toBeUndefined();
   });
@@ -223,6 +235,12 @@ describe("Pages", () => {
     const content = await loadContent(fixture("pages"));
 
     expect(content.getPage("no-such-page")).toBeUndefined();
+  });
+
+  it("lists every Page in name order", async () => {
+    const content = await loadContent(fixture("pages"));
+
+    expect(content.listPages().map((page) => page.name)).toEqual(["about", "uses"]);
   });
 
   it("keeps Pages out of the Post list", async () => {

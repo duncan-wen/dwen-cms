@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { siteUrl } from "./site-url";
+import { absoluteUrl, siteUrl } from "./site-url";
 
 describe("siteUrl", () => {
   it("uses SITE_URL when set", () => {
@@ -20,5 +20,13 @@ describe("siteUrl", () => {
 
   it("ignores blank values", () => {
     expect(siteUrl({ SITE_URL: " ", VERCEL_URL: "" }).href).toBe("http://localhost:3000/");
+  });
+});
+
+describe("absoluteUrl", () => {
+  it("resolves a site path against the base URL", () => {
+    expect(absoluteUrl("/posts/hello", { SITE_URL: "https://dwen.example" })).toBe(
+      "https://dwen.example/posts/hello",
+    );
   });
 });

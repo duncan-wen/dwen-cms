@@ -72,12 +72,22 @@ export type Content = {
   listTagsWithCounts(): TagCount[];
   /** The Page in `pages/<name>/index.mdx`; undefined when there is none. */
   getPage(name: string): Page | undefined;
+  /** Every Page, in name order. */
+  listPages(): Page[];
   /**
-   * The bytes of an image the Post uses (its cover or a body image), by its
-   * `file`; undefined for any other file.
+   * Every image the Post uses: its cover first, then its body images, each
+   * file once. Empty for a Post without images or an unknown Slug.
    */
-  readPostImage(slug: string, file: string): Promise<Uint8Array | undefined>;
+  listPostImages(slug: string): PostImage[];
+  /**
+   * An image the Post uses (one of listPostImages), by its `file`: its bytes
+   * and media type. Undefined for any other file.
+   */
+  readPostImage(slug: string, file: string): Promise<PostImageFile | undefined>;
 };
+
+/** An image file's bytes and its media type, e.g. `image/png`. */
+export type PostImageFile = { bytes: Uint8Array; type: string };
 
 export type TagCount = { tag: string; count: number };
 
@@ -112,8 +122,26 @@ const takenDownSlugAdvice = (slug: string) =>
 
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** Image formats the site can size and optimise, by the type image-size reports. */
-const IMAGE_TYPES = new Set(["png", "jpg", "gif", "webp", "avif"]);
+/** Image formats the site can size and optimise: the media type of each type image-size reports. */
+const IMAGE_FORMATS: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+  avif: "image/avif",
+};
+
+/** The media type of an image in one of IMAGE_FORMATS; undefined for anything else. */
+function imageFormat(bytes: Uint8Array) {
+  try {
+    const size = imageSize(bytes);
+    return size.type && Object.hasOwn(IMAGE_FORMATS, size.type)
+      ? { ...size, mediaType: IMAGE_FORMATS[size.type] }
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 /** The approved Tag list, relative to the content directory. */
 const TAGS_FILE = "tags.yml";
@@ -216,12 +244,26 @@ export async function loadContent(contentDir: string): Promise<Content> {
     getPage(name) {
       return pages.get(name);
     },
+    listPages() {
+      return [...pages.values()].sort((a, b) => a.name.localeCompare(b.name));
+    },
+    listPostImages,
     async readPostImage(slug, file) {
-      const post = bySlug.get(slug);
-      const used = post && [post.cover, ...Object.values(post.images)].some((i) => i?.file === file);
-      return used ? readFile(path.join(postsDir, slug, file)) : undefined;
+      if (!listPostImages(slug).some((image) => image.file === file)) return undefined;
+      const bytes = await readFile(path.join(postsDir, slug, file));
+      return { bytes, type: imageFormat(bytes)!.mediaType };
     },
   };
+
+  function listPostImages(slug: string): PostImage[] {
+    const post = bySlug.get(slug);
+    if (!post) return [];
+    const byFile = new Map<string, PostImage>();
+    for (const image of [post.cover, ...Object.values(post.images)]) {
+      if (image && !byFile.has(image.file)) byFile.set(image.file, image);
+    }
+    return [...byFile.values()];
+  }
 }
 
 /**
@@ -568,14 +610,8 @@ async function checkImage(ref: string, field: string, postDir: string, report: R
     report(field, "image-exists", `"${ref}" doesn't exist; ${advice}`);
     return undefined;
   }
-  const size = (() => {
-    try {
-      return imageSize(bytes);
-    } catch {
-      return undefined;
-    }
-  })();
-  if (!size?.type || !IMAGE_TYPES.has(size.type) || !size.width || !size.height) {
+  const size = imageFormat(bytes);
+  if (!size?.width || !size.height) {
     report(field, "image-format", `"${ref}" must be a PNG, JPEG, GIF, WebP or AVIF image`);
     return undefined;
   }

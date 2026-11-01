@@ -14,4 +14,4 @@
 ## Comments
 
 - The toggle goes in the header slot that visual-design/02 reserves, and only sets `data-theme` on `<html>`; the light and dark palettes come from visual-design/01's tokens.
-- Built: an inline `<head>` script applies a stored choice before first paint; with none, the tokens follow the system preference. Smoke tests cover the toggle, persistence, the system default and the no-flash script (with every JS bundle blocked). `pnpm shots` on every page path showed no horizontal scrolling at 375px. "Readable in both themes" stays unticked until the Owner checks the screenshots, as the spec says dark mode is checked by the Owner.
+- Built: `next-themes` (per ADR-0003) sets `data-theme` on `<html>` from its inline script before first paint: the stored choice, or with none the system preference. Smoke tests cover the toggle, persistence, the system default and the no-flash script (with every JS bundle blocked). `pnpm shots` on every page path showed no horizontal scrolling at 375px. "Readable in both themes" stays unticked until the Owner checks the screenshots, as the spec says dark mode is checked by the Owner.

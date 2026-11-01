@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { bodyColumnSizes } from "../body-column";
 
 type Props = { src?: string; alt?: string; width?: number | string; height?: number | string };
 
@@ -16,7 +17,7 @@ export function BodyImage({ src, alt = "", width, height }: Props) {
       alt={alt}
       width={Number(width)}
       height={Number(height)}
-      sizes="(min-width: 672px) 640px, 100vw"
+      sizes={bodyColumnSizes}
       className="h-auto max-w-full rounded-md"
     />
   );

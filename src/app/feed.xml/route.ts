@@ -1,34 +1,34 @@
 import { Feed } from "feed";
 import { getContent } from "@/content/site-content";
-import { siteUrl } from "@/site-url";
+import { dateValue } from "@/format-date";
+import { SITE_NAME } from "@/site-name";
+import { absoluteUrl } from "@/site-url";
 
 export const dynamic = "force-static";
 
 /** The RSS feed of every Published Post, newest first, written at build time: `/feed.xml`. */
 export async function GET() {
-  const base = siteUrl();
-  const url = (path: string) => new URL(path, base).href;
   const posts = (await getContent()).listPublishedPosts();
   const feed = new Feed({
-    id: url("/"),
-    link: url("/"),
-    title: "Duncan Wen",
-    description: "Duncan Wen 的文章：把 AI 做進真的產品裡，再把過程寫下來。",
+    id: absoluteUrl("/"),
+    link: absoluteUrl("/"),
+    title: SITE_NAME,
+    description: `${SITE_NAME} 的文章：把 AI 做進真的產品裡，再把過程寫下來。`,
     language: "zh-Hant",
-    copyright: "© Duncan Wen",
-    updated: posts[0] && new Date(`${posts[0].date}T00:00:00Z`),
-    feedLinks: { rss: url("/feed.xml") },
+    copyright: `© ${SITE_NAME}`,
+    updated: posts[0] && dateValue(posts[0].date),
+    feedLinks: { rss: absoluteUrl("/feed.xml") },
     generator: false,
   });
   for (const post of posts) {
-    const link = url(`/posts/${post.slug}`);
+    const link = absoluteUrl(`/posts/${post.slug}`);
     feed.addItem({
       title: post.title,
       id: link,
       link,
       description: post.description,
-      date: new Date(`${post.date}T00:00:00Z`),
-      category: post.tags.map((tag) => ({ name: tag, domain: url(`/tags/${tag}`) })),
+      date: dateValue(post.date),
+      category: post.tags.map((tag) => ({ name: tag, domain: absoluteUrl(`/tags/${tag}`) })),
     });
   }
   return new Response(feed.rss2(), {

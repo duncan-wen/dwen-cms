@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { bodyColumnSizes } from "@/body-column";
 import { LinkRow } from "@/components/link-row";
 import { MutedParagraph } from "@/components/muted-paragraph";
 import { PageHeading } from "@/components/page-heading";
@@ -11,7 +12,7 @@ import { getContent } from "@/content/site-content";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
 import { pageAlternates } from "@/page-alternates";
-import { postImageUrl } from "@/post-image-url";
+import { bodyImageSources } from "@/post-image-url";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -67,20 +68,12 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
-  const { Body, headings } = await compileMdx(
-    post.body,
-    Object.fromEntries(
-      Object.entries(post.images).map(([ref, { file, width, height }]) => [
-        ref,
-        { src: postImageUrl(post.slug, file), width, height },
-      ]),
-    ),
-  );
+  const { Body, headings } = await compileMdx(post.body, bodyImageSources(post));
   return (
     <article>
       <PostCover
         post={post}
-        sizes="(min-width: 672px) 640px, 100vw"
+        sizes={bodyColumnSizes}
         preload
         className="aspect-[21/9] rounded-md"
       />
