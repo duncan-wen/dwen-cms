@@ -39,11 +39,13 @@ The Owner is a middle-aged Taiwanese software engineer, a parent, and a stock an
 
 ### Traits, from the samples below
 
+The traits and samples show how the Owner sounds; they are a reference, not a checklist. Each Post draws its images and metaphors from its own topic, and reads as written fresh, never as a sample with the nouns swapped.
+
 - **First person, lived.** 我 did this, felt this. Honest about limits and emotion (有點不知所措, 這一個月的燒腦都值了), never boastful.
 - **Specific numbers and names.** 1 個月, 34 萬公里的老 K12, 五天四夜; DeepSeek, Python, MCP, 那霸大拔河祭, 牧志市場. Replace every vague quantity with the real one. Prefer facts you can verify (the repo, its git log, real command output); a personal detail you can't verify goes in the PR body under 「請 Owner 確認」.
 - **Sensory detail** at the emotional beats: 切菜的規律聲, 鍋裡的煙火氣, 沖繩湛藍的海岸線, 第一次成功呼叫自訂 Tool 的那一刻.
 - **The 「……」 pause.** A full-width six-dot ellipsis where the thought turns or holds before the payoff: 再幫它配上了該有的手跟腳 (Tools)……讓這顆大腦終於能真正落地做事. A few per Post, at turning points.
-- **Metaphor bridging tech and investing to life.** The model is 大腦 and its Tools are 手跟腳; a career low is 人生 K 線圖上的一個回測點, every chart has 回檔整理, the comeback is 下一波反彈. One well-placed metaphor per section beats many.
+- **A metaphor from the topic's own world.** The model is 大腦 and its Tools are 手跟腳: an image the Reader already holds that makes the idea land. Investing and trading images (K 線, 回檔整理, 反彈) belong to Posts about investing, career or money, the way Sample 2 uses them; a tech Post finds its image elsewhere, or needs none. One well-placed metaphor in a Post beats one per section.
 - **Rhythm.** Long, comma-linked sentences that carry the reader through a sequence, then a short sentence that lands it. Contrast frames: 沒有…，就是單純…; 與其說…，不如說…; …反而….
 - **Opening hooks in the moment.** Start at the result or the event, in one short line: 終於完工了; 昨天公司宣布裁員！; ……習慣了平時開著那台老 K12. The first paragraph says what was done or what happened, then why it matters.
 - **Closing looks forward.** End on what comes next or a reframe that leaves the Reader with momentum: 接下來這篇文章，我會拆解…; 才有底氣迎接下一波反彈; 好好充了一次電. A technical Post ends on what the Reader can try or what the Owner builds next.
@@ -56,7 +58,7 @@ The Owner is a middle-aged Taiwanese software engineer, a parent, and a stock an
 | 2, everyday reflection | Career, mindset, learning, investing, working life | One small daily scene in sensory detail, then an investing or tech metaphor that reframes it, then a forward-looking close. |
 | 3, heartfelt travelogue | Travel and family | Inner dialogue against concrete places and family moments; ends on what the trip gave back. Rare on a tech brand: write it only when the topic is personal life. |
 
-A tech Post leads with mode 1 from the first line to the last section. Modes 2 and 3 enter a tech Post only as seasoning: a sentence of scene in the opening, or one investing metaphor that lands a lesson. In mode 1 the voice lives in the opening, the transitions between sections and the closing; the explanation in between is precise and concrete, with `##` sections, code blocks and diagrams.
+A tech Post leads with mode 1 from the first line to the last section. Modes 2 and 3 enter a tech Post only as seasoning: a sentence of scene in the opening. In mode 1 the voice lives in the opening, the transitions between sections and the closing; the explanation in between is precise and concrete, with `##` sections, code blocks and diagrams.
 
 ### The samples, verbatim
 
