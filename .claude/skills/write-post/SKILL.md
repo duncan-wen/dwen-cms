@@ -15,7 +15,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 
 1. **Branch.** `git fetch origin main` and create `post-<slug>` off `origin/main`. A Post is a change outside a spec, so it gets its own branch and its own PR.
 2. **Pick the mode.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1. Done when you can name the mode and the one concrete result or moment the opening hooks on.
-3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, and images (**Images**) only when you have a real file.
+3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, and images (**Images**) only when you have a real file. Then reread it as a Reader who has never seen the repo. Done when every PR number, file path, frontmatter field and internal name (Owner, skill names, ticket) is said in plain words, unless the Post is teaching that very thing and explains it.
 4. **Draw the cover** (**Cover image**). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
 5. **Add `promo` frontmatter** (**Promo images**).
 6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
