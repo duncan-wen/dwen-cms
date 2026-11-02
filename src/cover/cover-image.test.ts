@@ -52,8 +52,8 @@ const request = { prompt: "paper boats on a river", style: "Papercraft Flat Pape
 describe("coverTask", () => {
   it("finds the handler that creates the task and the one that runs it", () => {
     const task = coverTask(config, request);
-    expect(task.createFn).toBe(3);
-    expect(task.runFn).toBe(4);
+    expect(task.createFnIndex).toBe(3);
+    expect(task.runFnIndex).toBe(4);
   });
 
   it("sets the prompt, style, seed and the fixed cover settings, keeping every other default", () => {
@@ -127,7 +127,7 @@ describe("coverCandidateSheet", () => {
     expect(html).toContain('src="my-post-1.jpg"');
     expect(html).toContain('src="my-post-2.jpg"');
     expect(html).toContain("SAI Isometric");
-    expect(html).toContain("8");
+    expect(html).toContain("Mk Ukiyo E · seed 8");
     expect(html).toContain("a &lt;small&gt; house");
     expect(html.indexOf("my-post-1.jpg")).toBeLessThan(html.indexOf("my-post-2.jpg"));
   });

@@ -8,6 +8,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { ContentValidationError, type Post } from "../src/content/content";
 import { getContent } from "../src/content/site-content";
+import { escapeHtml } from "../src/escape-html";
 import { fitPromoText, PROMO_SIZES, promoDocument, promoImageId } from "../src/promo/promo-images";
 
 const outDir = "promo";
@@ -74,8 +75,4 @@ function contactSheet(sections: string[]): string {
 ${sections.join("\n")}
 </html>
 `;
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

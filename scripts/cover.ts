@@ -2,11 +2,15 @@
 //   pnpm cover <slug> --prompt "<the scene, in English>" --style "<Fooocus style>" [--seed <n>]
 // Writes covers/<slug>-<n>.jpg with its settings in covers/<slug>-<n>.json, and rewrites
 // covers/<slug>.html showing every candidate so far for the Owner. covers/ is gitignored:
-// copy the chosen one to content/posts/<slug>/cover.jpg. FOOOCUS_URL overrides the address.
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+// copy the chosen one to content/posts/<slug>/cover.jpg. --seed redraws a candidate exactly;
+// FOOOCUS_URL points at a Fooocus elsewhere.
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { ContentValidationError } from "../src/content/content";
+import { getContent } from "../src/content/site-content";
 import {
+  candidateNumber,
   coverCandidateSheet,
   coverTask,
   finishedImagePath,
@@ -14,73 +18,93 @@ import {
   type CoverCandidate,
   type FooocusConfig,
 } from "../src/cover/cover-image";
-import { contentDir } from "../src/content/site-content";
 
-const fooocus = process.env.FOOOCUS_URL ?? "http://127.0.0.1:7865";
+const fooocusUrl = process.env.FOOOCUS_URL ?? "http://127.0.0.1:7865";
 const outDir = "covers";
+/** Longer than a cold start (loading the model took 73s once), short enough to notice a stuck queue. */
+const drawTimeoutMs = 5 * 60_000;
+
+function fail(message: string): never {
+  console.error(message);
+  process.exit(1);
+}
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: { prompt: { type: "string" }, style: { type: "string" }, seed: { type: "string" } },
 });
 const [slug] = positionals;
-if (positionals.length !== 1 || !values.prompt || !values.style) {
-  console.error('Usage: pnpm cover <slug> --prompt "<scene>" --style "<Fooocus style>" [--seed <n>]');
-  process.exit(1);
-}
-if (!existsSync(path.join(contentDir, "posts", slug))) {
-  console.error(`No Post folder at ${path.join(contentDir, "posts", slug)}: write the Post first`);
-  process.exit(1);
-}
+if (positionals.length !== 1 || !values.prompt || !values.style)
+  fail('Usage: pnpm cover <slug> --prompt "<scene>" --style "<Fooocus style>" [--seed <n>]');
+if (values.seed !== undefined && !/^\d+$/.test(values.seed)) fail(`--seed must be a whole number, not "${values.seed}"`);
 const request = {
   prompt: values.prompt,
   style: values.style,
-  seed: values.seed ? Number(values.seed) : Math.floor(Math.random() * 2 ** 31),
+  seed: values.seed !== undefined ? Number(values.seed) : Math.floor(Math.random() * 2 ** 31),
 };
 
-const config = (await fetch(`${fooocus}/config`)
+const content = await getContent().catch((error: unknown) => {
+  if (!(error instanceof ContentValidationError)) throw error;
+  fail(error.message);
+});
+if (content.resolveSlug(slug).kind !== "post") fail(`No Post has the Slug "${slug}": write the Post first`);
+
+const config = (await fetch(`${fooocusUrl}/config`)
   .then((response) => response.json())
-  .catch(() => {
-    console.error(`Fooocus isn't answering at ${fooocus}: start it, or leave the Post on its generated cover`);
-    process.exit(1);
-  })) as FooocusConfig;
+  .catch(() => fail(`Fooocus isn't answering at ${fooocusUrl}: start it, or leave the Post on its generated cover`))) as FooocusConfig;
 
 /** One call through Gradio 3's queue: hand over the session, then the data, then await the result. */
-function queued(fnIndex: number, data: unknown[], session: string): Promise<unknown[]> {
+function gradioQueueCall(fnIndex: number, data: unknown[], session: string): Promise<unknown[]> {
   return new Promise((resolve, reject) => {
-    const socket = new WebSocket(`${fooocus.replace(/^http/, "ws")}/queue/join`);
+    const socket = new WebSocket(`${fooocusUrl.replace(/^http/, "ws")}/queue/join`);
+    const timer = setTimeout(() => {
+      socket.close();
+      reject(new Error(`Fooocus didn't finish within ${drawTimeoutMs / 60_000} minutes`));
+    }, drawTimeoutMs);
+    let completed = false;
     socket.onmessage = (event) => {
       const message = JSON.parse(String(event.data));
       if (message.msg === "send_hash") socket.send(JSON.stringify({ fn_index: fnIndex, session_hash: session }));
       if (message.msg === "send_data")
         socket.send(JSON.stringify({ data, event_data: null, fn_index: fnIndex, session_hash: session }));
       if (message.msg === "process_completed") {
+        completed = true;
+        clearTimeout(timer);
         socket.close();
         if (message.success) resolve(message.output.data);
         else reject(new Error(`Fooocus failed: ${JSON.stringify(message.output)}`));
       }
     };
-    socket.onerror = () => reject(new Error(`Lost the connection to Fooocus at ${fooocus}`));
+    socket.onclose = () => {
+      clearTimeout(timer);
+      if (!completed) reject(new Error(`Fooocus at ${fooocusUrl} closed the connection before finishing`));
+    };
   });
 }
 
+async function draw(): Promise<ArrayBuffer> {
+  const task = coverTask(config, request);
+  const session = crypto.randomUUID();
+  await gradioQueueCall(task.createFnIndex, task.createData, session);
+  const output = await gradioQueueCall(task.runFnIndex, [null], session);
+  const imagePath = finishedImagePath(config, task.runFnIndex, output);
+  const image = await fetch(`${fooocusUrl}/file=${imagePath}`);
+  if (!image.ok) throw new Error(`Couldn't download ${imagePath} from Fooocus: ${image.status}`);
+  return image.arrayBuffer();
+}
+
 const started = Date.now();
-const task = coverTask(config, request);
-const session = crypto.randomUUID();
-await queued(task.createFn, task.createData, session);
-const imagePath = finishedImagePath(config, task.runFn, await queued(task.runFn, [null], session));
-const image = await fetch(`${fooocus}/file=${imagePath}`);
-if (!image.ok) throw new Error(`Couldn't download ${imagePath} from Fooocus: ${image.status}`);
+const image = await draw().catch((error: unknown) => fail(error instanceof Error ? error.message : String(error)));
 
 mkdirSync(outDir, { recursive: true });
 const number = nextCandidateNumber(slug, readdirSync(outDir));
 const file = `${slug}-${number}.jpg`;
-writeFileSync(path.join(outDir, file), Buffer.from(await image.arrayBuffer()));
+writeFileSync(path.join(outDir, file), Buffer.from(image));
 const candidate: CoverCandidate = { number, file, ...request };
 writeFileSync(path.join(outDir, `${slug}-${number}.json`), JSON.stringify(candidate, null, 2));
 
 const candidates = readdirSync(outDir)
-  .filter((f) => new RegExp(`^${slug}-\\d+\\.json$`).test(f))
+  .filter((f) => candidateNumber(slug, "json", f) !== undefined)
   .map((f) => JSON.parse(readFileSync(path.join(outDir, f), "utf8")) as CoverCandidate);
 writeFileSync(path.join(outDir, `${slug}.html`), coverCandidateSheet(slug, candidates));
 

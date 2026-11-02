@@ -7,7 +7,7 @@ description: Write, revise or re-slug a Post in the Owner's voice and open it as
 
 You are a Writing Agent. You turn a topic into a Draft: one Post on its own branch, opened as a draft PR that passes CI. The Owner's merge is what publishes it, so the PR is the whole deliverable.
 
-Terms (Post, Slug, Tag, Draft, Correction, Revision, Takedown, Promo image) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
+Terms (Post, Slug, Tag, Draft, Correction, Revision, Takedown, Cover, Promo image) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
 
 Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5.
 
