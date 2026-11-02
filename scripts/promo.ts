@@ -35,10 +35,17 @@ const posts = slugs.map((slug): Post => {
   process.exit(1);
 });
 
+const promoPosts = await Promise.all(
+  posts.map(async (post) => ({
+    ...post,
+    coverImage: post.cover && (await content.readPostImage(post.slug, post.cover.file)),
+  })),
+);
+
 mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch();
 const page = await browser.newPage();
-await page.setContent(await promoDocument(posts), { waitUntil: "networkidle" });
+await page.setContent(await promoDocument(promoPosts), { waitUntil: "networkidle" });
 await page.evaluate(() => document.fonts.ready);
 await page.evaluate(fitPromoText);
 const sections: string[] = [];

@@ -1,12 +1,12 @@
 import type { CSSProperties, ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { Post, Promo, PromoTemplate } from "@/content/content";
+import type { Post, PostImageFile, Promo, PromoTemplate } from "@/content/content";
 import { isoDate } from "@/format-date";
 import { type Colours, darkColours, lightColours } from "@/og/token-colours";
 import { serifFont } from "@/og/serif-font";
 import { SITE_NAME } from "@/site-name";
 import { titleGlyphs } from "@/og/og-title";
-import { CoverLines } from "./cover-lines";
+import { PromoCover } from "./promo-cover";
 
 /**
  * Promo images (文宣圖): a Post drawn at the main social sizes from one of three brand
@@ -24,7 +24,8 @@ export const PROMO_SIZES = [
 
 export type PromoSize = (typeof PROMO_SIZES)[number];
 
-type PromoPost = Pick<Post, "slug" | "title" | "date" | "promo">;
+/** A Post as its promo images need it: `coverImage` holds its cover image's bytes, when it has one. */
+type PromoPost = Pick<Post, "slug" | "title" | "date" | "promo"> & { coverImage?: PostImageFile };
 
 /** The id of a Post's image at one size in the promo document. */
 export function promoImageId(slug: string, size: PromoSize) {
@@ -110,13 +111,17 @@ type Template<P extends Promo> = {
 
 /** Each template's parts, by name. */
 const TEMPLATES: { [T in PromoTemplate]: Template<Extract<Promo, { template: T }>> } = {
-  /* contour: the generated cover full bleed, the text on a paper panel beside it (wide) or below it. */
+  /* contour: the cover (its image, else the generated one) full bleed, the text on a paper panel beside it (wide) or below it. */
   contour: {
     theme: "light",
-    backdrop: (post) => <CoverLines slug={post.slug} />,
+    backdrop: (post) => <PromoCover slug={post.slug} image={post.coverImage} />,
     css: /* css */ `
 .template-contour { background: var(--paper-deep); }
-.template-contour .cover { position: absolute; inset: 0; width: 100%; height: 100%; }
+.template-contour .cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* A cover image fills only the part the panel leaves showing, so its subject isn't hidden. */
+.template-contour.wide img.cover { left: 60%; width: 40%; }
+.template-contour.square img.cover { height: 42%; }
+.template-contour.portrait img.cover { height: 44%; }
 .template-contour .content { background: var(--paper); }
 .template-contour.wide .content { right: auto; width: 60%; padding: 64px 56px 48px; }
 .template-contour.square .content { top: auto; height: 58%; padding: 64px 72px 56px; }
