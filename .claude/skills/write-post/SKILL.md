@@ -9,23 +9,25 @@ You are a Writing Agent. You turn a topic into a Draft: one Post on its own bran
 
 Terms (Post, Slug, Tag, Draft, Correction, Revision, Takedown, Promo image) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
 
-Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–4.
+Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5.
 
 ## Steps
 
 1. **Branch.** `git fetch origin main` and create `post-<slug>` off `origin/main`. A Post is a change outside a spec, so it gets its own branch and its own PR.
 2. **Pick the mode.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1. Done when you can name the mode and the one concrete result or moment the opening hooks on.
 3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, and images (**Images**) only when you have a real file.
-4. **Add `promo` frontmatter** (**Promo images**).
-5. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
-6. **Make the promo images.** `pnpm promo <slug>` (run `pnpm exec playwright install chromium` once if it can't launch a browser). Read every PNG it writes to `promo/` and the contact sheet `promo/index.html`. Done when the title breaks where you meant, nothing overflows, and the points read as the Post's hook.
+4. **Draw the cover** (**Cover image**). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
+5. **Add `promo` frontmatter** (**Promo images**).
+6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
+7. **Make the promo images.** `pnpm promo <slug>` (run `pnpm exec playwright install chromium` once if it can't launch a browser). Read every PNG it writes to `promo/` and the contact sheet `promo/index.html`. Done when the title breaks where you meant, nothing overflows, and the points read as the Post's hook.
    Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the light and dark shots at both widths. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram and image reads well in both themes.
-7. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
+8. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
    - one paragraph on what the Post says and who it's for;
    - the voice mode you chose;
+   - the cover: the candidate you chose and why its style and scene fit the Post, with every candidate's style, seed and prompt (the Owner can say 「換第 2 張」); or 「Fooocus 沒開，封面待補」 under 「請 Owner 確認」;
    - any new Tag and the reason it's needed;
    - every personal detail you couldn't verify, under 「請 Owner 確認」;
-   - the promo images and page shots: `promo/` and `test-results/` are gitignored and `gh` can't upload images, so list the files and give the Owner `explorer.exe promo/index.html` and `explorer.exe test-results/shots/index.html` to open the contact sheets.
+   - the cover candidates, promo images and page shots: `covers/`, `promo/` and `test-results/` are gitignored and `gh` can't upload images, so list the files and give the Owner `explorer.exe covers/<slug>.html`, `explorer.exe promo/index.html` and `explorer.exe test-results/shots/index.html` to open the contact sheets.
 
 **One concern per PR.** A Post's PR holds only that Post. A Post that needs a new MDX component waits for the component's own PR (code only, added to `src/mdx/components.tsx`) to merge first. The components a body can use today are the ones in that map.
 
@@ -80,7 +82,7 @@ title: 讓 AI 寫部落格，也有工程流程   # required, Traditional Chines
 description: 一句話說出這篇文章給讀者什麼。   # required; shown in listings, meta and OG images
 date: 2026-11-01                     # required, YYYY-MM-DD: the day you write it
 tags: [meta]                         # one or more, each in content/tags.yml
-cover: cover.jpg                     # optional; an image in the folder, shown instead of the generated cover
+cover: cover.jpg                     # the cover image you drew (see Cover image); without it the generated cover shows
 promo: { … }                         # optional; see Promo images
 ---
 ```
@@ -94,6 +96,14 @@ The body starts with prose (the page shows the title), uses `##` and `###` for s
 ## Images
 
 Store each image in the Post's folder and reference it by a path relative to that folder: `![草稿經過審閱才發布的流程圖](./flow.png)`, with Chinese alt text describing what it shows. Formats: PNG, JPEG, GIF, WebP or AVIF. `cover` takes the same kind of path. A diagram you can express in Mermaid is a Mermaid block, not an image.
+
+## Cover image
+
+Every new Post gets a cover image (`GLOSSARY.md`'s Cover), drawn by Fooocus on the Owner's machine (`docs/adr/0004`):
+
+1. Read [COVER-STYLES.md](COVER-STYLES.md), then choose a style for this Post and one scene that carries its feeling.
+2. Draw three candidates, varying the style or the scene between them: `pnpm cover <slug> --prompt "<scene>" --style "<style>"`. Each takes about 20 seconds and adds `covers/<slug>-<n>.jpg` to the sheet `covers/<slug>.html`. When it says Fooocus isn't answering, skip to the PR note in step 8.
+3. Read every candidate and pick the one that best fits the Post, has no lettering and reads at card size. Copy it: `cp covers/<slug>-<n>.jpg content/posts/<slug>/cover.jpg`. When the Owner asks for another candidate, copy that one over it; for a new scene, draw again (`--seed` redraws a candidate exactly).
 
 ## Mermaid
 

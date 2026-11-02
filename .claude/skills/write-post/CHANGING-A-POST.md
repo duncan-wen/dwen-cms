@@ -1,12 +1,12 @@
 # Changing a Published Post
 
-For a change to a Post already on `main`. Branch off `origin/main` as `revise-<slug>`, make the one change below, then continue from step 5 of [SKILL.md](SKILL.md) (check, promo images if the title or `promo` changed, Draft PR). The PR body says which kind of change it is and why.
+For a change to a Post already on `main`. Branch off `origin/main` as `revise-<slug>`, make the one change below, then continue from step 6 of [SKILL.md](SKILL.md) (check, promo images if the title or `promo` changed, Draft PR). The PR body says which kind of change it is and why.
 
 ## Correction or Revision
 
 Ask: does the change alter what a Reader learns from the Post?
 
-- **No: a Correction.** A typo, a broken link, a clearer phrasing that says the same thing, a fixed image. Edit the body and nothing else; Corrections leave no trace in frontmatter and show no date.
+- **No: a Correction.** A typo, a broken link, a clearer phrasing that says the same thing, a fixed image, a cover image added to a Post that had only the generated cover (drawn as in SKILL.md's **Cover image**, with `cover` added to the frontmatter). Edit the body and nothing else; Corrections leave no trace in frontmatter and show no date.
 - **Yes: a Revision.** A new section, a changed recommendation, a corrected fact or number, results that went stale. Edit the body and append an entry to `revisions`:
 
   ```yaml
