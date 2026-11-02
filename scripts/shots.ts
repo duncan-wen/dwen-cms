@@ -56,6 +56,13 @@ for (const path of paths) {
       const page = await browser.newPage({ colorScheme: theme, viewport: { width, height: 900 } });
       const response = await page.goto(base + path);
       await page.evaluate(() => document.fonts.ready);
+      // A full-page shot never scrolls, so lazy images below the fold would stay blank:
+      // load them all now and wait until each has decoded.
+      await page.evaluate(async () => {
+        const images = [...document.images];
+        for (const image of images) image.loading = "eager";
+        await Promise.all(images.map((image) => image.decode().catch(() => undefined)));
+      });
       const name = `${fileName(path)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
       await page.screenshot({ path: file, fullPage: true });
