@@ -10,3 +10,4 @@ build.log
 .vitest/
 .claude/worktrees/
 /promo/
+/covers/

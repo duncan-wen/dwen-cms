@@ -1,6 +1,6 @@
 # Changing a Published Post
 
-For a change to a Post already on `main`. Branch off `origin/main` as `revise-<slug>`, make the one change below, then continue from step 5 of [SKILL.md](SKILL.md) (check, promo images if the title or `promo` changed, Draft PR). The PR body says which kind of change it is and why.
+For a change to a Post already on `main`. Branch off `origin/main` as `revise-<slug>`, make the one change below, then continue from step 6 of [SKILL.md](SKILL.md) (check, promo images if the title or `promo` changed, Draft PR). The PR body says which kind of change it is and why.
 
 ## Correction or Revision
 

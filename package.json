@@ -15,6 +15,7 @@
     "smoke": "SITE_URL=https://dwen.example CONTENT_DIR=e2e/content pnpm build && pnpm test:smoke",
     "shots": "tsx scripts/shots.ts",
     "promo": "tsx scripts/promo.ts",
+    "cover": "tsx scripts/cover.ts",
     "check": "pnpm lint && pnpm typecheck && pnpm content:check && pnpm content:check e2e/content && pnpm test",
     "prepare": "simple-git-hooks"
   },
