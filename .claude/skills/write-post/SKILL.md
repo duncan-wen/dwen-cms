@@ -122,7 +122,7 @@ The two flowcharts in the typography sample are working models.
 
 `pnpm promo <slug>` draws the Post's promo images (文宣圖) from its `promo` frontmatter, at 1200×630, 1080×1080 and 1080×1350. Choose the template by what the Post mainly is:
 
-- `contour` (the default): most Posts.
+- `contour` (the default): most Posts; shows the Post's cover beside the text, so draw the cover first.
 - `flow`: a Post that mainly introduces a process; `steps` are its stages, each a `name` and an optional `command`.
 - `terminal`: a Post mainly about coding; `lines` are commands, each with an optional `comment`.
 
