@@ -136,6 +136,11 @@
   }
 }
 
+/* A Lightbox holds the page still behind it. */
+:root:has(dialog[open]) {
+  overflow: hidden;
+}
+
 /* Mermaid diagrams (src/mdx/mermaid.tsx) take their colours from the tokens; their text is the sans face. */
 .mermaid-diagram text {
   font-family: var(--font-sans);
