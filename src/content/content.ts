@@ -219,6 +219,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const cover = await checkCover(data.cover, postDir, report);
     const tree = parseBody(body, report);
     const images = tree ? await checkBodyImages(tree, postDir, report) : {};
+    if (tree) checkImagesNotLinked(tree, report);
     if (tree) await checkDiagrams(tree, bodyLine, report);
     const promo = checkPromo(data.promo, title, description, report);
 
@@ -627,6 +628,24 @@ async function checkBodyImages(tree: MdNode, postDir: string, report: Report) {
     if (image) images[ref] = image;
   }
   return images;
+}
+
+/**
+ * A body image can't sit inside a link, Markdown or a JSX `<a>`: clicking it opens the Lightbox.
+ */
+function checkImagesNotLinked(tree: MdNode, report: Report) {
+  for (const link of mdNodes(tree).filter(isLink)) {
+    for (const node of mdNodes(link)) {
+      if (node.type === "image") {
+        report("body", "image-not-linked", `"${String(node.url)}" is inside a link; a body image opens in the Lightbox, so it can't link anywhere else`);
+      }
+    }
+  }
+}
+
+function isLink({ type, name }: MdNode): boolean {
+  if (type === "mdxJsxTextElement" || type === "mdxJsxFlowElement") return name === "a";
+  return type === "link" || type === "linkReference";
 }
 
 /**

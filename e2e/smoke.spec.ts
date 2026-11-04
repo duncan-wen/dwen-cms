@@ -1,4 +1,4 @@
-import { expect, type Locator, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 // Smoke tests run against a build of e2e/content, never the real content.
 
@@ -41,6 +41,101 @@ test("a body image loads optimised, its box sized from the image before it loads
   await expect(image).toHaveAttribute("src", /^\/_next\/image\?url=%2Fposts%2Ftypography-sample%2Fflow\.png/);
   await image.scrollIntoViewIfNeeded();
   await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+});
+
+const imageLink = (page: Page) => page.getByRole("link", { name: "放大圖片：草稿經過審閱才發布的流程圖" });
+
+test.describe("a body image's Lightbox", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/posts/typography-sample");
+  });
+
+  test("opens on click with the original file, the close button focused", async ({ page }) => {
+    await imageLink(page).click();
+
+    const lightbox = page.getByRole("dialog");
+    await expect(lightbox.getByRole("img")).toHaveAttribute("src", "/posts/typography-sample/flow.png");
+    await expect(lightbox.getByRole("button", { name: "關閉" })).toBeFocused();
+    expect(new URL(page.url()).pathname).toBe("/posts/typography-sample");
+  });
+
+  for (const [how, close] of [
+    ["Esc", (page: Page) => page.keyboard.press("Escape")],
+    ["the close button", (page: Page) => page.getByRole("button", { name: "關閉" }).click()],
+    ["the image", (page: Page) => page.getByRole("dialog").getByRole("img").click()],
+    ["the background", (page: Page) => page.mouse.click(2, page.viewportSize()!.height - 2)],
+  ] as const) {
+    test(`closes with ${how}, handing focus back to the image`, async ({ page }) => {
+      await imageLink(page).click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+
+      await close(page);
+
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(imageLink(page)).toBeFocused();
+    });
+  }
+
+  test("fits a small viewport without scrolling sideways, keeping the image's shape", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await imageLink(page).click();
+
+    const box = (await page.getByRole("dialog").getByRole("img").boundingBox())!;
+
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(375);
+    expect(box.width / box.height).toBeCloseTo(2, 1); // flow.png is 1200×600
+  });
+
+  test("fits a short viewport too, keeping the image's shape", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 400 });
+    await imageLink(page).click();
+
+    const box = (await page.getByRole("dialog").getByRole("img").boundingBox())!;
+
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height).toBeLessThanOrEqual(400);
+    expect(box.width / box.height).toBeCloseTo(2, 1); // flow.png is 1200×600
+  });
+
+  test("never enlarges an image past its own size", async ({ page }) => {
+    await page.setViewportSize({ width: 1800, height: 1000 });
+    await imageLink(page).click();
+
+    const box = (await page.getByRole("dialog").getByRole("img").boundingBox())!;
+
+    expect(box.width).toBe(1200);
+  });
+
+  test("holds the page still behind it", async ({ page }) => {
+    await imageLink(page).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    const before = await page.evaluate(() => window.scrollY);
+
+    await page.mouse.wheel(0, 400);
+    await page.waitForTimeout(100);
+
+    expect(await page.evaluate(() => window.scrollY)).toBe(before);
+  });
+
+  test("stays closed on a modified click, which opens the file in a new tab", async ({ page, context }) => {
+    const newTab = context.waitForEvent("page");
+
+    await imageLink(page).click({ modifiers: ["ControlOrMeta"] });
+
+    expect(new URL((await newTab).url()).pathname).toBe("/posts/typography-sample/flow.png");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+});
+
+test.describe("without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("a body image links to its original file", async ({ page }) => {
+    await page.goto("/posts/typography-sample");
+
+    await expect(imageLink(page)).toHaveAttribute("href", "/posts/typography-sample/flow.png");
+  });
 });
 
 test("a Post with a cover image opens with it instead of the generated cover", async ({ page }) => {

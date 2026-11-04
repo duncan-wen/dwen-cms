@@ -119,6 +119,8 @@ describe("images", () => {
 
   it.each([
     ["missing-body-image", "posts/no-such-image/index.mdx", "body", "image-exists", '"./missing.png"'],
+    ["linked-body-image", "posts/linked-image/index.mdx", "body", "image-not-linked", '"./flow.png"'],
+    ["jsx-linked-body-image", "posts/jsx-linked-image/index.mdx", "body", "image-not-linked", '"./flow.png"'],
     ["missing-cover", "posts/no-such-cover/index.mdx", "cover", "image-exists", '"missing.png"'],
     ["image-outside-post", "posts/remote-image/index.mdx", "body", "image-exists", '"https://example.com/a.png"'],
     ["unsupported-image", "posts/not-really-png/index.mdx", "body", "image-format", '"./fake.png"'],

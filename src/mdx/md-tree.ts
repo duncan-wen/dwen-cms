@@ -1,9 +1,11 @@
 /**
  * The parts of a Markdown (mdast) syntax tree node that the content check and
- * compileMdx read and write: enough for images and ```mermaid blocks.
+ * compileMdx read and write: enough for images, links and ```mermaid blocks.
  */
 export type MdNode = {
   type: string;
+  /** A JSX element's tag name. */
+  name?: string | null;
   url?: unknown;
   lang?: string | null;
   value?: string;

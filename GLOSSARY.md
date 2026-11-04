@@ -38,6 +38,14 @@ _Avoid_: Static page
 The image at the top of a Post and on its listing card, shown to readers as 「封面」. It is either the **generated cover**, contour lines seeded by the Slug (the default), or a **cover image**, the file the `cover` field names, which a Writing Agent draws with Fooocus while drafting. A cover carries no text.
 _Avoid_: Hero, thumbnail, banner, featured image
 
+**Body image**:
+An image inside the body of a Post, stored next to it.
+_Avoid_: Inline image, figure
+
+**Lightbox**:
+The layer over a page that shows one Body image enlarged; the Reader opens it with 「放大圖片」 and leaves it with 「關閉」.
+_Avoid_: Modal, popup, zoom
+
 **Promo image**:
 A ready-to-post image of a Post for social media (文宣圖), written by `pnpm promo <slug>` at 1200×630, 1080×1080 and 1080×1350 from one of three brand templates: `contour` (the default, the Post's Cover beside the text: its cover image, else its generated cover), `flow` for a Post that mainly introduces a process, `terminal` for one mainly about coding. The Post's optional `promo` frontmatter picks the `template` and gives its `titleLines` (where the title breaks; each stays on one line, and the title shrinks until the longest fits), its key `points` (at least one; leave the field out to show the description), flow's `steps` (`name`, optional `command`) or terminal's `lines` (`command`, optional `comment`). Unlike the OG image it carries no seal; the OG image breaks its title at the same `titleLines`.
 _Avoid_: Banner, social card, thumbnail
