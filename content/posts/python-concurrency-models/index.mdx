@@ -1,20 +1,12 @@
 ---
-title: 一次搞懂 Python 的 multiprocessing、threading 與 asyncio
-description: 用同一台 8 核心電腦實測三種並行模型，整理何時選用哪一個、各自的範例，以及怎麼把它們組合在一起。
+title: 多開執行緒，反而更慢？一次搞懂 Python 的三種並行
+description: 用同一台 8 核心電腦實測 multiprocessing、threading 與 asyncio，整理何時選用哪一個、各自的範例，以及怎麼把它們組合在一起。
 date: 2026-11-07
 tags: [python, tutorial]
 cover: cover.jpg
 promo:
-  template: terminal
-  titleLines: [一次搞懂 Python 的, multiprocessing、threading, 與 asyncio]
-  points: [CPU 密集用行程，I/O 密集一起等, 實測數字與整合寫法]
-  lines:
-    - command: python cpu_bound.py
-      comment: 4 個行程 0.49 秒
-    - command: python io_bound.py
-      comment: asyncio 0.52 秒
-    - command: python combined.py
-      comment: 總共 1.52 秒
+  titleLines: [多開執行緒，反而更慢？, 一次搞懂 Python 的三種並行]
+  points: [4 條執行緒 1.82 秒，4 個行程 0.49 秒, 一間廚房、一把刀，看懂 GIL]
 ---
 
 4 條執行緒跑了 1.82 秒，比依序執行的 1.74 秒還慢；換成 4 個行程，只要 0.49 秒。
