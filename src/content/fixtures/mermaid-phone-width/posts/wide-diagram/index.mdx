@@ -1,0 +1,14 @@
+---
+title: 太寬的圖表
+description: 每一層並排太多節點，手機放不下
+date: 2026-10-01
+tags: [meta]
+---
+
+```mermaid
+flowchart TD
+  q1{一直在算嗎} -->|是| cpu[multiprocessing]
+  q1 -->|在等 I/O| q2{連線很多嗎}
+  q2 -->|很多| aio[asyncio]
+  q2 -->|不多| thr[threading]
+```

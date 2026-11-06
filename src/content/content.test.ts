@@ -212,6 +212,15 @@ describe("images", () => {
     expect((error as Error).message).toContain("Mermaid block 1 (line 8)");
   });
 
+  it("rejects a diagram too wide for a phone's column, naming the block and the width it needs", async () => {
+    const error = await loadContent(fixture("mermaid-phone-width")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/wide-diagram/index.mdx", field: "body", rule: "mermaid-phone-width" }],
+    });
+    expect((error as Error).message).toMatch(/Mermaid block 1 \(line 8\) needs \d+px/);
+  });
+
   it("rejects a flowchart node ID that isn't ASCII, advising ASCII IDs with Chinese labels", async () => {
     const error = await loadContent(fixture("mermaid-ascii-id")).catch((e: unknown) => e);
 
