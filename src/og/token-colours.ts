@@ -15,6 +15,7 @@ const NAMES = [
   "code-string",
   "code-comment",
   "code-function",
+  "code-type",
 ] as const;
 
 export type Colours = Record<(typeof NAMES)[number], string>;

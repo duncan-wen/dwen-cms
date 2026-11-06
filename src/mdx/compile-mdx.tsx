@@ -16,8 +16,18 @@ export type Heading = { id: string; label: string };
 /** A compiled MDX body and the `h2` headings its table of contents links to. */
 export type CompiledMdx = { Body: () => ReactElement; headings: Heading[] };
 
-/** Where a body image is served and its size, so it renders without layout shift. */
-export type BodyImageSource = { src: string; width: number; height: number };
+/**
+ * Where a body image is served and its size, so it renders without layout shift. An
+ * Illustration also gives its SVG source, the narrowest it may be drawn, and its phone copy if any.
+ */
+export type BodyImageSource = {
+  src: string;
+  width: number;
+  height: number;
+  svg?: string;
+  minWidth?: number;
+  phoneSvg?: string;
+};
 
 /**
  * Code blocks colour each token with `var(--shiki-token-*)`, so globals.css
@@ -47,9 +57,12 @@ export async function compileMdx(
       if (node.type === "element" && node.tagName === "img") setImage(node);
       if ("children" in node) node.children.forEach(visit);
     };
+    let illustrations = 0;
     const setImage = (img: Element) => {
       const image = images[String(img.properties.src)];
       if (image) Object.assign(img.properties, image);
+      // Numbered per body, so the ids inside each inlined Illustration stay unique on the page.
+      if (image?.svg) img.properties.illustrationId = `illustration-${++illustrations}`;
     };
     visit(tree);
   };

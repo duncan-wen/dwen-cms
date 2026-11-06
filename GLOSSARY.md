@@ -42,6 +42,14 @@ _Avoid_: Hero, thumbnail, banner, featured image
 An image inside the body of a Post, stored next to it.
 _Avoid_: Inline image, figure
 
+**Illustration**:
+A static Body image a Writing Agent draws itself to explain one concept Mermaid can't show, such as threads interleaving over time; it follows the site's theme. Shown to readers as 「插圖」. Anything animated or interactive is a Demo instead.
+_Avoid_: Figure, drawing, picture, graphic
+
+**Diagram**:
+A process or architecture drawn from a Mermaid block in a Post's body, in the site's colours. Shown to readers as 「圖表」.
+_Avoid_: Chart, graph, flowchart (for the general term)
+
 **Lightbox**:
 The layer over a page that shows one Body image enlarged; the Reader opens it with 「放大圖片」 and leaves it with 「關閉」.
 _Avoid_: Modal, popup, zoom

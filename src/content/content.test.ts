@@ -117,6 +117,51 @@ describe("images", () => {
     expect(await content.readPostImage("no-images", "diagram.png")).toBeUndefined();
   });
 
+  it("gives an Illustration its viewBox size, its SVG source and the narrowest it may be drawn", async () => {
+    const content = await loadContent(fixture("images"));
+
+    const result = content.resolveSlug("with-illustration");
+    const image = result.kind === "post" ? result.post.images["./boxes.svg"] : undefined;
+
+    expect(image).toMatchObject({ file: "boxes.svg", width: 320, height: 120 });
+    expect(image?.illustration).toMatchObject({ width: 320, height: 120, minWidth: 160 });
+    expect(image?.illustration?.svg).toContain('fill="var(--series-1)"');
+  });
+
+  it("gives an Illustration too wide for a phone its phone copy", async () => {
+    const content = await loadContent(fixture("images"));
+
+    const result = content.resolveSlug("with-illustration");
+    const image = result.kind === "post" ? result.post.images["./timeline.svg"] : undefined;
+
+    expect(image?.illustration).toMatchObject({ width: 640, phone: { width: 300, height: 120 } });
+    expect(image?.illustration?.phone?.svg).toContain("直的時間軸");
+  });
+
+  it("reads an Illustration as SVG", async () => {
+    const content = await loadContent(fixture("images"));
+
+    const image = await content.readPostImage("with-illustration", "boxes.svg");
+
+    expect(image?.type).toBe("image/svg+xml");
+  });
+
+  it.each([
+    ["illustration-syntax", "broken", "well-formed SVG"],
+    ["illustration-viewbox", "no-viewbox", "viewBox"],
+    ["illustration-unsafe", "scripted", "<script>"],
+    ["illustration-colour", "hex-colour", 'fill="red"'],
+    ["illustration-font", "own-font", 'font-family="Arial"'],
+    ["illustration-text-size", "tiny-text", "10px"],
+    ["illustration-phone", "too-wide", '"./drawing.phone.svg"'],
+  ])("rejects an Illustration breaking %s, naming the file and %s", async (rule, slug, named) => {
+    const error = await loadContent(fixture(rule)).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file: `posts/${slug}/index.mdx`, field: "body", rule }] });
+    expect((error as Error).message).toContain('"./drawing.svg"');
+    expect((error as Error).message).toContain(named);
+  });
+
   it.each([
     ["missing-body-image", "posts/no-such-image/index.mdx", "body", "image-exists", '"./missing.png"'],
     ["linked-body-image", "posts/linked-image/index.mdx", "body", "image-not-linked", '"./flow.png"'],

@@ -15,12 +15,12 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 
 1. **Branch.** `git fetch origin main` and create `post-<slug>` off `origin/main`. A Post is a change outside a spec, so it gets its own branch and its own PR.
 2. **Pick the mode.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1. Done when you can name the mode and the one concrete result or moment the opening hooks on.
-3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, and images (**Images**) only when you have a real file. Then reread it as a Reader who has never seen the repo. Done when every PR number, file path, frontmatter field and internal name (Owner, skill names, ticket) is said in plain words, unless the Post is teaching that very thing and explains it.
+3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, an Illustration (**Illustrations**) wherever a Reader needs to see something Mermaid can't draw, and images (**Images**) only when you have a real file. Then reread it as a Reader who has never seen the repo. Done when every PR number, file path, frontmatter field and internal name (Owner, skill names, ticket) is said in plain words, unless the Post is teaching that very thing and explains it.
 4. **Draw the cover** (**Cover image**). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
 5. **Add `promo` frontmatter** (**Promo images**).
 6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
 7. **Make the promo images.** `pnpm promo <slug>` (run `pnpm exec playwright install chromium` once if it can't launch a browser). Read every PNG it writes to `promo/` and the contact sheet `promo/index.html`. Done when the title breaks where you meant, nothing overflows, and the points read as the Post's hook.
-   Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the light and dark shots at both widths. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram and image reads well in both themes.
+   Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the light and dark shots at both widths. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram, Illustration and image reads well in both themes.
 8. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
    - one paragraph on what the Post says and who it's for;
    - the voice mode you chose;
@@ -97,7 +97,11 @@ The body starts with prose (the page shows the title), uses `##` and `###` for s
 
 ## Images
 
-Store each image in the Post's folder and reference it by a path relative to that folder: `![草稿經過審閱才發布的流程圖](./flow.png)`, with Chinese alt text describing what it shows. Formats: PNG, JPEG, GIF, WebP or AVIF. `cover` takes the same kind of path. A diagram you can express in Mermaid is a Mermaid block, not an image.
+Store each image in the Post's folder and reference it by a path relative to that folder: `![草稿經過審閱才發布的流程圖](./flow.png)`, with Chinese alt text describing what it shows. Formats: PNG, JPEG, GIF, WebP or AVIF, and SVG for an Illustration you drew. `cover` takes the same kind of path, but not SVG. A diagram you can express in Mermaid is a Mermaid block, not an image.
+
+## Illustrations
+
+When a Reader has to see something Mermaid can't draw (threads interleaving over time, a layout in memory, a before and after), draw an Illustration: an SVG file you write by hand into the Post's folder, in the site's colour tokens, so it follows the theme. Read [ILLUSTRATIONS.md](ILLUSTRATIONS.md) before drawing one, and start from its example. Mermaid comes first: draw an Illustration only for what a Diagram can't show, and only to explain a concept the prose names.
 
 ## Cover image
 

@@ -60,6 +60,17 @@
   --code-type: #e0b77a;
 }
 
+/*
+ * An Illustration's series colours, for things drawn side by side (threads, processes):
+ * the code colours, which already read on both themes' paper.
+ */
+:root {
+  --series-1: var(--code-function);
+  --series-2: var(--code-keyword);
+  --series-3: var(--code-type);
+  --series-4: var(--code-string);
+}
+
 /* dark: follows the same rule as the tokens, not just the system preference. */
 @custom-variant dark {
   &:where([data-theme="dark"], [data-theme="dark"] *) {
@@ -143,6 +154,11 @@
 
 /* Mermaid diagrams (src/mdx/mermaid.tsx) take their colours from the tokens; their text is the sans face. */
 .mermaid-diagram text {
+  font-family: var(--font-sans);
+}
+
+/* Illustrations (src/mdx/illustration.tsx) leave the font out, so their labels take the sans face too. */
+.illustration text {
   font-family: var(--font-sans);
 }
 

@@ -6,6 +6,8 @@ import { imageSize } from "image-size";
 import { CORE_SCHEMA, load as loadYaml } from "js-yaml";
 import { type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
 import { mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
+import { PHONE_COLUMN_PX } from "../body-column";
+import { checkIllustration, type IllustrationShape } from "../mdx/illustration-svg";
 import { DRAWN_DIAGRAM_TYPES, type ParsedMermaid, parseMermaid } from "../mdx/parse-mermaid";
 
 export type Post = {
@@ -65,7 +67,18 @@ export type PostImage = {
   file: string;
   width: number;
   height: number;
+  /** For an Illustration (an `.svg` body image): its SVG source and how it may be drawn. */
+  illustration?: Illustration;
 };
+
+/**
+ * An Illustration's SVG source, and the size it is drawn at and may shrink to. One too
+ * wide for a phone has an upright phone copy (`<name>.phone.svg`), which phones show instead.
+ */
+export type Illustration = IllustrationDrawing & { phone?: IllustrationDrawing };
+
+/** One SVG file of an Illustration and how it may be drawn. */
+export type IllustrationDrawing = IllustrationShape & { svg: string };
 
 /** Standalone undated content outside listings, such as the About page. */
 export type Page = {
@@ -172,6 +185,14 @@ function imageFormat(bytes: Uint8Array) {
   } catch {
     return undefined;
   }
+}
+
+/** An Illustration's media type. */
+const SVG_TYPE = "image/svg+xml";
+
+/** Whether a body image is an Illustration: an SVG file the Writing Agent drew. */
+function isIllustration(file: string): boolean {
+  return /\.svg$/i.test(file);
 }
 
 /** The approved Tag list, relative to the content directory. */
@@ -287,7 +308,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     async readPostImage(slug, file) {
       if (!listPostImages(slug).some((image) => image.file === file)) return undefined;
       const bytes = await readFile(path.join(postsDir, slug, file));
-      return { bytes, type: imageFormat(bytes)!.mediaType };
+      return { bytes, type: isIllustration(file) ? SVG_TYPE : imageFormat(bytes)!.mediaType };
     },
   };
 
@@ -625,7 +646,10 @@ async function checkBodyImages(tree: MdNode, postDir: string, report: Report) {
   const images: Record<string, PostImage> = {};
   for (const ref of refs) {
     const image = await checkImage(ref, "body", postDir, report);
-    if (image) images[ref] = image;
+    if (image && isIllustration(image.file)) {
+      const illustration = await checkIllustrationFile(ref, path.join(postDir, image.file), report);
+      if (illustration) images[ref] = { file: image.file, width: illustration.width, height: illustration.height, illustration };
+    } else if (image) images[ref] = image;
   }
   return images;
 }
@@ -724,9 +748,12 @@ async function checkImage(ref: string, field: string, postDir: string, report: R
     report(field, "image-exists", `"${ref}" doesn't exist; ${advice}`);
     return undefined;
   }
+  // An Illustration is sized from its viewBox once checkBodyImages checks it.
+  if (field === "body" && isIllustration(file)) return { file, width: 0, height: 0 };
   const size = imageFormat(bytes);
   if (!size?.width || !size.height) {
-    report(field, "image-format", `"${ref}" must be a PNG, JPEG, GIF, WebP or AVIF image`);
+    const formats = field === "body" ? "PNG, JPEG, GIF, WebP or AVIF image, or an SVG Illustration" : "PNG, JPEG, GIF, WebP or AVIF image";
+    report(field, "image-format", `"${ref}" must be a ${formats}`);
     return undefined;
   }
   // A JPEG's EXIF orientation 5-8 rotates it a quarter turn when displayed.
@@ -736,6 +763,37 @@ async function checkImage(ref: string, field: string, postDir: string, report: R
     width: turned ? size.height : size.width,
     height: turned ? size.width : size.height,
   };
+}
+
+/**
+ * An Illustration, `![alt](./threads.svg)`: an SVG file the Writing Agent drew, checked
+ * against the rules it is drawn by (checkIllustration). One that can't shrink to a phone's
+ * column without its labels dropping below the small text needs an upright phone copy
+ * next to it, `threads.phone.svg`, which must fit. Each problem names the file.
+ */
+async function checkIllustrationFile(ref: string, file: string, report: Report): Promise<Illustration | undefined> {
+  const drawing = await checkDrawing(ref, file, report);
+  if (!drawing || drawing.minWidth <= PHONE_COLUMN_PX) return drawing;
+  const phoneFile = file.replace(/\.svg$/i, ".phone.svg");
+  const phoneRef = ref.replace(/\.svg$/i, ".phone.svg");
+  const advice = `its labels need it at least ${Math.ceil(drawing.minWidth)}px wide, more than a phone's ${PHONE_COLUMN_PX}px column`;
+  if (!(await readFile(phoneFile).then(() => true, () => false))) {
+    report("body", "illustration-phone", `"${ref}": ${advice}; draw an upright copy that fits next to it as "${phoneRef}", which phones show instead`);
+    return undefined;
+  }
+  const phone = await checkDrawing(phoneRef, phoneFile, report);
+  if (phone && phone.minWidth > PHONE_COLUMN_PX) {
+    report("body", "illustration-phone", `"${phoneRef}" must fit a phone's ${PHONE_COLUMN_PX}px column, but its labels need it at least ${Math.ceil(phone.minWidth)}px wide; narrow its viewBox or enlarge its text`);
+    return undefined;
+  }
+  return phone && { ...drawing, phone };
+}
+
+async function checkDrawing(ref: string, file: string, report: Report): Promise<IllustrationDrawing | undefined> {
+  const svg = await readFile(file, "utf8");
+  const { problems, shape } = await checkIllustration(svg);
+  for (const { rule, message } of problems) report("body", rule, `"${ref}" ${message}`);
+  return shape && { ...shape, svg };
 }
 
 /**
