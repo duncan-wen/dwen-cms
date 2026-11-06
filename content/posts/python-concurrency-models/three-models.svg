@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 332" font-size="14">
+  <text x="16" y="28" font-size="16" font-weight="600" fill="var(--ink)">三種模型：程式跑在哪裡、共用什麼</text>
+  <text x="16" y="60" font-size="15" font-weight="600" fill="var(--ink)">multiprocessing</text>
+  <text x="208" y="60" text-anchor="end" font-size="13" fill="var(--ink-soft)">多行程</text>
+  <text x="224" y="60" font-size="15" font-weight="600" fill="var(--ink)">threading</text>
+  <text x="416" y="60" text-anchor="end" font-size="13" fill="var(--ink-soft)">多執行緒</text>
+  <text x="432" y="60" font-size="15" font-weight="600" fill="var(--ink)">asyncio</text>
+  <text x="624" y="60" text-anchor="end" font-size="13" fill="var(--ink-soft)">非同步</text>
+  <rect x="16" y="72" width="92" height="150" rx="6" fill="var(--paper-deep)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="62" y="94" text-anchor="middle" font-size="13" fill="var(--ink)">行程</text>
+  <rect x="24" y="104" width="76" height="26" rx="6" fill="var(--paper)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="62" y="122" text-anchor="middle" font-size="13" fill="var(--ink)">記憶體</text>
+  <rect x="24" y="138" width="76" height="26" rx="6" fill="var(--paper)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="62" y="156" text-anchor="middle" font-size="13" fill="var(--ink)">GIL</text>
+  <rect x="24" y="176" width="76" height="30" rx="6" fill="var(--series-1)"/>
+  <text x="62" y="196" text-anchor="middle" font-size="13" fill="var(--on-accent)">執行緒</text>
+  <rect x="116" y="72" width="92" height="150" rx="6" fill="var(--paper-deep)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="162" y="94" text-anchor="middle" font-size="13" fill="var(--ink)">行程</text>
+  <rect x="124" y="104" width="76" height="26" rx="6" fill="var(--paper)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="162" y="122" text-anchor="middle" font-size="13" fill="var(--ink)">記憶體</text>
+  <rect x="124" y="138" width="76" height="26" rx="6" fill="var(--paper)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="162" y="156" text-anchor="middle" font-size="13" fill="var(--ink)">GIL</text>
+  <rect x="124" y="176" width="76" height="30" rx="6" fill="var(--series-1)"/>
+  <text x="162" y="196" text-anchor="middle" font-size="13" fill="var(--on-accent)">執行緒</text>
+  <rect x="224" y="72" width="192" height="150" rx="6" fill="var(--paper-deep)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="320" y="94" text-anchor="middle" font-size="13" fill="var(--ink)">一個行程</text>
+  <rect x="232" y="104" width="176" height="26" rx="6" fill="var(--paper)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="320" y="122" text-anchor="middle" font-size="13" fill="var(--ink)">共用記憶體</text>
+  <rect x="232" y="138" width="176" height="26" rx="6" fill="var(--paper)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="320" y="156" text-anchor="middle" font-size="13" fill="var(--ink)">一把 GIL</text>
+  <rect x="232" y="176" width="54" height="30" rx="6" fill="var(--series-2)"/>
+  <text x="259" y="196" text-anchor="middle" font-size="13" fill="var(--on-accent)">執行緒</text>
+  <rect x="293" y="176" width="54" height="30" rx="6" fill="var(--series-2)"/>
+  <text x="320" y="196" text-anchor="middle" font-size="13" fill="var(--on-accent)">執行緒</text>
+  <rect x="354" y="176" width="54" height="30" rx="6" fill="var(--series-2)"/>
+  <text x="381" y="196" text-anchor="middle" font-size="13" fill="var(--on-accent)">執行緒</text>
+  <rect x="432" y="72" width="192" height="150" rx="6" fill="var(--paper-deep)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="528" y="94" text-anchor="middle" font-size="13" fill="var(--ink)">一個行程</text>
+  <rect x="440" y="104" width="176" height="26" rx="6" fill="var(--paper)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="528" y="122" text-anchor="middle" font-size="13" fill="var(--ink)">記憶體 · GIL</text>
+  <rect x="440" y="138" width="54" height="26" rx="6" fill="var(--paper)" stroke="var(--series-3)" stroke-width="1.5"/>
+  <text x="467" y="156" text-anchor="middle" font-size="13" fill="var(--ink)">任務</text>
+  <rect x="501" y="138" width="54" height="26" rx="6" fill="var(--paper)" stroke="var(--series-3)" stroke-width="1.5"/>
+  <text x="528" y="156" text-anchor="middle" font-size="13" fill="var(--ink)">任務</text>
+  <rect x="562" y="138" width="54" height="26" rx="6" fill="var(--paper)" stroke="var(--series-3)" stroke-width="1.5"/>
+  <text x="589" y="156" text-anchor="middle" font-size="13" fill="var(--ink)">任務</text>
+  <rect x="440" y="176" width="176" height="30" rx="6" fill="var(--series-3)"/>
+  <text x="528" y="196" text-anchor="middle" font-size="13" fill="var(--on-accent)">事件迴圈</text>
+  <text x="16" y="246" font-size="13" fill="var(--ink)">各自一份記憶體和 GIL</text>
+  <text x="16" y="266" font-size="13" fill="var(--ink)">多顆核心真的同時算</text>
+  <text x="224" y="246" font-size="13" fill="var(--ink)">共用記憶體，GIL 一次</text>
+  <text x="224" y="266" font-size="13" fill="var(--ink)">只讓一條跑 Python</text>
+  <text x="432" y="246" font-size="13" fill="var(--ink)">一條執行緒輪流跑任務</text>
+  <text x="432" y="266" font-size="13" fill="var(--ink)">遇到 await 才切換</text>
+  <rect x="16" y="284" width="608" height="32" rx="6" fill="var(--accent-wash)"/>
+  <text x="28" y="305" fill="var(--accent)">選哪一個，先看工作卡在 CPU 計算，還是卡在等待</text>
+</svg>

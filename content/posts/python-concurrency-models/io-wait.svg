@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 364" font-size="14">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-soft)"/>
+    </marker>
+  </defs>
+  <text x="16" y="28" font-size="16" font-weight="600" fill="var(--ink)">三個網路請求：依序等 vs. 一起等</text>
+  <text x="16" y="62" font-weight="600" fill="var(--ink)">依序執行</text>
+  <text x="16" y="89" font-size="13" fill="var(--ink)">請求 1</text>
+  <rect x="105" y="74" width="148" height="20" rx="6" fill="var(--series-1)"/>
+  <text x="179" y="89" text-anchor="middle" font-size="13" fill="var(--on-accent)">等回應</text>
+  <text x="16" y="115" font-size="13" fill="var(--ink)">請求 2</text>
+  <rect x="255" y="100" width="148" height="20" rx="6" fill="var(--series-1)"/>
+  <text x="329" y="115" text-anchor="middle" font-size="13" fill="var(--on-accent)">等回應</text>
+  <text x="16" y="141" font-size="13" fill="var(--ink)">請求 3</text>
+  <rect x="405" y="126" width="148" height="20" rx="6" fill="var(--series-1)"/>
+  <text x="479" y="141" text-anchor="middle" font-size="13" fill="var(--on-accent)">等回應</text>
+  <text x="566" y="141" font-size="13" fill="var(--ink-soft)">共 1.5 秒</text>
+  <text x="16" y="180" font-weight="600" fill="var(--ink)">同時等待（執行緒或 asyncio）</text>
+  <text x="16" y="207" font-size="13" fill="var(--ink)">請求 1</text>
+  <rect x="105" y="192" width="148" height="20" rx="6" fill="var(--series-2)"/>
+  <text x="179" y="207" text-anchor="middle" font-size="13" fill="var(--on-accent)">等回應</text>
+  <text x="16" y="233" font-size="13" fill="var(--ink)">請求 2</text>
+  <rect x="105" y="218" width="148" height="20" rx="6" fill="var(--series-2)"/>
+  <text x="179" y="233" text-anchor="middle" font-size="13" fill="var(--on-accent)">等回應</text>
+  <text x="16" y="259" font-size="13" fill="var(--ink)">請求 3</text>
+  <rect x="105" y="244" width="148" height="20" rx="6" fill="var(--series-2)"/>
+  <text x="179" y="259" text-anchor="middle" font-size="13" fill="var(--on-accent)">等回應</text>
+  <text x="266" y="233" font-size="13" fill="var(--ink-soft)">共 0.5 秒</text>
+  <path d="M104 280 L570 280" stroke="var(--rule)" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <text x="104" y="300" text-anchor="start" font-size="13" fill="var(--ink-soft)">0</text>
+  <text x="254" y="300" text-anchor="middle" font-size="13" fill="var(--ink-soft)">0.5</text>
+  <text x="404" y="300" text-anchor="middle" font-size="13" fill="var(--ink-soft)">1.0</text>
+  <text x="554" y="300" text-anchor="middle" font-size="13" fill="var(--ink-soft)">1.5 秒</text>
+  <rect x="16" y="316" width="608" height="32" rx="6" fill="var(--accent-wash)"/>
+  <text x="28" y="337" fill="var(--accent)">等回應時 CPU 是閒的：執行緒和 asyncio 都靠「一起等」省下時間</text>
+</svg>
