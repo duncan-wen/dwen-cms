@@ -9,9 +9,18 @@ export function postImageUrl(slug: string, file: string): string {
 /** A Post's body images as compileMdx takes them: each reference, with where it is served and its size. */
 export function bodyImageSources({ slug, images }: Pick<Post, "slug" | "images">) {
   return Object.fromEntries(
-    Object.entries(images).map(([ref, { file, width, height }]): [string, BodyImageSource] => [
+    Object.entries(images).map(([ref, { file, width, height, illustration }]): [string, BodyImageSource] => [
       ref,
-      { src: postImageUrl(slug, file), width, height },
+      illustration
+        ? {
+            src: postImageUrl(slug, file),
+            width,
+            height,
+            svg: illustration.svg,
+            minWidth: illustration.minWidth,
+            phoneSvg: illustration.phone?.svg,
+          }
+        : { src: postImageUrl(slug, file), width, height },
     ]),
   );
 }

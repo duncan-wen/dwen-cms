@@ -45,6 +45,40 @@ test("a body image loads optimised, its box sized from the image before it loads
 
 const imageLink = (page: Page) => page.getByRole("link", { name: "放大圖片：草稿經過審閱才發布的流程圖" });
 
+test.describe("an Illustration", () => {
+  const alt = "兩條執行緒輪流取得 GIL 的時間軸，任何時刻只有一條在執行";
+
+  test("is inlined, painted with the theme's colour tokens", async ({ page }) => {
+    await page.goto("/posts/typography-sample");
+
+    const drawing = page.getByRole("img", { name: alt }).first();
+    await expect(drawing.locator("svg rect").first()).toHaveAttribute("fill", /^var\(--/);
+  });
+
+  test("shows its upright phone copy on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await page.goto("/posts/typography-sample");
+
+    const visible = page.getByRole("img", { name: alt }).locator("visible=true");
+    await expect(visible).toHaveCount(1);
+    await expect(visible.locator("svg")).toHaveAttribute("viewBox", "0 0 340 480");
+  });
+
+  test("opens in a Lightbox", async ({ page }) => {
+    await page.goto("/posts/typography-sample");
+    await page.getByRole("link", { name: `放大圖片：${alt}` }).click();
+
+    await expect(page.getByRole("dialog").getByRole("img", { name: alt }).locator("visible=true")).toHaveCount(1);
+  });
+
+  test("opened on its own, defines its colour tokens itself", async ({ request }) => {
+    const response = await request.get("/posts/typography-sample/gil.svg");
+
+    expect(response.headers()["content-type"]).toContain("image/svg+xml");
+    expect(await response.text()).toMatch(/<style>:root\{[^}]*--series-1:/);
+  });
+});
+
 test.describe("a body image's Lightbox", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/posts/typography-sample");

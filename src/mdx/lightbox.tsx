@@ -1,10 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { type MouseEvent, type ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
 
-type Props = { src: string; alt: string; width: number; height: number; children: ReactNode };
+type Props = {
+  /** The original file, which the link opens without JavaScript or on a modified click. */
+  src: string;
+  alt: string;
+  /** What the open Lightbox shows: the Body image again, fitted to the screen. */
+  enlarged: ReactNode;
+  children: ReactNode;
+};
 
 /** Outside the component, so it stays one function and runs only when the dialog mounts. */
 const openOnMount = (dialog: HTMLDialogElement | null) => dialog?.showModal();
@@ -15,7 +21,7 @@ const openOnMount = (dialog: HTMLDialogElement | null) => dialog?.showModal();
  * The Lightbox mounts on opening, so a closed one fetches nothing, and in `body`, because a
  * Body image sits inside a paragraph. Any click inside it closes it; a pinch isn't a click.
  */
-export function Lightbox({ src, alt, width, height, children }: Props) {
+export function Lightbox({ src, alt, enlarged, children }: Props) {
   const [open, setOpen] = useState(false);
 
   const onClick = (event: MouseEvent) => {
@@ -31,7 +37,7 @@ export function Lightbox({ src, alt, width, height, children }: Props) {
         aria-label={alt ? `放大圖片：${alt}` : "放大圖片"}
         title="放大圖片"
         onClick={onClick}
-        className="block w-fit cursor-zoom-in"
+        className="block w-fit max-w-full cursor-zoom-in"
       >
         {children}
       </a>
@@ -45,14 +51,7 @@ export function Lightbox({ src, alt, width, height, children }: Props) {
             className="m-0 h-dvh max-h-none w-dvw max-w-none cursor-zoom-out bg-paper p-0"
           >
             <div className="flex h-full items-center justify-center px-4 py-14">
-              <Image
-                unoptimized
-                src={src}
-                alt={alt}
-                width={width}
-                height={height}
-                className="h-auto max-h-full w-auto max-w-full rounded-md dark:brightness-[.85]"
-              />
+              {enlarged}
             </div>
             <button
               type="button"
