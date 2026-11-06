@@ -5,7 +5,7 @@ import matter from "gray-matter";
 import { imageSize } from "image-size";
 import { CORE_SCHEMA, load as loadYaml } from "js-yaml";
 import { type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
-import { mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
+import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
 import { checkIllustration, type IllustrationShape } from "../mdx/illustration-svg";
 import { DRAWN_DIAGRAM_TYPES, type ParsedMermaid, parseMermaid } from "../mdx/parse-mermaid";
@@ -674,8 +674,9 @@ function isLink({ type, name }: MdNode): boolean {
 
 /**
  * Every ```mermaid block in the body must parse as Mermaid, be a diagram type
- * the site can draw, give a flowchart's nodes ASCII IDs, and draw with the
- * site's renderer (mermaidSvg), which reads less than Mermaid does. Each
+ * the site can draw, give a flowchart's nodes ASCII IDs, draw with the
+ * site's renderer (mermaidSvg), which reads less than Mermaid does, and fit a
+ * phone's column as a phone draws it. Each
  * problem names the block by its position among the body's Mermaid blocks and
  * its line in the file; `bodyLine` is how many lines into the file the body starts.
  */
@@ -708,10 +709,17 @@ async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
       );
     }
     try {
-      mermaidSvg(source, "check");
-      // A phone shows a sideways flowchart top-down (src/mdx/mermaid.tsx), so that copy must draw too.
+      const svg = mermaidSvg(source, "check");
+      // A phone shows a sideways flowchart top-down (src/mdx/mermaid.tsx), so that copy must draw too, and fit.
       const topDown = topDownFlowchart(source);
-      if (topDown) mermaidSvg(topDown, "check");
+      const phoneWidth = diagramMinWidth(topDown ? mermaidSvg(topDown, "check") : svg);
+      if (phoneWidth > PHONE_COLUMN_PX) {
+        report(
+          "body",
+          "mermaid-phone-width",
+          `${which} needs ${Math.ceil(phoneWidth)}px to keep its labels readable, more than a phone's ${PHONE_COLUMN_PX}px column; give each level at most two side-by-side nodes and shorten the labels, or explain it in prose or an Illustration`,
+        );
+      }
     } catch (error) {
       report(
         "body",

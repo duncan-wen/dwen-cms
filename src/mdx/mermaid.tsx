@@ -1,17 +1,8 @@
 import type { CSSProperties } from "react";
 import { BODY_COLUMN_PX } from "../body-column";
-import { mermaidSvg, topDownFlowchart } from "./mermaid-svg";
+import { diagramMinWidth as minWidth, mermaidSvg, topDownFlowchart } from "./mermaid-svg";
 
 type Props = { chart: string; id: string };
-
-/** The size mermaidSvg's renderer sets node labels at, in px, when the diagram isn't scaled. */
-const NODE_LABEL_PX = 13;
-
-/** The body's small text (dates, meta lines), in px: the smallest a node label may shrink to. */
-const SMALL_TEXT_PX = 13;
-
-/** The least a diagram is scaled to fit the column. */
-const MIN_SCALE = SMALL_TEXT_PX / NODE_LABEL_PX;
 
 /**
  * A ```mermaid block in a Post body, drawn as an SVG at build time. compileMdx
@@ -36,11 +27,6 @@ export function Mermaid({ chart, id }: Props) {
 }
 
 type DiagramProps = { svg: string; className?: string };
-
-/** The narrowest a diagram may be drawn, in px, before its labels would drop below the body's small text. */
-function minWidth(svg: string): number {
-  return Number(svg.match(/^<svg[^>]*\swidth="([\d.]+)"/)?.[1] ?? 0) * MIN_SCALE;
-}
 
 function Diagram({ svg, className = "" }: DiagramProps) {
   const style = { "--diagram-min-width": `${minWidth(svg)}px` } as CSSProperties;

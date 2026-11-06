@@ -14,7 +14,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 ## Steps
 
 1. **Branch.** `git fetch origin main` and create `post-<slug>` off `origin/main`. A Post is a change outside a spec, so it gets its own branch and its own PR.
-2. **Pick the mode.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1. Done when you can name the mode and the one concrete result or moment the opening hooks on.
+2. **Pick the mode and the hook.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1. Done when you can name the mode and the **hook**: the one surprising finding or concrete result the title, the opening and the promo images all lead with.
 3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, an Illustration (**Illustrations**) wherever a Reader needs to see something Mermaid can't draw, and images (**Images**) only when you have a real file. Then reread it as a Reader who has never seen the repo. Done when every PR number, file path, frontmatter field and internal name (Owner, skill names, ticket) is said in plain words, unless the Post is teaching that very thing and explains it.
 4. **Draw the cover** (**Cover image**). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
 5. **Add `promo` frontmatter** (**Promo images**).
@@ -35,7 +35,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 
 Posts are written in **Traditional Chinese, Taiwan usage**: 程式, 軟體, 資料, 網路, 介面, 預設; full-width punctuation (，。：；！？「」); a space between Chinese and an English word, number with a unit in English, or `inline code` (`用 Python 寫`, `接了 MCP`). English product and tech names stay in English; a term the Reader may not know gets its Chinese gloss once, e.g. 手跟腳 (Tools).
 
-The Owner is a middle-aged Taiwanese software engineer, a parent, and a stock and futures trader. The site is the Owner's tech brand, read first by employers and clients, then by fellow engineers. The Owner speaks in the first person, so the Post does too; the About page carries the site-wide AI disclosure.
+The Owner is a middle-aged Taiwanese software engineer, a parent, and a stock and futures trader. The site is the Owner's tech brand, read first by employers and clients, then by fellow engineers. The Owner speaks in the first person, so the Post does too; the About page carries the site-wide AI disclosure. The Owner's career moves stay private: when a topic comes from job hunting or interview prep, the Post gives a neutral motive (把觀念弄清楚), and its close ends on a reframe or on what the Reader can try, never on a plan the Owner hasn't stated.
 
 ### Traits, from the samples below
 
@@ -80,7 +80,7 @@ A Post is the folder `content/posts/<slug>/`: its `index.mdx` plus any images it
 
 ```yaml
 ---
-title: 讓 AI 寫部落格，也有工程流程   # required, Traditional Chinese
+title: 讓 AI 寫部落格，也有工程流程   # required, Traditional Chinese; see Title
 description: 一句話說出這篇文章給讀者什麼。   # required; shown in listings, meta and OG images
 date: 2026-11-01                     # required, YYYY-MM-DD: the day you write it
 tags: [meta]                         # one or more, each in content/tags.yml
@@ -88,6 +88,8 @@ cover: cover.jpg                     # the cover image you drew (see Cover image
 promo: { … }                         # optional; see Promo images
 ---
 ```
+
+**Title.** The title is the hook: the surprising finding or concrete result, said so a Reader who doesn't code follows at least half of it (多開執行緒，反而更慢？一次搞懂 Python 的三種並行). Lead with the finding; the technical names come after it or go in the description. Every promise is kept in the body: a question gets its answer, a number is a measured one. Plain, curious wording earns the click; the brand's credibility rides on the Post delivering what the title says.
 
 `previousSlugs` and `revisions` belong to changing a Post ([CHANGING-A-POST.md](CHANGING-A-POST.md)); a new Post has neither. There is no draft field: the unmerged PR is the Draft.
 
@@ -119,16 +121,17 @@ Draw processes and architecture in a ```` ```mermaid ```` block; the site draws 
 - Flowchart node IDs are ASCII, labels Chinese: `review{審閱}`, `write[撰寫文章]`.
 - An architecture diagram is a flowchart with `subgraph`s (`architecture-beta` isn't drawn).
 - A sideways (`LR`) flowchart is drawn top-down on phones and when wider than the reading column, so both directions must read well. Keep labels short.
+- Every diagram fits a phone's column as a phone draws it (rule `mermaid-phone-width`): give each level at most two side-by-side nodes. A decision with more outcomes reads better as numbered questions in prose.
 
 The two flowcharts in the typography sample are working models.
 
 ## Promo images
 
-`pnpm promo <slug>` draws the Post's promo images (文宣圖) from its `promo` frontmatter, at 1200×630, 1080×1080 and 1080×1350. Choose the template by what the Post mainly is:
+`pnpm promo <slug>` draws the Post's promo images (文宣圖) from its `promo` frontmatter, at 1200×630, 1080×1080 and 1080×1350. They are what someone scrolling a feed sees, most of them not engineers, so they sell the hook. Choose the template by what the Post mainly is:
 
-- `contour` (the default): most Posts; shows the Post's cover beside the text, so draw the cover first.
-- `flow`: a Post that mainly introduces a process; `steps` are its stages, each a `name` and an optional `command`.
-- `terminal`: a Post mainly about coding; `lines` are commands, each with an optional `comment`.
+- `contour` (the default): every Post, code-heavy ones included; shows the Post's cover beside the text, so draw the cover first.
+- `flow`: a Post whose subject is a process, step by step; `steps` are its stages, each a `name` and an optional `command`.
+- `terminal`: a Post that teaches a set of commands the Reader will type; `lines` are those commands, each with an optional `comment`.
 
 ```yaml
 promo:
@@ -143,4 +146,4 @@ promo:
       command: pnpm content:check
 ```
 
-Always give `titleLines`, breaking after a full-width comma or between phrases; each line stays on one line and the title shrinks to fit the longest, so balance them. Give two or three `points`, each a short phrase (leave `points` out and the description shows instead). `steps` belong only to `flow` and `lines` only to `terminal`. The field rules are `checkPromo` in `src/content/content.ts`; `GLOSSARY.md`'s Promo image entry sums them up.
+Always give `titleLines`, breaking after a full-width comma or between phrases; each line stays on one line and the title shrinks to fit the longest, so balance them. Give two or three `points`, each a short phrase that makes a scroller curious: the surprising finding, a measured number, the question the Post answers (多開執行緒，反而更慢？), rather than a summary of its sections (leave `points` out and the description shows instead). Done when someone who doesn't code would want to tap it. `steps` belong only to `flow` and `lines` only to `terminal`. The field rules are `checkPromo` in `src/content/content.ts`; `GLOSSARY.md`'s Promo image entry sums them up.

@@ -35,6 +35,20 @@ export function mermaidSvg(source: string, idPrefix: string): string {
   );
 }
 
+/** The size mermaidSvg's renderer sets node labels at, in px, when the diagram isn't scaled. */
+const NODE_LABEL_PX = 13;
+
+/** The body's small text (dates, meta lines), in px: the smallest a node label may shrink to. */
+const SMALL_TEXT_PX = 13;
+
+/** The least a diagram is scaled to fit the column. */
+const MIN_SCALE = SMALL_TEXT_PX / NODE_LABEL_PX;
+
+/** The narrowest a drawn diagram (mermaidSvg's output) may be, in px, before its labels drop below the body's small text. */
+export function diagramMinWidth(svg: string): number {
+  return Number(svg.match(/^<svg[^>]*\swidth="([\d.]+)"/)?.[1] ?? 0) * MIN_SCALE;
+}
+
 /** A sideways step in an edge shorter than this, in px, reads as a flaw, not a turn. */
 const JOG_PX = 6;
 
