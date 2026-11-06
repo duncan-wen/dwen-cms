@@ -34,7 +34,7 @@ export function promoImageId(slug: string, size: PromoSize) {
 
 /**
  * An HTML document holding every Post's image at every size, each an element with its
- * `promoImageId`. Fonts load from Google Fonts, so it needs network access, and its
+ * `promoImageId`. The sans and mono faces load from Google Fonts, so it needs network access, and its
  * text fits only after `fitPromoText` runs in the page.
  */
 export async function promoDocument(posts: PromoPost[]): Promise<string> {

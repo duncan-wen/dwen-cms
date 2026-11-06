@@ -45,6 +45,13 @@ test("a body image loads optimised, its box sized from the image before it loads
 
 const imageLink = (page: Page) => page.getByRole("link", { name: "放大圖片：草稿經過審閱才發布的流程圖" });
 
+/** The Lightbox loads the original file only on opening, and an image that hasn't loaded yet is 0px wide. */
+async function loadedBox(image: Locator) {
+  await expect(image).toHaveJSProperty("complete", true);
+  await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  return (await image.boundingBox())!;
+}
+
 test.describe("an Illustration", () => {
   const alt = "兩條執行緒輪流取得 GIL 的時間軸，任何時刻只有一條在執行";
 
@@ -114,7 +121,7 @@ test.describe("a body image's Lightbox", () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await imageLink(page).click();
 
-    const box = (await page.getByRole("dialog").getByRole("img").boundingBox())!;
+    const box = await loadedBox(page.getByRole("dialog").getByRole("img"));
 
     expect(box.x).toBeGreaterThanOrEqual(0);
     expect(box.x + box.width).toBeLessThanOrEqual(375);
@@ -125,7 +132,7 @@ test.describe("a body image's Lightbox", () => {
     await page.setViewportSize({ width: 1280, height: 400 });
     await imageLink(page).click();
 
-    const box = (await page.getByRole("dialog").getByRole("img").boundingBox())!;
+    const box = await loadedBox(page.getByRole("dialog").getByRole("img"));
 
     expect(box.y).toBeGreaterThanOrEqual(0);
     expect(box.y + box.height).toBeLessThanOrEqual(400);
@@ -136,7 +143,7 @@ test.describe("a body image's Lightbox", () => {
     await page.setViewportSize({ width: 1800, height: 1000 });
     await imageLink(page).click();
 
-    const box = (await page.getByRole("dialog").getByRole("img").boundingBox())!;
+    const box = await loadedBox(page.getByRole("dialog").getByRole("img"));
 
     expect(box.width).toBe(1200);
   });
@@ -157,7 +164,8 @@ test.describe("a body image's Lightbox", () => {
 
     await imageLink(page).click({ modifiers: ["ControlOrMeta"] });
 
-    expect(new URL((await newTab).url()).pathname).toBe("/posts/typography-sample/flow.png");
+    // The new tab starts at about:blank before it reaches the file.
+    await expect(await newTab).toHaveURL(/\/posts\/typography-sample\/flow\.png$/);
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 });
