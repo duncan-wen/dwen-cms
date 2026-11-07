@@ -2,8 +2,9 @@
 //   pnpm shots /posts/typography-sample /tags      build, then shoot each path
 //   pnpm shots --no-build /                         reuse the last build
 //   pnpm shots --content content /posts/<slug>      build the real content instead
-// Writes test-results/shots/<path>-<theme>-<width>.png, plus index.html showing this
-// run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
+// Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration
+// and Diagram as <path>-<illustration|diagram>-<n>-<theme>-<width>.png (n counts from the
+// top of the page), plus index.html showing this run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
 // box other than a code block clips its content (scrollWidth past its width), at any width.
 import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -13,6 +14,11 @@ import { chromium } from "@playwright/test";
 const outDir = "test-results/shots";
 const themes = ["light", "dark"] as const;
 const widths = [1280, 375];
+/** The elements cropped from each page, named by what they are. A phone copy shows in its original's place. */
+const elements = [
+  { kind: "illustration", label: "插圖", selector: "span.illustration" },
+  { kind: "diagram", label: "圖表", selector: "figure.mermaid-diagram" },
+] as const;
 
 const args = process.argv.slice(2);
 const build = !args.includes("--no-build");
@@ -51,6 +57,8 @@ const overflowing: string[] = [];
 const sections: string[] = [];
 for (const path of paths) {
   const figures: string[] = [];
+  /** Each element's crops, keyed by kind and position, in the order the page shows them. */
+  const crops = new Map<string, string[]>();
   for (const theme of themes) {
     for (const width of widths) {
       const page = await browser.newPage({ colorScheme: theme, viewport: { width, height: 900 } });
@@ -80,7 +88,22 @@ for (const path of paths) {
       for (const box of clipped) overflowing.push(`${path} (${theme}, ${width}px): ${box} clips its content`);
       const flagged = scrolls || clipped.length > 0;
       console.log(`${response?.status()} ${file}${flagged ? "  ← overflows" : ""}`);
-      const label = `${theme === "light" ? "淺色" : "深色"}・${width >= 640 ? "桌機" : "手機"} ${width}px`;
+      for (const { kind, label: kindLabel, selector } of elements) {
+        const visible = await page.locator(selector).locator("visible=true").all();
+        for (const [index, element] of visible.entries()) {
+          const key = `${kindLabel} ${index + 1}`;
+          const cropName = `${fileName(path)}-${kind}-${index + 1}-${theme}-${width}.png`;
+          await element.screenshot({ path: `${outDir}/${cropName}` });
+          console.log(`    ${outDir}/${cropName}`);
+          const cropLabel = `${key}・${themeLabel(theme)}・${widthLabel(width)}`;
+          crops.set(key, [
+            ...(crops.get(key) ?? []),
+            `<figure><figcaption>${cropLabel}</figcaption>` +
+              `<a href="${cropName}"><img class="crop" src="${cropName}" alt="${path} ${cropLabel}" loading="lazy"></a></figure>`,
+          ]);
+        }
+      }
+      const label = `${themeLabel(theme)}・${widthLabel(width)}`;
       figures.push(
         `<figure><figcaption>${label}${flagged ? "（內容超出版面！）" : ""}</figcaption>` +
           `<a href="${name}"><img src="${name}" alt="${path} ${label}" loading="lazy"></a></figure>`,
@@ -88,7 +111,12 @@ for (const path of paths) {
       await page.close();
     }
   }
-  sections.push(`<section><h2>${path}</h2><div class="row">${figures.join("")}</div></section>`);
+  const cropRows = [...crops.values()].map((row) => `<div class="row">${row.join("")}</div>`);
+  sections.push(
+    `<section><h2>${path}</h2><div class="row">${figures.join("")}</div>` +
+      (cropRows.length > 0 ? `<h3>插圖與圖表</h3>${cropRows.join("")}` : "") +
+      `</section>`,
+  );
 }
 await browser.close();
 writeFileSync(`${outDir}/index.html`, contactSheet(sections));
@@ -105,17 +133,28 @@ function contactSheet(sections: string[]): string {
 <style>
   body { margin: 24px; font: 15px/1.6 system-ui, sans-serif; background: #eee; color: #222; }
   h2 { font-size: 18px; margin: 32px 0 8px; }
-  .row { display: flex; gap: 16px; align-items: flex-start; overflow-x: auto; }
+  h3 { font-size: 15px; margin: 24px 0 8px; }
+  .row { display: flex; gap: 16px; align-items: flex-start; overflow-x: auto; margin-bottom: 16px; }
   figure { margin: 0; flex: none; }
   figcaption { font-size: 13px; color: #555; margin-bottom: 4px; }
   img { display: block; border: 1px solid #ccc; width: 320px; }
   figure:has(img[alt*="375"]) img { width: 160px; }
+  /* Crops show at their own size, so labels read as they do on the page; a wide one shrinks to fit a row of four. */
+  img.crop, figure:has(img[alt*="375"]) img.crop { width: auto; max-width: 400px; }
 </style>
 <h1>截圖（${new Date().toLocaleString("zh-TW")}）</h1>
 <p>點圖片看原尺寸。</p>
 ${sections.join("\n")}
 </html>
 `;
+}
+
+function themeLabel(theme: (typeof themes)[number]): string {
+  return theme === "light" ? "淺色" : "深色";
+}
+
+function widthLabel(width: number): string {
+  return `${width >= 640 ? "桌機" : "手機"} ${width}px`;
 }
 
 function fileName(path: string): string {

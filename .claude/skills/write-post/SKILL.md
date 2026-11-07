@@ -20,7 +20,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 5. **Add `promo` frontmatter** (**Promo images**).
 6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
 7. **Make the promo images.** `pnpm promo <slug>` (run `pnpm exec playwright install chromium` once if it can't launch a browser). Read every PNG it writes to `promo/` and the contact sheet `promo/index.html`. Done when the title breaks where you meant, nothing overflows, and the points read as the Post's hook.
-   Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the light and dark shots at both widths. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram, Illustration and image reads well in both themes.
+   Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the light and dark shots at both widths. It also crops each Illustration and Diagram on its own (`…-illustration-<n>-…png`, `…-diagram-<n>-…png`), shown under the page on the contact sheet: read those for labels and colours. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram, Illustration and image reads well in both themes.
 8. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
    - one paragraph on what the Post says and who it's for;
    - the voice mode you chose;
