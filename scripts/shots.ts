@@ -79,11 +79,17 @@ for (const path of paths) {
         () => document.documentElement.scrollWidth > window.innerWidth,
       );
       if (scrolls) overflowing.push(`${path} (${theme}, ${width}px): the page scrolls horizontally`);
-      // A box that clips sideways shows its content cut off in a screenshot; only code blocks may scroll.
+      // A box that clips its content shows it cut off in a screenshot: sideways (only code blocks may scroll),
+      // or downwards (an animation's frame cuts off what doesn't fit).
       const clipped = await page.evaluate(() =>
         [...document.body.querySelectorAll("*")]
-          .filter((el) => !el.closest("pre") && el.scrollWidth > el.clientWidth + 1)
-          .filter((el) => getComputedStyle(el).overflowX !== "visible")
+          .filter((el) => !el.closest("pre"))
+          .filter((el) => {
+            const style = getComputedStyle(el);
+            const sideways = el.scrollWidth > el.clientWidth + 1 && style.overflowX !== "visible";
+            const downwards = el.scrollHeight > el.clientHeight + 1 && style.overflowY !== "visible";
+            return sideways || downwards;
+          })
           .map((el) => `<${el.tagName.toLowerCase()}${el.className ? ` class="${String(el.className).slice(0, 60)}"` : ""}>`),
       );
       for (const box of clipped) overflowing.push(`${path} (${theme}, ${width}px): ${box} clips its content`);
