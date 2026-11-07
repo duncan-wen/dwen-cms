@@ -80,15 +80,14 @@ for (const path of paths) {
       );
       if (scrolls) overflowing.push(`${path} (${theme}, ${width}px): the page scrolls horizontally`);
       // A box that clips its content shows it cut off in a screenshot: sideways (only code blocks may scroll),
-      // or downwards (an animation's frame cuts off what doesn't fit). Line-clamped text is cut off on purpose.
+      // or downwards (an animation's frame cuts off what doesn't fit).
       const clipped = await page.evaluate(() =>
         [...document.body.querySelectorAll("*")]
           .filter((el) => !el.closest("pre"))
           .filter((el) => {
             const style = getComputedStyle(el);
             const sideways = el.scrollWidth > el.clientWidth + 1 && style.overflowX !== "visible";
-            const downwards =
-              el.scrollHeight > el.clientHeight + 1 && style.overflowY !== "visible" && style.webkitLineClamp === "none";
+            const downwards = el.scrollHeight > el.clientHeight + 1 && style.overflowY !== "visible";
             return sideways || downwards;
           })
           .map((el) => `<${el.tagName.toLowerCase()}${el.className ? ` class="${String(el.className).slice(0, 60)}"` : ""}>`),
