@@ -61,7 +61,8 @@ for (const path of paths) {
   const crops = new Map<string, string[]>();
   for (const theme of themes) {
     for (const width of widths) {
-      const page = await browser.newPage({ colorScheme: theme, viewport: { width, height: 900 } });
+      // Reduced motion, so an animation shows its finished frame rather than wherever it was when the shot was taken.
+      const page = await browser.newPage({ colorScheme: theme, reducedMotion: "reduce", viewport: { width, height: 900 } });
       const response = await page.goto(base + path);
       await page.evaluate(() => document.fonts.ready);
       // A full-page shot never scrolls, so lazy images below the fold would stay blank:

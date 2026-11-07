@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
+    "@remotion/player": "4.0.541",
     "@shikijs/rehype": "^4.5.0",
     "@vercel/analytics": "^2.0.1",
     "beautiful-mermaid": "1.1.3",
@@ -41,6 +42,7 @@
     "react-dom": "^19.3.1",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
+    "remotion": "4.0.541",
     "shiki": "^4.5.0",
     "subset-font": "^2.9.0"
   },
