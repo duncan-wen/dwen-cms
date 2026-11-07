@@ -12,8 +12,11 @@ import { ContentValidationError } from "../src/content/content";
 import { contentDir, getContent } from "../src/content/site-content";
 import { littleText } from "../src/linkedin";
 
-/** The production site. The card shows what Readers see there, so the Post must already be live. */
-const SITE = "https://dwen-cms.vercel.app";
+/**
+ * The production site, as Vercel Production's SITE_URL names it. The card shows what Readers
+ * see there, so the Post must already be live.
+ */
+const SITE = "https://duncan-wen.aibbm.org";
 /** LinkedIn's API version, YYYYMM. Each lasts about a year; a 426 NONEXISTENT_VERSION means bump it. */
 const LINKEDIN_VERSION = "202610";
 const TOKEN_DAYS = 60;
@@ -47,8 +50,12 @@ const pageUrl = `${SITE}/posts/${slug}`;
 const page = await fetch(pageUrl);
 if (!page.ok) fail(`${pageUrl} answered ${page.status}: merge and deploy the Post before sharing it.`);
 const html = await page.text();
+// The page names its own canonical URL from SITE_URL; a card pointing anywhere else would
+// send Readers to a second address of the same site.
+const canonical = html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
+if (canonical !== pageUrl) fail(`${pageUrl} names ${canonical} as its canonical URL: set SITE_URL on Vercel Production to ${SITE} and redeploy.`);
 const card = {
-  url: meta(html, "og:url") ?? pageUrl,
+  url: pageUrl,
   title: meta(html, "og:title"),
   description: meta(html, "og:description") ?? "",
   image: meta(html, "og:image"),
