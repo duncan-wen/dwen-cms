@@ -15,9 +15,12 @@ export default async function HomePage() {
   const latest = (await getContent()).listPublishedPosts().slice(0, LATEST_COUNT);
   return (
     <>
-      {/* The headline ends in the seal like a signature: set vertically on the right from 640px, horizontally on phones. */}
-      <section className="grid gap-8 pt-4 pb-16 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end sm:gap-12 sm:pt-8 sm:pb-20">
-        <h1 className="text-[34px] leading-[1.35] font-black tracking-[0.02em] sm:order-3 sm:flex sm:flex-col sm:items-start sm:pl-2 sm:text-[clamp(40px,5.4vw,54px)] sm:leading-normal sm:tracking-[0.14em] sm:[writing-mode:vertical-rl]">
+      {/*
+        The headline ends in the seal like a signature: set vertically on the right from 640px, horizontally on phones.
+        From 640px the space above the introduction is a sheet of manuscript paper on the headline's scale (--hero-glyph).
+      */}
+      <section className="grid gap-8 pt-4 pb-16 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end sm:gap-12 sm:pt-8 sm:pb-20 sm:[--hero-glyph:clamp(40px,5.4vw,54px)]">
+        <h1 className="text-[34px] leading-[1.35] font-black tracking-[0.02em] sm:order-3 sm:flex sm:flex-col sm:items-start sm:pl-2 sm:text-(length:--hero-glyph) sm:leading-normal sm:tracking-[0.14em] sm:[writing-mode:vertical-rl]">
           <span className="block">
             把<span className="sm:[text-combine-upright:all]">AI</span>做進真的產品裡
           </span>
@@ -29,7 +32,8 @@ export default async function HomePage() {
           </span>
         </h1>
         <span aria-hidden="true" className="hidden self-stretch border-l border-rule sm:order-2 sm:block" />
-        <div className="grid gap-6 sm:order-1 sm:pb-2">
+        <div className="grid gap-6 sm:order-1 sm:grid-rows-[1fr_auto_auto_auto] sm:self-stretch sm:pb-2">
+          <div aria-hidden="true" className="manuscript hidden sm:block" />
           <p className="font-serif text-[21px] leading-[1.6] font-bold">
             我是 Duncan Wen，一名軟體工程師，專注在網頁開發與 AI 應用。
           </p>

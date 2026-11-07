@@ -162,6 +162,31 @@
   font-family: var(--font-sans);
 }
 
+/*
+ * The home hero's sheet of vertical manuscript paper (稿紙): columns of squares,
+ * one square per headline character (--hero-glyph plus the headline's 0.14em
+ * tracking), fading out above the introduction. Each tile is one square with
+ * the gap to its left column; tiles repeat down each column and are spaced
+ * across it, so the sheet never shows a cut-off column.
+ */
+.manuscript {
+  --cell: calc(var(--hero-glyph) * 1.14);
+  --gap: calc(var(--hero-glyph) * 0.36);
+  background-image:
+    linear-gradient(to right, var(--color-paper) var(--gap), transparent var(--gap)),
+    linear-gradient(
+      to right,
+      transparent var(--gap),
+      var(--color-rule) var(--gap) calc(var(--gap) + 1px),
+      transparent calc(var(--gap) + 1px) calc(100% - 1px),
+      var(--color-rule) calc(100% - 1px)
+    ),
+    linear-gradient(to bottom, var(--color-rule) 1px, transparent 1px);
+  background-size: calc(var(--cell) + var(--gap)) var(--cell);
+  background-repeat: space repeat;
+  mask-image: linear-gradient(to bottom, #000 35%, transparent);
+}
+
 /* Post bodies: the typography plugin's prose, recoloured through the tokens. */
 @utility prose-site {
   --tw-prose-body: var(--color-ink);
