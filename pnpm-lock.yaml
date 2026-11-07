@@ -16,6 +16,9 @@ importers:
       '@mdx-js/mdx':
         specifier: ^3.1.1
         version: 3.1.1
+      '@remotion/player':
+        specifier: 4.0.541
+        version: 4.0.541(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@shikijs/rehype':
         specifier: ^4.5.0
         version: 4.5.0
@@ -64,6 +67,9 @@ importers:
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
+      remotion:
+        specifier: 4.0.541
+        version: 4.0.541(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       shiki:
         specifier: ^4.5.0
         version: 4.5.0
@@ -798,6 +804,12 @@ packages:
     resolution: {integrity: sha512-IaYGml/nSOiZWROfPtuIL7neuu9qDOZ3TNvNljUIrhDMxiGTgPjzj/g9p9RxpS2tSepPDRY+UwAaEeiKtUvIAg==}
     engines: {node: '>=20'}
     hasBin: true
+
+  '@remotion/player@4.0.541':
+    resolution: {integrity: sha512-HApJVi9KBuS0NLT3UoAujzOOKWtf/pS19E5HOoS/v3TxXg/0a3GVoERkDI1hQWKsuZWl4+RGKWRhOpAP8yYJVw==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   '@rolldown/binding-android-arm-eabi@1.2.16':
     resolution: {integrity: sha512-ia3DwAs0OsMGS7+IConptSiyk9pEXkOx/AbJ2n/lAGxH3QkWQus1t8d7gnAT38FCU2sQu8lUbeR6AiZFv4JxaA==}
@@ -3204,6 +3216,12 @@ packages:
   remark-stringify@11.0.0:
     resolution: {integrity: sha512-1OSmLd3awB/t8qdoEOMazZkNsfVTeY4fTsgzcQFdXNq8ToTN4ZGwrMnlda4K6smTFKD+GRV6O48i6Z4iKgPPpw==}
 
+  remotion@4.0.541:
+    resolution: {integrity: sha512-qpXfkMwKk3NJmlUzl6gJYebnMjbweXomna7KRu0EEBFPjxG94x8T0nAbXJmTUT3bHR8XA/edxsa9/HEr0ytA0g==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
   require-from-string@2.0.2:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
@@ -4308,6 +4326,12 @@ snapshots:
   '@playwright/test@1.64.1':
     dependencies:
       playwright: 1.64.1
+
+  '@remotion/player@4.0.541(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+      remotion: 4.0.541(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
 
   '@rolldown/binding-android-arm-eabi@1.2.16':
     optional: true
@@ -7230,6 +7254,11 @@ snapshots:
       '@types/mdast': 4.0.4
       mdast-util-to-markdown: 2.2.1
       unified: 11.0.5
+
+  remotion@4.0.541(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+    dependencies:
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
 
   require-from-string@2.0.2: {}
 
