@@ -4,12 +4,14 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] `pnpm shots /posts/typography-sample` writes one crop per Illustration and Diagram per theme and width, named after the page and its position
 - [x] The contact sheet shows the crops under their page's full shots
 - [x] The overflow check and its failure output are unchanged
 - [x] The write-post skill's step 7 and `docs/agents/issue-tracker.md` (Visual tickets) mention the crops
-- [ ] The Owner has looked at the new contact sheet and said OK
+- [x] The Owner has looked at the new contact sheet and said OK
 
 ## Comments
+
+- 2026-11-07: The Owner looked at the contact sheet for `/posts/typography-sample` and said OK.
