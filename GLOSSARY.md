@@ -58,6 +58,10 @@ _Avoid_: Modal, popup, zoom
 A ready-to-post image of a Post for social media (文宣圖), written by `pnpm promo <slug>` at 1200×630, 1080×1080 and 1080×1350 from one of three brand templates: `contour` (the default, the Post's Cover beside the text: its cover image, else its generated cover), `flow` for a Post whose subject is a process, `terminal` for one teaching commands the Reader will type. The Post's optional `promo` frontmatter picks the `template` and gives its `titleLines` (where the title breaks; each stays on one line, and the title shrinks until the longest fits), its key `points` (at least one; leave the field out to show the description), flow's `steps` (`name`, optional `command`) or terminal's `lines` (`command`, optional `comment`). Unlike the OG image it carries no seal; the OG image breaks its title at the same `titleLines`.
 _Avoid_: Banner, social card, thumbnail
 
+**LinkedIn share**:
+The text the Owner posts a Post to LinkedIn with, stored next to it as `linkedin.txt`, above a link card LinkedIn draws from the Post's OG image, title and description. A Writing Agent drafts it with the Post; it goes out only when the Owner says so, once, and records the LinkedIn post's URL when it does.
+_Avoid_: Social post, cross-post, LinkedIn article
+
 **Demo**:
 An interactive AI showcase that stands on its own and can also be embedded in a Post; a Post containing a Demo is still a Post.
 _Avoid_: Playground, lab, project

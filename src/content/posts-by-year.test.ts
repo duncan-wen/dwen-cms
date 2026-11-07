@@ -13,6 +13,7 @@ const post = (slug: string, date: string): Post => ({
   cover: undefined,
   images: {},
   promo: { template: "contour", titleLines: [slug], points: [] },
+  linkedInShare: undefined,
   body: "",
 });
 

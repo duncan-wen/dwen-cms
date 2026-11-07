@@ -4,6 +4,7 @@ import { createProcessor } from "@mdx-js/mdx";
 import matter from "gray-matter";
 import { imageSize } from "image-size";
 import { CORE_SCHEMA, load as loadYaml } from "js-yaml";
+import { linkedInHashtags } from "../linkedin";
 import { type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
 import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
@@ -33,7 +34,15 @@ export type Post = {
   promo: Promo;
   /** Raw MDX body, without frontmatter. */
   body: string;
+  /** What the Owner shares the Post on LinkedIn with, from `linkedin.txt` next to it; optional. */
+  linkedInShare: LinkedInShare | undefined;
 };
+
+/**
+ * A LinkedIn share: the text above the Post's link card, and once it's posted, the LinkedIn
+ * post's URL, recorded as a `posted: <url>` first line so it's never posted twice.
+ */
+export type LinkedInShare = { text: string; postedUrl: string | undefined };
 
 /**
  * What a Post's promo images show. Every template shows the title and the key
@@ -243,6 +252,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     if (tree) checkImagesNotLinked(tree, report);
     if (tree) await checkDiagrams(tree, bodyLine, report);
     const promo = checkPromo(data.promo, title, description, report);
+    const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
 
     posts.push({
       slug,
@@ -256,6 +266,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
       images,
       promo,
       body,
+      linkedInShare,
     });
   }
 
@@ -321,6 +332,43 @@ export async function loadContent(contentDir: string): Promise<Content> {
     }
     return [...byFile.values()];
   }
+}
+
+/** LinkedIn's limit on a post's text, in characters. */
+const LINKEDIN_TEXT_LIMIT = 3000;
+const LINKEDIN_HASHTAG_LIMIT = 3;
+
+/** A Post's LinkedIn share from its optional `linkedin.txt`, checked against what LinkedIn accepts. */
+async function loadLinkedInShare(
+  contentDir: string,
+  slug: string,
+  problems: ContentProblem[],
+): Promise<LinkedInShare | undefined> {
+  const file = `posts/${slug}/linkedin.txt`;
+  const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
+  if (source === undefined) return undefined;
+  const report: Report = (field, rule, message) => problems.push({ file, field, rule, message });
+
+  const posted = source.match(/^posted:[ \t]*(.*)\n?/);
+  const postedUrl = posted?.[1].trim();
+  if (postedUrl !== undefined && !/^https:\/\/www\.linkedin\.com\/\S+$/.test(postedUrl)) {
+    report("posted", "linkedin-posted-url", `"${postedUrl}" isn't a LinkedIn post's URL (https://www.linkedin.com/feed/update/…)`);
+  }
+  const text = source.slice(posted?.[0].length ?? 0).trim();
+  if (text === "") report("text", "required", "the file has no text to share");
+  const length = [...text].length;
+  if (length > LINKEDIN_TEXT_LIMIT) {
+    report("text", "linkedin-length", `the text is ${length} characters, more than LinkedIn's ${LINKEDIN_TEXT_LIMIT}; shorten it`);
+  }
+  const hashtags = linkedInHashtags(text);
+  if (hashtags.length > LINKEDIN_HASHTAG_LIMIT) {
+    report(
+      "text",
+      "linkedin-hashtags",
+      `the text has ${hashtags.length} hashtags (${hashtags.join(", ")}); keep it to ${LINKEDIN_HASHTAG_LIMIT}, picked from the Post's Tags`,
+    );
+  }
+  return { text, postedUrl };
 }
 
 /**
