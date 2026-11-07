@@ -588,3 +588,44 @@ describe("validating promo frontmatter", () => {
     expect((error as Error).message).toContain(named);
   });
 });
+
+describe("a Post's LinkedIn share", () => {
+  it("reads the text in linkedin.txt next to the Post, not yet posted", async () => {
+    const content = await loadContent(fixture("linkedin"));
+
+    expect(post(content, "shared").linkedInShare).toEqual({ text: "一段介紹。\n\n#Python #程式設計", postedUrl: undefined });
+  });
+
+  it("reads the link a posted share was recorded with, apart from its text", async () => {
+    const content = await loadContent(fixture("linkedin"));
+
+    expect(post(content, "posted").linkedInShare).toEqual({
+      text: "已經發過的介紹。",
+      postedUrl: "https://www.linkedin.com/feed/update/urn:li:share:7000000000000000000/",
+    });
+  });
+
+  it("has none for a Post without linkedin.txt", async () => {
+    const content = await loadContent(fixture("linkedin"));
+
+    expect(post(content, "not-shared").linkedInShare).toBeUndefined();
+  });
+
+  it.each([
+    ["linkedin-too-long", "posts/long/linkedin.txt", "text", "linkedin-length", /3001 characters, more than LinkedIn's 3000/],
+    ["linkedin-hashtags", "posts/many-tags/linkedin.txt", "text", "linkedin-hashtags", /4 hashtags \(#a, #b, #c, #d\); keep it to 3/],
+    ["linkedin-empty", "posts/empty/linkedin.txt", "text", "required", /no text/],
+    ["linkedin-posted-url", "posts/bad-posted/linkedin.txt", "posted", "linkedin-posted-url", /"https:\/\/example.com\/x"/],
+  ])("rejects fixture %s: %s %s breaks %s", async (fixtureName, file, field, rule, message) => {
+    const error = await loadContent(fixture(fixtureName)).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file, field, rule }] });
+    expect((error as Error).message).toMatch(message);
+  });
+
+  function post(content: Awaited<ReturnType<typeof loadContent>>, slug: string) {
+    const result = content.resolveSlug(slug);
+    if (result.kind !== "post") throw new Error(`${slug} is ${result.kind}`);
+    return result.post;
+  }
+});
