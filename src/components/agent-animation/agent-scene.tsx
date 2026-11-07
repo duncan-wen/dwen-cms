@@ -3,7 +3,7 @@ import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } fr
 
 /** The scene's size in its own pixels; the Player scales it to the column. */
 export const SCENE_WIDTH = 420;
-export const SCENE_HEIGHT = 340;
+export const SCENE_HEIGHT = 345;
 export const SCENE_FPS = 30;
 
 /** When each step starts, in seconds; the scene holds the finished answer, then fades out and loops. */
@@ -28,39 +28,62 @@ const CALL: { text: string; colour?: string }[] = [
   { text: "query_orders", colour: "var(--code-function)" },
   { text: "({\n  month: " },
   { text: '"2026-10"', colour: "var(--code-string)" },
-  { text: ",\n  status: " },
+  { text: ", status: " },
   { text: '"returned"', colour: "var(--code-string)" },
   { text: "\n})" },
 ];
-const CALL_LENGTH = CALL.reduce((n, run) => n + run.text.length, 0);
+/** Where each run of the tool call starts, counted in characters from the call's start. */
+const CALL_OFFSETS = CALL.reduce<number[]>((offsets, run, i) => [...offsets, offsets[i] + run.text.length], [0]);
+const CALL_LENGTH = CALL_OFFSETS[CALL.length];
 
-const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+/** The space between steps, in the scene's pixels; the rail bridges it. */
+const STEP_GAP = 14;
+
+const CLAMPED = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+/** Every ease-in: fast, then settling. */
+const EASE_OUT = Easing.bezier(0.16, 1, 0.3, 1);
 
 /** How many characters of a typed line show, typing at about 18 characters a second from `start`. */
 function useTyped(length: number, start: number) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const from = (start + 0.25) * fps;
-  return Math.floor(interpolate(frame, [from, from + (length / 18) * fps], [0, length], clamp));
+  return Math.floor(interpolate(frame, [from, from + (length / 18) * fps], [0, length], CLAMPED));
 }
 
 type Props = {
   label: string;
   /** When the step eases in, in seconds. */
   start: number;
+  /** When the next step eases in, in seconds; the rail grows down to it just before. Left out on the last step. */
+  next?: number;
   children: ReactNode;
 };
 
-/** One step on the rail: a dot, a role label and its content, easing in at `start`. */
-function Step({ label, start, children }: Props) {
+/** One step: a dot, a role label and its content, easing in at `start`, with the rail down to the next step's dot. */
+function Step({ label, start, next, children }: Props) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const shown = interpolate(frame, [start * fps, (start + 0.35) * fps], [0, 1], {
-    ...clamp,
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
+  const shown = interpolate(frame, [start * fps, (start + 0.35) * fps], [0, 1], { ...CLAMPED, easing: EASE_OUT });
+  const railDrawn =
+    next === undefined ? 0 : interpolate(frame, [(next - 0.4) * fps, next * fps], [0, 1], { ...CLAMPED, easing: EASE_OUT });
   return (
     <div style={{ position: "relative", paddingLeft: 26, opacity: shown, translate: `0 ${(1 - shown) * 8}px` }}>
+      {next !== undefined && (
+        <span
+          style={{
+            position: "absolute",
+            left: 6,
+            top: 16,
+            bottom: -STEP_GAP - 5,
+            width: 1,
+            background: "var(--ink-soft)",
+            opacity: 0.5,
+            scale: `1 ${railDrawn}`,
+            transformOrigin: "top",
+          }}
+        />
+      )}
       <span
         style={{
           position: "absolute",
@@ -84,9 +107,6 @@ function Question() {
   return <div style={{ fontSize: 17 }}>{QUESTION.slice(0, typed)}</div>;
 }
 
-/** Where each run of the tool call starts, counted in characters from the call's start. */
-const CALL_OFFSETS = CALL.map((_, i) => CALL.slice(0, i).reduce((n, run) => n + run.text.length, 0));
-
 function Call() {
   const typed = useTyped(CALL_LENGTH, STEP_START.call);
   const runs = CALL.map((run, i) => (
@@ -99,7 +119,7 @@ function Call() {
       style={{
         margin: 0,
         padding: "8px 12px",
-        minHeight: 3 * 22 + 16,
+        minHeight: 3 * 22 + 16, // the call's three lines, so the box doesn't grow as it types
         borderRadius: 6,
         background: "var(--paper-deep)",
         fontFamily: "var(--font-mono)",
@@ -121,10 +141,7 @@ function Rows() {
     <div style={{ display: "grid", gap: 6 }}>
       {ROWS.map((row, i) => {
         const from = (STEP_START.rows + 0.2 + i * 0.25) * fps;
-        const grown = interpolate(frame, [from, from + 0.6 * fps], [0, 1], {
-          ...clamp,
-          easing: Easing.bezier(0.16, 1, 0.3, 1),
-        });
+        const grown = interpolate(frame, [from, from + 0.6 * fps], [0, 1], { ...CLAMPED, easing: EASE_OUT });
         return (
           <div key={row.name} style={{ display: "grid", gridTemplateColumns: "72px 1fr 48px", alignItems: "center", gap: 10, fontSize: 15 }}>
             <span>{row.name}</span>
@@ -142,18 +159,6 @@ function Answer() {
   return <div style={{ fontSize: 17, fontWeight: 700 }}>{ANSWER.slice(0, typed)}</div>;
 }
 
-/** The rail joining the steps, drawn down to the step that has started last. */
-function Rail() {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const drawn = interpolate(frame, [0.3 * fps, STEP_START.answer * fps], [0, 1], clamp);
-  return (
-    <span
-      style={{ position: "absolute", left: 6, top: 12, width: 1, height: `calc(${drawn} * (100% - 60px))`, background: "var(--ink-soft)", opacity: 0.5 }}
-    />
-  );
-}
-
 /**
  * An AI agent answering a question by calling a tool: the question, the tool
  * call, the rows it returns and the answer, each easing in, then a hold and a
@@ -166,19 +171,18 @@ export function AgentScene() {
     color: "var(--ink)",
     fontFamily: "var(--font-sans)",
     lineHeight: 1.5,
-    opacity: interpolate(frame, [FADE_FROM * fps, DURATION * fps], [1, 0], clamp),
+    opacity: interpolate(frame, [FADE_FROM * fps, DURATION * fps], [1, 0], CLAMPED),
   };
   return (
     <AbsoluteFill style={style}>
-      <div style={{ position: "relative", display: "grid", gap: 18 }}>
-        <Rail />
-        <Step label="使用者" start={STEP_START.question}>
+      <div style={{ display: "grid", gap: STEP_GAP }}>
+        <Step label="使用者" start={STEP_START.question} next={STEP_START.call}>
           <Question />
         </Step>
-        <Step label="呼叫工具" start={STEP_START.call}>
+        <Step label="呼叫工具" start={STEP_START.call} next={STEP_START.rows}>
           <Call />
         </Step>
-        <Step label="工具回傳" start={STEP_START.rows}>
+        <Step label="工具回傳" start={STEP_START.rows} next={STEP_START.answer}>
           <Rows />
         </Step>
         <Step label="AI 回答" start={STEP_START.answer}>
