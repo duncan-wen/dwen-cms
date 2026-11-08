@@ -1,3 +1,5 @@
+posted: https://www.linkedin.com/feed/update/urn:li:share:7525262498623721472/
+
 10 萬個 goroutine 同時活著，整個程式只用了 9 條作業系統執行緒，平均每個只佔 2.7 KB 記憶體。
 
 為了把 Go 的並行觀念弄清楚，我在一台 8 核心的電腦上，把常聽到的說法一個一個拿來實測。
