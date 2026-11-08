@@ -11,6 +11,7 @@
 # 工程技術
 - web-dev       # 網頁開發：Next.js、前端、這個網站的做法
 - python        # Python：非同步、腳本、後端
+- go            # Go：goroutine、channel、並行與後端服務
 - architecture  # 系統架構：設計思維、取捨、架構圖
 - devops        # 部署與維運：CI、Vercel、自動化
 
