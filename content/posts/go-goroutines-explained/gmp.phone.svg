@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 520" font-size="14">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-soft)"/>
+    </marker>
+  </defs>
+  <text x="16" y="32" font-size="16" font-weight="600" fill="var(--ink)">Go 排程器：G 輪流排在 P 和 M 上</text>
+  <text x="16" y="79" fill="var(--ink)">執行緒 M</text>
+  <text x="16" y="119" fill="var(--ink)">P</text>
+  <text x="16" y="159" fill="var(--ink)">執行中</text>
+  <text x="16" y="199" fill="var(--ink)">排隊中</text>
+  <rect x="88" y="60" width="76" height="28" rx="6" fill="var(--series-1)"/>
+  <text x="126" y="79" text-anchor="middle" fill="var(--on-accent)">M</text>
+  <rect x="88" y="100" width="76" height="28" rx="6" fill="var(--paper-deep)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="126" y="119" text-anchor="middle" fill="var(--ink)">P1</text>
+  <rect x="88" y="140" width="76" height="28" rx="6" fill="var(--accent)"/>
+  <text x="126" y="159" text-anchor="middle" font-size="13" fill="var(--on-accent)">G</text>
+  <rect x="88" y="180" width="76" height="20" rx="6" fill="var(--paper)" stroke="var(--series-2)" stroke-width="1.5"/>
+  <text x="126" y="195" text-anchor="middle" font-size="13" fill="var(--ink)">G</text>
+  <rect x="88" y="206" width="76" height="20" rx="6" fill="var(--paper)" stroke="var(--series-2)" stroke-width="1.5"/>
+  <text x="126" y="221" text-anchor="middle" font-size="13" fill="var(--ink)">G</text>
+  <rect x="88" y="232" width="76" height="20" rx="6" fill="var(--paper)" stroke="var(--series-2)" stroke-width="1.5"/>
+  <text x="126" y="247" text-anchor="middle" font-size="13" fill="var(--ink)">G</text>
+  <rect x="176" y="60" width="76" height="28" rx="6" fill="var(--series-1)"/>
+  <text x="214" y="79" text-anchor="middle" fill="var(--on-accent)">M</text>
+  <rect x="176" y="100" width="76" height="28" rx="6" fill="var(--paper-deep)" stroke="var(--rule)" stroke-width="1.5"/>
+  <text x="214" y="119" text-anchor="middle" fill="var(--ink)">P2</text>
+  <rect x="176" y="140" width="76" height="28" rx="6" fill="var(--accent)"/>
+  <text x="214" y="159" text-anchor="middle" font-size="13" fill="var(--on-accent)">G</text>
+  <rect x="176" y="180" width="76" height="20" rx="6" fill="var(--paper)" stroke="var(--series-2)" stroke-width="1.5"/>
+  <text x="214" y="195" text-anchor="middle" font-size="13" fill="var(--ink)">G</text>
+  <rect x="176" y="206" width="76" height="20" rx="6" fill="var(--paper)" stroke="var(--series-2)" stroke-width="1.5"/>
+  <text x="214" y="221" text-anchor="middle" font-size="13" fill="var(--ink)">G</text>
+  <rect x="176" y="232" width="76" height="20" rx="6" fill="var(--paper)" stroke="var(--series-2)" stroke-width="1.5"/>
+  <text x="214" y="247" text-anchor="middle" font-size="13" fill="var(--ink)">G</text>
+  <text x="296" y="119" text-anchor="middle" fill="var(--ink-soft)">…</text>
+  <text x="296" y="139" text-anchor="middle" font-size="13" fill="var(--ink-soft)">共 8 組</text>
+  <rect x="16" y="280" width="308" height="156" rx="6" fill="var(--paper-deep)"/>
+  <text x="32" y="304" fill="var(--ink)">等待中的 G</text>
+  <rect x="32" y="316" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="50" y="332" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="78" y="316" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="96" y="332" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="124" y="316" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="142" y="332" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="170" y="316" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="188" y="332" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="216" y="316" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="234" y="332" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="262" y="316" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="280" y="332" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="32" y="346" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="50" y="362" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="78" y="346" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="96" y="362" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="124" y="346" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="142" y="362" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="170" y="346" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="188" y="362" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="216" y="346" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="234" y="362" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <rect x="262" y="346" width="36" height="22" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="280" y="362" text-anchor="middle" font-size="13" fill="var(--ink-soft)">G</text>
+  <text x="32" y="400" font-size="13" fill="var(--ink-soft)">等 channel、等 I/O，不佔任何執行緒</text>
+  <text x="32" y="420" font-size="13" fill="var(--ink-soft)">等到了就回去排隊</text>
+  <path d="M214 278 L214 256" stroke="var(--ink-soft)" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <rect x="16" y="452" width="308" height="56" rx="6" fill="var(--accent-wash)"/>
+  <text x="28" y="475" fill="var(--accent)">G 一等待就讓出位子，</text>
+  <text x="28" y="497" fill="var(--accent)">M 不用乾等，接著跑下一個 G</text>
+</svg>
