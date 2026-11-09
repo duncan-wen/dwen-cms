@@ -4,12 +4,12 @@ import { type ReactNode, useActionState } from "react";
 import { type ContactFormState, sendContactMessage } from "@/app/about/send-contact-message";
 import { fallbackContactLinks } from "@/contact-links";
 import { CONTACT_LIMITS } from "@/owner-inbox/limits";
-import type { ContactField, Issue } from "@/owner-inbox/owner-inbox";
+import type { ContactField, ContactIssue } from "@/owner-inbox/owner-inbox";
 import { LinkRow } from "./link-row";
 
 const labels: Record<ContactField, string> = { name: "名字", email: "Email", message: "訊息" };
 
-function issueText({ field, rule }: Issue) {
+function issueText({ field, rule }: ContactIssue) {
   if (rule === "required") return `請填寫${labels[field]}。`;
   if (rule === "not-an-email") return "這看起來不像 email 地址。";
   return `${labels[field]}最多 ${CONTACT_LIMITS[field]} 字。`;
