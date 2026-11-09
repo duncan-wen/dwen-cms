@@ -476,31 +476,67 @@ test("the header marks the section the page belongs to", async ({ page }) => {
   }
 });
 
-test("the footer links to GitHub, Email, LinkedIn and RSS", async ({ page }) => {
+test("the footer links to GitHub, the Contact form, LinkedIn and RSS, and to no email address", async ({
+  page,
+}) => {
   await page.goto("/no-such-url");
   const footer = page.getByRole("contentinfo");
 
   await expect(footer).toContainText(`© ${new Date().getFullYear()}`);
   for (const [name, href] of [
     ["GitHub", "https://github.com/duncan-wen"],
-    ["lumpa7223@gmail.com", "mailto:lumpa7223@gmail.com"],
+    ["聯絡表單", "/about#contact"],
     ["LinkedIn", "https://www.linkedin.com/in/duncan-wen"],
     ["RSS", "/feed.xml"],
   ]) {
     await expect(footer.getByRole("link", { name })).toHaveAttribute("href", href);
   }
+  await expect(footer.locator('a[href^="mailto:"]')).toHaveCount(0);
 });
 
-test("the About page's #contact section lists the same contact links as the footer", async ({
+test("the About page's #contact section lists the footer's links, less the one to itself", async ({
   page,
 }) => {
   await page.goto("/about");
   const hrefs = (scope: Locator) =>
     scope.getByRole("link").evaluateAll((links) => links.map((a) => a.getAttribute("href")));
 
-  const contact = await hrefs(page.locator("#contact"));
-  expect(contact).toContain("mailto:lumpa7223@gmail.com");
-  expect(contact).toEqual(await hrefs(page.getByRole("contentinfo")));
+  const footer = await hrefs(page.getByRole("contentinfo"));
+  expect(await hrefs(page.locator("#contact"))).toEqual(footer.filter((href) => href !== "/about#contact"));
+});
+
+test("the About page's #contact section holds the Contact form and its privacy note", async ({ page }) => {
+  await page.goto("/about");
+  const form = page.locator("#contact").getByRole("form", { name: "聯絡表單" });
+
+  for (const label of ["名字", "Email", "訊息"]) await expect(form.getByLabel(label, { exact: true })).toBeVisible();
+  await expect(form).toContainText("只用來回覆你");
+});
+
+test("sending a filled Contact form replaces it with the confirmation", async ({ page }) => {
+  await page.goto("/about");
+  const form = page.getByRole("form", { name: "聯絡表單" });
+
+  await form.getByLabel("名字", { exact: true }).fill("煙霧測試");
+  await form.getByLabel("Email", { exact: true }).fill("smoke@example.com");
+  await form.getByLabel("訊息", { exact: true }).fill("這是一則煙霧測試訊息。");
+  await form.getByRole("button", { name: "送出" }).click();
+
+  await expect(page.getByRole("status")).toHaveText("收到了，我會盡快回覆。");
+  await expect(form).toHaveCount(0);
+});
+
+test("the Contact form won't send with a required field empty", async ({ page }) => {
+  await page.goto("/about");
+  const form = page.getByRole("form", { name: "聯絡表單" });
+
+  await form.getByLabel("名字", { exact: true }).fill("煙霧測試");
+  await form.getByLabel("Email", { exact: true }).fill("smoke@example.com");
+  await form.getByRole("button", { name: "送出" }).click();
+
+  const message = form.getByLabel("訊息", { exact: true });
+  expect(await message.evaluate((field: HTMLTextAreaElement) => field.validity.valueMissing)).toBe(true);
+  await expect(page.getByRole("status")).toHaveCount(0);
 });
 
 /** The `<loc>`/`<link>` URLs of an XML document, as paths, in document order. */
