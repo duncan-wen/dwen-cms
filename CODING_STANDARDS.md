@@ -1,6 +1,6 @@
 # Coding standards
 
-Judgement calls for the reviewer. Lint, typecheck and the content check enforce the mechanical rules.
+Judgement calls for the reviewer. Lint, Prettier (`pnpm format` fixes it), typecheck and the content check enforce the mechanical rules.
 
 ## Domain language
 
@@ -16,6 +16,7 @@ Judgement calls for the reviewer. Lint, typecheck and the content check enforce 
 ## Tests
 
 - Tests check behaviour through a public interface: the content module's queries and errors, HTTP responses from the built site, or a pure module's exports (the cover generator, `src/format-date.ts`).
+- Each user story a change implements has a test that goes red without it. A story only a person can check (mail reaching the Owner, a real browser past BotID) is named in the PR as checked on the preview. A story with neither isn't done.
 - Each content rule has its own fixture directory under `src/content/fixtures/` that breaks only that rule, unless the test is about how rules combine.
 
 ## Components
