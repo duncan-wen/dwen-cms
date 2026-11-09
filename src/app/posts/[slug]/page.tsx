@@ -8,6 +8,7 @@ import { PostCover } from "@/components/post-cover";
 import { Seal } from "@/components/seal";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
+import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
@@ -108,7 +109,7 @@ export default async function PostPage({ params }: Props) {
           className="mt-7"
           links={[
             { href: "/posts", label: "所有文章" },
-            { href: "/about#contact", label: "聯絡我" },
+            { href: contactFormHref, label: "聯絡我" },
           ]}
         />
         <TableOfContents headings={headings} />

@@ -4,6 +4,7 @@ import { LinkRow } from "@/components/link-row";
 import { PostGrid } from "@/components/post-grid";
 import { Seal } from "@/components/seal";
 import { TextLink } from "@/components/text-link";
+import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { pageAlternates } from "@/page-alternates";
 
@@ -44,7 +45,7 @@ export default async function HomePage() {
           <LinkRow
             links={[
               { href: "/about", label: "關於我" },
-              { href: "/about#contact", label: "聯絡我" },
+              { href: contactFormHref, label: "聯絡我" },
             ]}
           />
         </div>

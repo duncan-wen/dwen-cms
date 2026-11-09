@@ -4,17 +4,17 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The Owner inbox exposes *send a Contact message*, returning success or a named failure (`invalid` naming field and rule, `unavailable`), with the mail transport passed in
-- [ ] Limits enforced after trimming: name 1–50, message 1–2000, reply email a valid address; the form's hints read the same limits from one shared source
-- [ ] A filled honeypot (hidden from people and assistive technology) reports success and sends nothing
-- [ ] The composed email carries the Reader's name, email and message, with Reply-To set to the Reader's email; the recipient comes from an environment variable
-- [ ] With no transport configured, sending returns `unavailable` and logs a server error; nothing pretends to succeed
-- [ ] The Contact form sits in the About page's `#contact` section above the remaining contact links, and the About page's link list leaves out the link to itself
-- [ ] `contactLinks` drops the `mailto:` entry and gains 「聯絡表單」 → `/about#contact`; the footer shows it
-- [ ] Success replaces the form in place; `unavailable` shows the error with LinkedIn and the email address
-- [ ] vitest covers the Owner inbox through its exports with a fake transport: each limit at its edge, trimming, honeypot, Reply-To, `unavailable`
-- [ ] Smoke covers: the form in `#contact`, the footer without `mailto:` and linking to the form, a valid send showing the confirmation, an empty required field blocking the send; the existing footer and `#contact` smoke tests are updated
-- [ ] The Owner inbox is added to the "one way to do each thing" list in `CODING_STANDARDS.md`
+- [x] The Owner inbox exposes *send a Contact message*, returning success or a named failure (`invalid` naming field and rule, `unavailable`), with the mail transport passed in
+- [x] Limits enforced after trimming: name 1–50, message 1–2000, reply email a valid address; the form's hints read the same limits from one shared source
+- [x] A filled honeypot (hidden from people and assistive technology) reports success and sends nothing
+- [x] The composed email carries the Reader's name, email and message, with Reply-To set to the Reader's email; the recipient comes from an environment variable
+- [x] With no transport configured, sending returns `unavailable` and logs a server error; nothing pretends to succeed
+- [x] The Contact form sits in the About page's `#contact` section above the remaining contact links, and the About page's link list leaves out the link to itself
+- [x] `contactLinks` drops the `mailto:` entry and gains 「聯絡表單」 → `/about#contact`; the footer shows it
+- [x] Success replaces the form in place; `unavailable` shows the error with LinkedIn and the email address
+- [x] vitest covers the Owner inbox through its exports with a fake transport: each limit at its edge, trimming, honeypot, Reply-To, `unavailable`
+- [x] Smoke covers: the form in `#contact`, the footer without `mailto:` and linking to the form, a valid send showing the confirmation, an empty required field blocking the send; the existing footer and `#contact` smoke tests are updated
+- [x] The Owner inbox is added to the "one way to do each thing" list in `CODING_STANDARDS.md`
 - [ ] `pnpm shots /about` in light and dark at 1280px and 375px, read before ticking; the Owner says OK to the screenshots

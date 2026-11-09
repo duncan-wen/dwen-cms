@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeading } from "@/components/page-heading";
+import { ContactForm } from "@/components/contact-form";
 import { LinkRow } from "@/components/link-row";
-import { contactLinks } from "@/contact-links";
+import { contactFormHref, contactLinks } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { MdxBody } from "@/mdx/mdx-body";
 import { pageAlternates } from "@/page-alternates";
@@ -29,10 +30,12 @@ export default async function AboutPage() {
       <div className="prose prose-site max-w-none">
         <MdxBody source={page.body} />
       </div>
-      {/* The contact links live in code, so the home page's and Posts' 「聯絡我」 always land here. */}
+      {/* The Contact form and links live in code, so every 「聯絡我」 on the site always lands here. */}
       <section id="contact" className="mt-14 scroll-mt-6 border-t border-rule pt-8">
         <h2 className="text-[22px] leading-[1.5] font-bold">聯絡我</h2>
-        <LinkRow className="mt-4" links={contactLinks} />
+        <ContactForm />
+        {/* The footer's link to this very form would only scroll to itself here. */}
+        <LinkRow className="mt-8" links={contactLinks.filter(({ href }) => href !== contactFormHref)} />
       </section>
       {/* The site-wide AI disclosure lives in code, so rewriting the Page's copy can't drop it. */}
       <aside className="mt-12 border-t border-rule pt-6 text-sm leading-[1.8] text-ink-soft">
