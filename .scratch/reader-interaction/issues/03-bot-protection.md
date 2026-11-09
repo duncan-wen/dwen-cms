@@ -4,10 +4,10 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] BotID's client side protects the Contact form's submission (and is set up so 04's Feedback submissions are covered by adding their route)
-- [ ] The Owner inbox takes a bot check as a dependency and returns `bot` without sending when it says bot
-- [ ] vitest covers a bot verdict through the Owner inbox's exports with a fake bot check
-- [ ] The smoke build and local dev still send through the fake transport (the bot check passes or is faked there, by explicit configuration)
-- [ ] No CAPTCHA or visible step is added to the form
+- [x] BotID's client side protects the Contact form's submission (and is set up so 04's Feedback submissions are covered by adding their route)
+- [x] The Owner inbox takes a bot check as a dependency and returns `bot` without sending when it says bot
+- [x] vitest covers a bot verdict through the Owner inbox's exports with a fake bot check
+- [x] The smoke build and local dev still send through the fake transport (the bot check passes or is faked there, by explicit configuration)
+- [x] No CAPTCHA or visible step is added to the form

@@ -15,12 +15,14 @@ export type Issue = { field: ContactField; rule: "required" | "too-long" | "not-
 export type InboxResult =
   | { ok: true }
   | { ok: false; reason: "invalid"; issues: Issue[] }
-  | { ok: false; reason: "unavailable" };
+  | { ok: false; reason: "bot" | "unavailable" };
 
 type Dependencies = {
   /** Absent when the deployment has no mail settings: sending is then unavailable, never faked. */
   transport: MailTransport | undefined;
   recipient: string | undefined;
+  /** Whether this request comes from a bot; absent means nobody checks. */
+  isBot?: () => Promise<boolean>;
   /** True everywhere but production: subjects then start with 【預覽】, so a test never passes for a Reader. */
   preview?: boolean;
   log?: (message: string) => void;
@@ -47,7 +49,13 @@ function check(message: Omit<ContactMessage, "honeypot">): Issue[] {
  * Everything a Reader sends the Owner goes through here and arrives as email; none of it
  * ever appears on the site. Mail and its recipient are passed in, so tests run on a fake.
  */
-export function createOwnerInbox({ transport, recipient, preview = false, log = console.error }: Dependencies) {
+export function createOwnerInbox({
+  transport,
+  recipient,
+  isBot = async () => false,
+  preview = false,
+  log = console.error,
+}: Dependencies) {
   async function deliver(email: Omit<Email, "to">): Promise<InboxResult> {
     if (!transport || !recipient) {
       log("Owner inbox: no mail transport or recipient is configured, so nothing was sent.");
@@ -69,6 +77,12 @@ export function createOwnerInbox({ transport, recipient, preview = false, log = 
       if (issues.length > 0) return { ok: false, reason: "invalid", issues };
       // A bot gets the same answer as a person, so it can't tell it was caught.
       if (honeypot) return { ok: true };
+      try {
+        if (await isBot()) return { ok: false, reason: "bot" };
+      } catch (error) {
+        log(`Owner inbox: the bot check failed: ${error instanceof Error ? error.message : String(error)}`);
+        return { ok: false, reason: "unavailable" };
+      }
 
       return deliver({
         subject: `聯絡表單：${message.name}`,
