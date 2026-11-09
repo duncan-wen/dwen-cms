@@ -6,14 +6,19 @@ const reader = { name: "王小明", email: "reader@example.com", message: "想�
 
 /** An Owner inbox whose sent emails and logged errors are recorded. */
 function inbox(
-  overrides: { transport?: ((email: Email) => Promise<void>) | null; recipient?: string | null; preview?: boolean } = {},
+  overrides: {
+    transport?: ((email: Email) => Promise<void>) | null;
+    recipient?: string | null;
+    preview?: boolean;
+    isBot?: () => Promise<boolean>;
+  } = {},
 ) {
   const sent: Email[] = [];
   const log = vi.fn();
   const transport =
     overrides.transport === null ? undefined : (overrides.transport ?? (async (email: Email) => void sent.push(email)));
   const recipient = overrides.recipient === null ? undefined : (overrides.recipient ?? "owner@example.com");
-  return { sent, log, ...createOwnerInbox({ transport, recipient, preview: overrides.preview, log }) };
+  return { sent, log, ...createOwnerInbox({ transport, recipient, preview: overrides.preview, isBot: overrides.isBot, log }) };
 }
 
 describe("sendContactMessage", () => {
@@ -136,5 +141,31 @@ describe("sendContactMessage", () => {
 
     await sendContactMessage(reader);
     expect(sent[0].subject).toBe("聯絡表單：王小明");
+  });
+
+  it("sends nothing when the bot check says bot", async () => {
+    const { sent, sendContactMessage } = inbox({ isBot: async () => true });
+
+    expect(await sendContactMessage(reader)).toEqual({ ok: false, reason: "bot" });
+    expect(sent).toHaveLength(0);
+  });
+
+  it("sends when the bot check says human", async () => {
+    const { sent, sendContactMessage } = inbox({ isBot: async () => false });
+
+    expect(await sendContactMessage(reader)).toEqual({ ok: true });
+    expect(sent).toHaveLength(1);
+  });
+
+  it("is unavailable, and logs why, when the bot check itself fails", async () => {
+    const { log, sent, sendContactMessage } = inbox({
+      isBot: async () => {
+        throw new Error("no BotID headers");
+      },
+    });
+
+    expect(await sendContactMessage(reader)).toEqual({ ok: false, reason: "unavailable" });
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("no BotID headers"));
+    expect(sent).toHaveLength(0);
   });
 });

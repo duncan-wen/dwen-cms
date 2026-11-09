@@ -1,3 +1,4 @@
+import { withBotId } from "botid/next/config";
 import type { NextConfig } from "next";
 import { getContent } from "./src/content/site-content";
 
@@ -13,4 +14,5 @@ const nextConfig = async (): Promise<NextConfig> => ({
   },
 });
 
-export default nextConfig;
+// BotID proxies its challenge through the site, so a Reader's browser never calls a third party.
+export default withBotId(nextConfig);

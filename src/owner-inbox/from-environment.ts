@@ -18,10 +18,17 @@ function resendTransport(apiKey: string): MailTransport {
   };
 }
 
+/** BotID's verdict on the current request; loaded on demand, since it reads the request's headers. */
+async function botIdSaysBot() {
+  const { checkBotId } = await import("botid/server");
+  return (await checkBotId()).isBot;
+}
+
 /**
  * The Owner inbox as this deployment is configured: Resend with `RESEND_API_KEY` to
  * `OWNER_EMAIL`, or a fake only where `MAIL_TRANSPORT=fake` says so. Without mail
- * settings, sending is unavailable, never faked. Only production leaves subjects unmarked.
+ * settings, sending is unavailable, never faked. BotID checks every request except where
+ * mail is faked. Only production leaves subjects unmarked.
  */
 export function ownerInboxFromEnvironment(env: Record<string, string | undefined> = process.env) {
   const preview = env.VERCEL_ENV !== "production";
@@ -30,6 +37,7 @@ export function ownerInboxFromEnvironment(env: Record<string, string | undefined
   }
   return createOwnerInbox({
     transport: env.RESEND_API_KEY ? resendTransport(env.RESEND_API_KEY) : undefined,
+    isBot: botIdSaysBot,
     recipient: env.OWNER_EMAIL,
     preview,
   });

@@ -24,5 +24,6 @@ export async function sendContactMessage(_previous: ContactFormState, form: Form
 
   if (result.ok) return { status: "sent" };
   if (result.reason === "invalid") return { status: "invalid", issues: result.issues, values };
+  // A bot gets the same failure a person would see when mail is down, nothing more telling.
   return { status: "unavailable", values };
 }
