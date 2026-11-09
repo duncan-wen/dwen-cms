@@ -505,6 +505,17 @@ test("the About page's #contact section lists the footer's links, less the one t
   expect(await hrefs(page.locator("#contact"))).toEqual(footer.filter((href) => href !== "/about#contact"));
 });
 
+test("the RSS link isn't prefetched as a page", async ({ page }) => {
+  const prefetches: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/feed.xml" && request.headers()["rsc"]) prefetches.push(request.url());
+  });
+  await page.goto("/about#contact");
+  await page.locator("#contact").getByRole("link", { name: "RSS" }).hover();
+  await page.waitForLoadState("networkidle");
+  expect(prefetches).toEqual([]);
+});
+
 test("the About page's #contact section holds the Contact form and its privacy note", async ({ page }) => {
   await page.goto("/about");
   const form = page.locator("#contact").getByRole("form", { name: "聯絡表單" });
