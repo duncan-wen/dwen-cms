@@ -20,6 +20,8 @@ export default defineConfig({
   use: { baseURL: `http://localhost:${port}` },
   webServer: {
     command: `pnpm start --port ${port}`,
+    // The Contact form sends through a fake transport here: smoke never emails the Owner.
+    env: { ...(process.env as Record<string, string>), MAIL_TRANSPORT: "fake" },
     url: `http://localhost:${port}/`,
     // A leftover server on this port may be serving an older build.
     reuseExistingServer: false,

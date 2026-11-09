@@ -1,3 +1,4 @@
+import { withBotId } from "botid/next/config";
 import type { NextConfig } from "next";
 import { getContent } from "./src/content/site-content";
 
@@ -10,7 +11,13 @@ const nextConfig = async (): Promise<NextConfig> => ({
     // The proxy can't read content at request time, so it gets the
     // taken-down Slugs at build time, comma-separated.
     TAKEN_DOWN_SLUGS: (await getContent()).listTakenDownSlugs().join(","),
+    // Feedback names its Post in the Owner's email, but content isn't read at request
+    // time, so each Published Post's title comes along at build time, keyed by Slug.
+    POST_TITLES: JSON.stringify(
+      Object.fromEntries((await getContent()).listPublishedPosts().map((post) => [post.slug, post.title])),
+    ),
   },
 });
 
-export default nextConfig;
+// BotID proxies its challenge through the site, so a Reader's browser never calls a third party.
+export default withBotId(nextConfig);

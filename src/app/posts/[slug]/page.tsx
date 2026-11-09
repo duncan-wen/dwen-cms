@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { bodyColumnSizes } from "@/body-column";
+import { FeedbackBlock } from "@/components/feedback-block";
 import { LinkRow } from "@/components/link-row";
 import { MutedParagraph } from "@/components/muted-paragraph";
 import { PageHeading } from "@/components/page-heading";
@@ -8,6 +9,7 @@ import { PostCover } from "@/components/post-cover";
 import { Seal } from "@/components/seal";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
+import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
@@ -97,6 +99,7 @@ export default async function PostPage({ params }: Props) {
         <div className="prose prose-site max-w-none prose-h2:scroll-mt-6">
           <Body />
         </div>
+        <FeedbackBlock slug={post.slug} />
         <footer className="mt-14 flex items-center gap-3.5 border-t border-rule pt-7">
           <Seal size="large" />
           <p className="grid leading-[1.6]">
@@ -108,7 +111,7 @@ export default async function PostPage({ params }: Props) {
           className="mt-7"
           links={[
             { href: "/posts", label: "所有文章" },
-            { href: "/about#contact", label: "聯絡我" },
+            { href: contactFormHref, label: "聯絡我" },
           ]}
         />
         <TableOfContents headings={headings} />

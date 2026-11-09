@@ -4,11 +4,16 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Resend provisioned with `vercel integration add resend/resend-email` (linked from the scratchpad, never the repo), its env vars present for production and preview
-- [ ] A `/wizard` walks the Owner through adding Resend's DNS records for `duncan-wen.aibbm.org` in Cloudflare and confirming the domain verifies
-- [ ] A Resend transport sends from the verified address; production and preview use it, the smoke build keeps the fake one
-- [ ] Outside production, the subject starts with 【預覽】; vitest covers the prefix by environment
-- [ ] A missing Resend key in production returns `unavailable` and logs an error; vitest covers it
-- [ ] On the PR's Vercel preview, the agent sends one Contact form message; the Owner confirms the 【預覽】 email arrived and Reply addresses the Reader
+- [x] Resend provisioned with `vercel integration add resend/resend-email` (linked from the scratchpad, never the repo), its env vars present for production and preview
+- [x] A `/wizard` walks the Owner through adding Resend's DNS records for `duncan-wen.aibbm.org` in Cloudflare and confirming the domain verifies
+- [x] A Resend transport sends from the verified address; production and preview use it, the smoke build keeps the fake one
+- [x] Outside production, the subject starts with 【預覽】; vitest covers the prefix by environment
+- [x] A missing Resend key in production returns `unavailable` and logs an error; vitest covers it
+- [x] On the PR's Vercel preview, the agent sends one Contact form message; the Owner confirms the 【預覽】 email arrived and Reply addresses the Reader
+
+## Comments
+
+- 2026-11-10: Resend provisioned in `ap-northeast-1` for `duncan-wen.aibbm.org`; `RESEND_API_KEY` and `OWNER_EMAIL` set for production and preview. The Owner added the three DNS records in Cloudflare through the wizard, and Resend reports the domain verified. The wizard's own DNS check queried Google's resolver too early and hit its negative cache; Resend's verification was triggered directly instead.
+- 2026-11-10: The agent sent a Contact form message on the PR #63 preview; Resend reports it delivered, and the Owner confirmed the 【預覽】 email arrived.
