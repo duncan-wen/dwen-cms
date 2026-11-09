@@ -17,4 +17,8 @@
 - [x] vitest covers the Owner inbox through its exports with a fake transport: each limit at its edge, trimming, honeypot, Reply-To, `unavailable`
 - [x] Smoke covers: the form in `#contact`, the footer without `mailto:` and linking to the form, a valid send showing the confirmation, an empty required field blocking the send; the existing footer and `#contact` smoke tests are updated
 - [x] The Owner inbox is added to the "one way to do each thing" list in `CODING_STANDARDS.md`
-- [ ] `pnpm shots /about` in light and dark at 1280px and 375px, read before ticking; the Owner says OK to the screenshots
+- [x] `pnpm shots /about` in light and dark at 1280px and 375px, read before ticking; the Owner says OK to the screenshots
+
+## Comments
+
+- 2026-11-10: The Owner said OK to the `/about` screenshots (light and dark, 1280px and 375px).
