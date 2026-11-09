@@ -15,9 +15,10 @@
 - [x] If 03 has landed on the integration branch, Feedback submissions are covered by BotID too
 - [x] vitest covers *send Feedback* through the Owner inbox's exports with a fake transport
 - [x] Smoke covers: a Post shows the block and a Page doesn't; clicking 👍 shows the optional line; reloading the Post shows the thank-you
-- [ ] `pnpm shots /posts/typography-sample` in light and dark at 1280px and 375px, read before ticking; the Owner says OK to the screenshots
-- [ ] Once 02 has landed, the agent sends one piece of Feedback on the PR's Vercel preview and the Owner confirms the 【預覽】 email arrived
+- [x] `pnpm shots /posts/typography-sample` in light and dark at 1280px and 375px, read before ticking; the Owner says OK to the screenshots
+- [x] Once 02 has landed, the agent sends one piece of Feedback on the PR's Vercel preview and the Owner confirms the 【預覽】 email arrived
 
 ## Comments
 
 - 2026-11-10: Content isn't read at request time, so next.config.ts writes each Published Post's title into the build as `POST_TITLES`, keyed by Slug, the way it passes the taken-down Slugs; the Owner inbox resolves a Slug through it, never from the request.
+- 2026-11-10: The Owner said OK to the `/about` and `/posts/typography-sample` screenshots, and from their own browser on the PR #63 preview sent a vote, its line and a Contact form message; all three 【預覽】 emails arrived, so BotID lets a real Reader through (a headless browser was blocked).
