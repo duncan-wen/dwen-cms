@@ -4,6 +4,8 @@ import { useState, useSyncExternalStore } from "react";
 import { sendFeedback } from "@/app/posts/[slug]/send-feedback";
 import { FEEDBACK_LINE_LIMIT } from "@/owner-inbox/limits";
 import type { Vote } from "@/owner-inbox/owner-inbox";
+import { VOTES } from "@/owner-inbox/votes";
+import { inputClass } from "./input-class";
 
 type Props = { slug: string };
 
@@ -36,7 +38,8 @@ type Phase =
   | { step: "sending" }
   | { step: "line"; vote: Vote; sending?: boolean }
   | { step: "done" }
-  | { step: "failed" };
+  | { step: "failed" }
+  | { step: "line-failed" };
 
 const voteButton =
   "inline-flex items-center gap-2 rounded-md border border-rule bg-paper px-4 py-2 text-sm text-ink hover:border-accent hover:text-accent disabled:opacity-60";
@@ -59,7 +62,8 @@ export function FeedbackBlock({ slug }: Props) {
     if (!line) return setPhase({ step: "done" });
     setPhase({ step: "line", vote: choice, sending: true });
     const { ok } = await sendFeedback({ slug, vote: choice, line });
-    setPhase(ok ? { step: "done" } : { step: "failed" });
+    // The vote already arrived; only the line didn't.
+    setPhase(ok ? { step: "done" } : { step: "line-failed" });
   }
 
   let body;
@@ -76,7 +80,7 @@ export function FeedbackBlock({ slug }: Props) {
             name="line"
             type="text"
             maxLength={FEEDBACK_LINE_LIMIT}
-            className="min-w-0 flex-1 basis-56 rounded-md border border-rule bg-paper px-3 py-2 text-base text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent-wash"
+            className={`min-w-0 flex-1 basis-56 ${inputClass}`}
           />
           <button type="submit" disabled={phase.sending} className={voteButton}>
             {phase.sending ? "送出中…" : "送出"}
@@ -88,18 +92,20 @@ export function FeedbackBlock({ slug }: Props) {
     body = <p className="text-ink">謝謝你的回饋。</p>;
   } else if (phase.step === "failed") {
     body = <p className="text-ink">回饋沒能送出，請稍後再試。</p>;
+  } else if (phase.step === "line-failed") {
+    body = <p className="text-ink">這句沒能送出，不過你的投票已經收到了，謝謝。</p>;
   } else {
     const sending = phase.step === "sending";
     body = (
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <p className="text-ink">這篇對你有幫助嗎？</p>
         <div className="flex gap-3">
-          <button type="button" disabled={sending} onClick={() => vote("up")} className={voteButton}>
-            <span aria-hidden="true">👍</span>有幫助
-          </button>
-          <button type="button" disabled={sending} onClick={() => vote("down")} className={voteButton}>
-            <span aria-hidden="true">👎</span>沒幫助
-          </button>
+          {(["up", "down"] as const).map((choice) => (
+            <button key={choice} type="button" disabled={sending} onClick={() => vote(choice)} className={voteButton}>
+              <span aria-hidden="true">{VOTES[choice].emoji}</span>
+              {VOTES[choice].label}
+            </button>
+          ))}
         </div>
       </div>
     );

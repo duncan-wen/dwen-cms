@@ -1,4 +1,5 @@
 import { CONTACT_LIMITS, FEEDBACK_LINE_LIMIT } from "./limits";
+import { VOTES } from "./votes";
 
 /** One email to the Owner. Who it's from is the mail transport's business. */
 export type Email = { to: string; subject: string; text: string; replyTo?: string };
@@ -6,10 +7,12 @@ export type Email = { to: string; subject: string; text: string; replyTo?: strin
 /** Sends one email, throwing when it can't. */
 export type MailTransport = (email: Email) => Promise<void>;
 
-/** What a Reader sends through the Contact form; `honeypot` is the field only bots fill in. */
-export type ContactMessage = { name: string; email: string; message: string; honeypot?: string };
+/** The three fields a Reader fills in on the Contact form. */
+export type ContactFields = { name: string; email: string; message: string };
+export type ContactField = keyof ContactFields;
 
-export type ContactField = "name" | "email" | "message";
+/** What a Reader sends through the Contact form; `honeypot` is the field only bots fill in. */
+export type ContactMessage = ContactFields & { honeypot?: string };
 export type ContactIssue = { field: ContactField; rule: "required" | "too-long" | "not-an-email" };
 
 export type Vote = "up" | "down";
@@ -43,22 +46,20 @@ type Dependencies = {
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Characters as a Reader counts them: an emoji is one, not two UTF-16 units. */
-const length = (text: string) => [...text].length;
+const characterCount = (text: string) => [...text].length;
 
-const reason = (error: unknown) => (error instanceof Error ? error.message : String(error));
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-function checkContact(message: Omit<ContactMessage, "honeypot">): ContactIssue[] {
+function checkContact(message: ContactFields): ContactIssue[] {
   const issues: ContactIssue[] = [];
   for (const field of ["name", "email", "message"] as const) {
     const value = message[field];
     if (value === "") issues.push({ field, rule: "required" });
     else if (field === "email" && !EMAIL.test(value)) issues.push({ field, rule: "not-an-email" });
-    else if (length(value) > CONTACT_LIMITS[field]) issues.push({ field, rule: "too-long" });
+    else if (characterCount(value) > CONTACT_LIMITS[field]) issues.push({ field, rule: "too-long" });
   }
   return issues;
 }
-
-const votes: Record<Vote, string> = { up: "👍 有幫助", down: "👎 沒幫助" };
 
 /**
  * Everything a Reader sends the Owner goes through here and arrives as email; none of it
@@ -78,7 +79,7 @@ export function createOwnerInbox({
     try {
       if (await isBot()) return { ok: false, reason: "bot" };
     } catch (error) {
-      log(`Owner inbox: the bot check failed: ${reason(error)}`);
+      log(`Owner inbox: the bot check failed: ${errorMessage(error)}`);
       return { ok: false, reason: "unavailable" };
     }
     if (!transport || !recipient) {
@@ -89,7 +90,7 @@ export function createOwnerInbox({
       await transport({ ...email, subject: preview ? `【預覽】${email.subject}` : email.subject, to: recipient });
       return { ok: true };
     } catch (error) {
-      log(`Owner inbox: sending failed: ${reason(error)}`);
+      log(`Owner inbox: sending failed: ${errorMessage(error)}`);
       return { ok: false, reason: "unavailable" };
     }
   }
@@ -100,18 +101,18 @@ export function createOwnerInbox({
    */
   function recordFeedback(post: PostReference, vote: Vote, line: string | undefined) {
     return deliver<FeedbackIssue>({
-      subject: `${line ? "回饋補充" : "回饋"} ${vote === "up" ? "👍" : "👎"}：${post.title}`,
-      text: `文章：${post.title}\n網址：${post.url}\n回饋：${votes[vote]}\n${line ? `\n${line}\n` : ""}`,
+      subject: `${line ? "回饋補充" : "回饋"} ${VOTES[vote].emoji}：${post.title}`,
+      text: `文章：${post.title}\n網址：${post.url}\n回饋：${VOTES[vote].emoji} ${VOTES[vote].label}\n${line ? `\n${line}\n` : ""}`,
     });
   }
 
   return {
     async sendContactMessage({ honeypot, ...fields }: ContactMessage): Promise<InboxResult> {
+      // A filled honeypot gets plain success before anything is checked, so a bot can't tell it was caught.
+      if (honeypot) return { ok: true };
       const message = { name: fields.name.trim(), email: fields.email.trim(), message: fields.message.trim() };
       const issues = checkContact(message);
       if (issues.length > 0) return { ok: false, reason: "invalid", issues };
-      // A bot gets the same answer as a person, so it can't tell it was caught.
-      if (honeypot) return { ok: true };
 
       return deliver({
         subject: `聯絡表單：${message.name}`,
@@ -125,11 +126,13 @@ export function createOwnerInbox({
       const post = findPost(slug);
       if (!post) issues.push({ field: "slug", rule: "unknown" });
       if (vote !== "up" && vote !== "down") issues.push({ field: "vote", rule: "unknown" });
-      const text = line?.trim() || undefined;
-      if (text && length(text) > FEEDBACK_LINE_LIMIT) issues.push({ field: "line", rule: "too-long" });
+      const trimmedLine = line?.trim() || undefined;
+      if (trimmedLine && characterCount(trimmedLine) > FEEDBACK_LINE_LIMIT) {
+        issues.push({ field: "line", rule: "too-long" });
+      }
       if (!post || issues.length > 0) return { ok: false, reason: "invalid", issues };
 
-      return recordFeedback(post, vote, text);
+      return recordFeedback(post, vote, trimmedLine);
     },
   };
 }

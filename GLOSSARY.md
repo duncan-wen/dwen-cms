@@ -105,5 +105,5 @@ The form in the About page's contact section where a Reader sends the Owner a me
 _Avoid_: Contact us, inquiry, comment
 
 **Feedback**:
-A Reader's answer, at the end of a Post, to whether the Post helped them: a thumbs up or down, optionally with one line of text. Counts are never shown on the site.
+A Reader's answer, at the end of a Post, to whether the Post helped them: a thumbs up or down, optionally with one line of text. Counts are never shown on the site. Shown to readers as 「回饋」.
 _Avoid_: Rating, reaction, like, comment

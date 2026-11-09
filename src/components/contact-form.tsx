@@ -5,6 +5,7 @@ import { type ContactFormState, sendContactMessage } from "@/app/about/send-cont
 import { fallbackContactLinks } from "@/contact-links";
 import { CONTACT_LIMITS } from "@/owner-inbox/limits";
 import type { ContactField, ContactIssue } from "@/owner-inbox/owner-inbox";
+import { inputClass } from "./input-class";
 import { LinkRow } from "./link-row";
 
 const labels: Record<ContactField, string> = { name: "名字", email: "Email", message: "訊息" };
@@ -15,8 +16,7 @@ function issueText({ field, rule }: ContactIssue) {
   return `${labels[field]}最多 ${CONTACT_LIMITS[field]} 字。`;
 }
 
-const fieldClass =
-  "mt-2 block w-full rounded-md border border-rule bg-paper px-3 py-2 text-base text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent-wash aria-invalid:border-accent";
+const fieldClass = `mt-2 block w-full ${inputClass}`;
 
 /** The Contact form: a Reader's name, an email to reply to and a message, sent to the Owner as email. */
 export function ContactForm() {

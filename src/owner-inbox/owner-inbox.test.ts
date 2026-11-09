@@ -104,6 +104,13 @@ describe("sendContactMessage", () => {
     expect(sent).toHaveLength(0);
   });
 
+  it("reports success for a filled honeypot even when other fields are invalid", async () => {
+    const { sent, sendContactMessage } = inbox();
+
+    expect(await sendContactMessage({ name: "", email: "nope", message: "", honeypot: "x" })).toEqual({ ok: true });
+    expect(sent).toHaveLength(0);
+  });
+
   it("is unavailable, and logs why, when no mail transport is configured", async () => {
     const { log, sendContactMessage } = inbox({ transport: null });
 
