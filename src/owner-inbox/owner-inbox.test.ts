@@ -5,13 +5,15 @@ import { createOwnerInbox, type Email } from "./owner-inbox";
 const reader = { name: "王小明", email: "reader@example.com", message: "想請教你一個專案的事。" };
 
 /** An Owner inbox whose sent emails and logged errors are recorded. */
-function inbox(overrides: { transport?: ((email: Email) => Promise<void>) | null; recipient?: string | null } = {}) {
+function inbox(
+  overrides: { transport?: ((email: Email) => Promise<void>) | null; recipient?: string | null; preview?: boolean } = {},
+) {
   const sent: Email[] = [];
   const log = vi.fn();
   const transport =
     overrides.transport === null ? undefined : (overrides.transport ?? (async (email: Email) => void sent.push(email)));
   const recipient = overrides.recipient === null ? undefined : (overrides.recipient ?? "owner@example.com");
-  return { sent, log, ...createOwnerInbox({ transport, recipient, log }) };
+  return { sent, log, ...createOwnerInbox({ transport, recipient, preview: overrides.preview, log }) };
 }
 
 describe("sendContactMessage", () => {
@@ -120,5 +122,19 @@ describe("sendContactMessage", () => {
 
     expect(await sendContactMessage(reader)).toEqual({ ok: false, reason: "unavailable" });
     expect(log).toHaveBeenCalledWith(expect.stringContaining("mail service down"));
+  });
+
+  it("starts the subject with 【預覽】 outside production", async () => {
+    const { sent, sendContactMessage } = inbox({ preview: true });
+
+    await sendContactMessage(reader);
+    expect(sent[0].subject).toBe("【預覽】聯絡表單：王小明");
+  });
+
+  it("leaves the subject alone in production", async () => {
+    const { sent, sendContactMessage } = inbox({ preview: false });
+
+    await sendContactMessage(reader);
+    expect(sent[0].subject).toBe("聯絡表單：王小明");
   });
 });
