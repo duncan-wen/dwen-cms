@@ -50,9 +50,7 @@ export function Lightbox({ src, alt, enlarged, children }: Props) {
             onClose={() => setOpen(false)}
             className="m-0 h-dvh max-h-none w-dvw max-w-none cursor-zoom-out bg-paper p-0"
           >
-            <div className="flex h-full items-center justify-center px-4 py-14">
-              {enlarged}
-            </div>
+            <div className="flex h-full items-center justify-center px-4 py-14">{enlarged}</div>
             <button
               type="button"
               className="absolute top-3 right-3 rounded-full px-3 py-1 text-sm text-ink-soft hover:bg-accent-wash hover:text-ink"

@@ -40,9 +40,7 @@ export default async function AboutPage() {
       {/* The site-wide AI disclosure lives in code, so rewriting the Page's copy can't drop it. */}
       <aside className="mt-12 border-t border-rule pt-6 text-sm leading-[1.8] text-ink-soft">
         <h2 className="text-base font-bold text-ink">關於本站內容</h2>
-        <p className="mt-2">
-          本站內容由 AI 協助撰寫，每一篇都經過我親自審閱、確認後才發布。
-        </p>
+        <p className="mt-2">本站內容由 AI 協助撰寫，每一篇都經過我親自審閱、確認後才發布。</p>
       </aside>
     </article>
   );

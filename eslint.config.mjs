@@ -22,9 +22,10 @@ export default defineConfig([
       "no-restricted-imports": [
         "error",
         {
-          paths: ["fs", "fs/promises", "node:fs", "node:fs/promises", "gray-matter"].map(
-            (name) => ({ name, message: readContentThroughGetContent }),
-          ),
+          paths: ["fs", "fs/promises", "node:fs", "node:fs/promises", "gray-matter"].map((name) => ({
+            name,
+            message: readContentThroughGetContent,
+          })),
           patterns: [
             {
               regex: "(^@/content/content$|/content/content$)",
@@ -41,10 +42,10 @@ export default defineConfig([
     rules: {
       "no-restricted-syntax": [
         "error",
-        ...[
-          `Literal[value=${literalColour}]`,
-          `TemplateElement[value.raw=${literalColour}]`,
-        ].map((selector) => ({ selector, message: useColourToken })),
+        ...[`Literal[value=${literalColour}]`, `TemplateElement[value.raw=${literalColour}]`].map((selector) => ({
+          selector,
+          message: useColourToken,
+        })),
       ],
     },
   },

@@ -36,7 +36,8 @@ const { positionals, values } = parseArgs({
 const [slug] = positionals;
 if (positionals.length !== 1 || !values.prompt || !values.style)
   fail('Usage: pnpm cover <slug> --prompt "<scene>" --style "<Fooocus style>" [--seed <n>]');
-if (values.seed !== undefined && !/^\d+$/.test(values.seed)) fail(`--seed must be a whole number, not "${values.seed}"`);
+if (values.seed !== undefined && !/^\d+$/.test(values.seed))
+  fail(`--seed must be a whole number, not "${values.seed}"`);
 const request = {
   prompt: values.prompt,
   style: values.style,
@@ -51,7 +52,9 @@ if (content.resolveSlug(slug).kind !== "post") fail(`No Post has the Slug "${slu
 
 const config = (await fetch(`${fooocusUrl}/config`)
   .then((response) => response.json())
-  .catch(() => fail(`Fooocus isn't answering at ${fooocusUrl}: start it, or leave the Post on its generated cover`))) as FooocusConfig;
+  .catch(() =>
+    fail(`Fooocus isn't answering at ${fooocusUrl}: start it, or leave the Post on its generated cover`),
+  )) as FooocusConfig;
 
 /** One call through Gradio 3's queue: hand over the session, then the data, then await the result. */
 function gradioQueueCall(fnIndex: number, data: unknown[], session: string): Promise<unknown[]> {
@@ -108,5 +111,7 @@ const candidates = readdirSync(outDir)
   .map((f) => JSON.parse(readFileSync(path.join(outDir, f), "utf8")) as CoverCandidate);
 writeFileSync(path.join(outDir, `${slug}.html`), coverCandidateSheet(slug, candidates));
 
-console.log(`Drew ${outDir}/${file} in ${Math.round((Date.now() - started) / 1000)}s (${request.style}, seed ${request.seed})`);
+console.log(
+  `Drew ${outDir}/${file} in ${Math.round((Date.now() - started) / 1000)}s (${request.style}, seed ${request.seed})`,
+);
 console.log(`Candidates: explorer.exe ${outDir}/${slug}.html`);

@@ -7,6 +7,8 @@
     "build": "next build",
     "build:check": "bash scripts/build-check.sh",
     "start": "next start",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "content:check": "tsx scripts/content-check.ts",
@@ -17,7 +19,7 @@
     "promo": "tsx scripts/promo.ts",
     "cover": "tsx scripts/cover.ts",
     "linkedin": "tsx scripts/linkedin.ts",
-    "check": "pnpm lint && pnpm typecheck && pnpm content:check && pnpm content:check e2e/content && pnpm test",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm content:check && pnpm content:check e2e/content && pnpm test",
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
@@ -63,6 +65,7 @@
     "eslint": "^10.14.0",
     "eslint-config-next": "^16.4.3",
     "postcss": "^8.5.32",
+    "prettier": "3.9.10",
     "simple-git-hooks": "^2.14.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",

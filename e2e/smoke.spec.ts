@@ -30,9 +30,7 @@ test("a file next to a Post that no Post uses as an image answers 404", async ({
   expect(response.status()).toBe(404);
 });
 
-test("a body image loads optimised, its box sized from the image before it loads", async ({
-  page,
-}) => {
+test("a body image loads optimised, its box sized from the image before it loads", async ({ page }) => {
   await page.goto("/posts/typography-sample");
   const image = page.getByRole("img", { name: "草稿經過審閱才發布的流程圖" });
 
@@ -284,17 +282,17 @@ test("a table shows its header and rows in the Post, its borders in the theme's 
   await expect(table.locator("tbody tr")).toHaveCount(2);
   const rule = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--rule").trim());
   const border = await table.locator("thead").evaluate((el) => getComputedStyle(el).borderBottomColor);
-  expect(border).toBe(await page.evaluate((hex) => {
-    const probe = document.createElement("div");
-    probe.style.color = hex;
-    document.body.append(probe);
-    return getComputedStyle(probe).color;
-  }, rule));
+  expect(border).toBe(
+    await page.evaluate((hex) => {
+      const probe = document.createElement("div");
+      probe.style.color = hex;
+      document.body.append(probe);
+      return getComputedStyle(probe).color;
+    }, rule),
+  );
 });
 
-test("the Post list answers 200 and links to a Published Post and its Tags", async ({
-  request,
-}) => {
+test("the Post list answers 200 and links to a Published Post and its Tags", async ({ request }) => {
   const response = await request.get("/posts");
 
   expect(response.status()).toBe(200);
@@ -303,9 +301,7 @@ test("the Post list answers 200 and links to a Published Post and its Tags", asy
   expect(html).toContain('href="/tags/smoke"');
 });
 
-test("the home page answers 200, shows the latest Posts and links to the Post list", async ({
-  request,
-}) => {
+test("the home page answers 200, shows the latest Posts and links to the Post list", async ({ request }) => {
   const response = await request.get("/");
 
   expect(response.status()).toBe(200);
@@ -347,9 +343,7 @@ test("a Post without a Revision shows no 「更新於」", async ({ request }) =
   expect(html).not.toContain("更新於");
 });
 
-test("a Post with h2 headings has a table of contents linking to each heading's id", async ({
-  page,
-}) => {
+test("a Post with h2 headings has a table of contents linking to each heading's id", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/posts/typography-sample");
   const toc = page.getByRole("navigation", { name: "本文目錄" });
@@ -369,18 +363,14 @@ test("a Post without h2 headings has no table of contents", async ({ page }) => 
   await expect(page.getByRole("navigation", { name: "本文目錄" })).toHaveCount(0);
 });
 
-test("a Post ends with a colophon signed by the Owner with the long Chinese date", async ({
-  request,
-}) => {
+test("a Post ends with a colophon signed by the Owner with the long Chinese date", async ({ request }) => {
   const html = await (await request.get("/posts/typography-sample")).text();
 
   expect(html).toContain("寫於");
   expect(html).toContain("2026年9月1日");
 });
 
-test("the About page answers 200 with its Page content and the AI disclosure", async ({
-  request,
-}) => {
+test("the About page answers 200 with its Page content and the AI disclosure", async ({ request }) => {
   const response = await request.get("/about");
 
   expect(response.status()).toBe(200);
@@ -400,10 +390,7 @@ test("the home page's 「聯絡我」 links to the About page's contact section"
   await page.goto("/");
   const main = page.getByRole("main");
 
-  await expect(main.getByRole("link", { name: "聯絡我", exact: true })).toHaveAttribute(
-    "href",
-    "/about#contact",
-  );
+  await expect(main.getByRole("link", { name: "聯絡我", exact: true })).toHaveAttribute("href", "/about#contact");
   await expect(main).not.toContainText("→");
 });
 
@@ -433,9 +420,7 @@ test("a previous Slug permanently redirects to the Post's current URL", async ({
   expect(response.headers()["location"]).toBe("/posts/smoke-post");
 });
 
-test("a taken-down Slug answers 410 with an explanation and a link to the Post list", async ({
-  request,
-}) => {
+test("a taken-down Slug answers 410 with an explanation and a link to the Post list", async ({ request }) => {
   const response = await request.get("/posts/taken-down-post");
 
   expect(response.status()).toBe(410);
@@ -444,10 +429,7 @@ test("a taken-down Slug answers 410 with an explanation and a link to the Post l
   expect(html).toContain('href="/posts"');
 });
 
-test("the header links home and to 文章, 標籤 and 關於, and each link resolves", async ({
-  page,
-  request,
-}) => {
+test("the header links home and to 文章, 標籤 and 關於, and each link resolves", async ({ page, request }) => {
   await page.goto("/posts/smoke-post");
   const header = page.getByRole("banner");
 
@@ -476,9 +458,7 @@ test("the header marks the section the page belongs to", async ({ page }) => {
   }
 });
 
-test("the footer links to GitHub, the Contact form, LinkedIn and RSS, and to no email address", async ({
-  page,
-}) => {
+test("the footer links to GitHub, the Contact form, LinkedIn and RSS, and to no email address", async ({ page }) => {
   await page.goto("/no-such-url");
   const footer = page.getByRole("contentinfo");
 
@@ -494,9 +474,7 @@ test("the footer links to GitHub, the Contact form, LinkedIn and RSS, and to no 
   await expect(footer.locator('a[href^="mailto:"]')).toHaveCount(0);
 });
 
-test("the About page's #contact section lists the footer's links, less the one to itself", async ({
-  page,
-}) => {
+test("the About page's #contact section lists the footer's links, less the one to itself", async ({ page }) => {
   await page.goto("/about");
   const hrefs = (scope: Locator) =>
     scope.getByRole("link").evaluateAll((links) => links.map((a) => a.getAttribute("href")));
@@ -595,9 +573,7 @@ test("Feedback that isn't about a Published Post is refused", async ({ request }
 const paths = (xml: string, tag: string) =>
   [...xml.matchAll(new RegExp(`<${tag}>([^<]*)</${tag}>`, "g"))].map((m) => new URL(m[1]).pathname);
 
-test("the RSS feed answers as RSS and lists Published Posts newest first, and no Pages", async ({
-  request,
-}) => {
+test("the RSS feed answers as RSS and lists Published Posts newest first, and no Pages", async ({ request }) => {
   const response = await request.get("/feed.xml");
 
   expect(response.status()).toBe(200);
@@ -640,14 +616,7 @@ test("the sitemap answers as XML and lists every Published Post, Page and Tag pa
 });
 
 test("every page sets a canonical URL on the configured base URL", async ({ page }) => {
-  for (const path of [
-    "/",
-    "/posts",
-    "/posts/smoke-post",
-    "/tags",
-    "/tags/smoke",
-    "/about",
-  ]) {
+  for (const path of ["/", "/posts", "/posts/smoke-post", "/tags", "/tags/smoke", "/about"]) {
     await page.goto(path);
 
     await expect(page.locator('link[rel="canonical"]'), path).toHaveAttribute(
@@ -660,8 +629,7 @@ test("every page sets a canonical URL on the configured base URL", async ({ page
 
 test("a Post's social preview image answers as a 1200×630 PNG", async ({ page, request }) => {
   await page.goto("/posts/smoke-post");
-  const og = (property: string) =>
-    page.locator(`meta[property="${property}"]`).getAttribute("content");
+  const og = (property: string) => page.locator(`meta[property="${property}"]`).getAttribute("content");
 
   expect(await og("og:image:width")).toBe("1200");
   expect(await og("og:image:height")).toBe("630");
@@ -703,13 +671,10 @@ test("every page links a PNG favicon", async ({ page, request }) => {
   expect(response.headers()["content-type"]).toBe("image/png");
 });
 
-test("the theme toggle switches the theme and the choice persists across visits", async ({
-  browser,
-}) => {
+test("the theme toggle switches the theme and the choice persists across visits", async ({ browser }) => {
   const page = await browser.newPage({ colorScheme: "light" });
   await page.goto("/posts/smoke-post");
-  const background = () =>
-    page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   const lightBackground = await background();
 
   await page.getByRole("banner").getByRole("button", { name: "切換深淺色" }).click();
@@ -741,9 +706,7 @@ test("with no stored choice the theme follows the system preference", async ({ b
   expect(backgrounds[0]).not.toBe(backgrounds[1]);
 });
 
-test("a stored theme choice applies before the site's JavaScript loads, so it never flashes", async ({
-  browser,
-}) => {
+test("a stored theme choice applies before the site's JavaScript loads, so it never flashes", async ({ browser }) => {
   const context = await browser.newContext({ colorScheme: "dark" });
   await context.addInitScript(() => localStorage.setItem("theme", "light"));
   // Hold back every bundle: only what ships inline in the HTML can set the theme.

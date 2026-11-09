@@ -1,0 +1,8 @@
+# Prose is written by hand: Posts, Pages, specs, skills and docs.
+*.md
+*.mdx
+content/
+e2e/content/
+.scratch/
+.kai/
+pnpm-lock.yaml

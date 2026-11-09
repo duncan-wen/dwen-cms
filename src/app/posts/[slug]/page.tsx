@@ -73,12 +73,7 @@ export default async function PostPage({ params }: Props) {
   const { Body, headings } = await compileMdx(post.body, bodyImageSources(post));
   return (
     <article>
-      <PostCover
-        post={post}
-        sizes={bodyColumnSizes}
-        preload
-        className="aspect-[21/9] rounded-md"
-      />
+      <PostCover post={post} sizes={bodyColumnSizes} preload className="aspect-[21/9] rounded-md" />
       {/* The table of contents hangs off the column's right edge, so the column never moves. */}
       <div className="relative">
         <PageHeading size="page" title={post.title}>

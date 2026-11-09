@@ -17,7 +17,11 @@ const formField = (form: FormData, name: string) => {
 
 /** The Contact form's Server Action: hands the Reader's message to the Owner inbox. */
 export async function sendContactMessage(_previous: ContactFormState, form: FormData): Promise<ContactFormState> {
-  const values = { name: formField(form, "name"), email: formField(form, "email"), message: formField(form, "message") };
+  const values = {
+    name: formField(form, "name"),
+    email: formField(form, "email"),
+    message: formField(form, "message"),
+  };
   const result = await ownerInboxFromEnvironment().sendContactMessage({
     ...values,
     honeypot: formField(form, "website"),

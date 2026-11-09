@@ -90,7 +90,5 @@ const SIDEWAYS_HEADER = /^(\s*(?:flowchart|graph))\s+(?:LR|RL)\b/;
  */
 export function topDownFlowchart(source: string): string | undefined {
   if (!SIDEWAYS_HEADER.test(source)) return undefined;
-  return source
-    .replace(SIDEWAYS_HEADER, "$1 TB")
-    .replace(/^(\s*direction)\s+(?:LR|RL)\b/gm, "$1 TB");
+  return source.replace(SIDEWAYS_HEADER, "$1 TB").replace(/^(\s*direction)\s+(?:LR|RL)\b/gm, "$1 TB");
 }

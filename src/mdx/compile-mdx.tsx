@@ -40,10 +40,7 @@ const codeTheme = createCssVariablesTheme();
  * and fenced code with a language is highlighted (Shiki). `images` maps each image reference
  * the body writes, `./diagram.png`, to where it is served and its size.
  */
-export async function compileMdx(
-  source: string,
-  images: Record<string, BodyImageSource> = {},
-): Promise<CompiledMdx> {
+export async function compileMdx(source: string, images: Record<string, BodyImageSource> = {}): Promise<CompiledMdx> {
   const headings: Heading[] = [];
   const collectHeadings = () => (tree: Root) => {
     for (const node of tree.children) {

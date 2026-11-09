@@ -62,7 +62,10 @@ export async function checkIllustration(
     return { problems };
   }
 
-  const viewBox = (root.getAttribute("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
+  const viewBox = (root.getAttribute("viewBox") ?? "")
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number);
   const [, , width, height] = viewBox;
   const hasViewBox = viewBox.length === 4 && viewBox.every(Number.isFinite) && width > 0 && height > 0;
   if (!hasViewBox) report("illustration-viewbox", `needs a viewBox on <svg>, e.g. viewBox="0 0 640 360"`);
@@ -83,7 +86,10 @@ export async function checkIllustration(
     }
   }
   if (unsafe.size > 0) {
-    report("illustration-unsafe", `has ${list(unsafe)}, which could run code or load something from elsewhere; draw with shapes, paths and text only`);
+    report(
+      "illustration-unsafe",
+      `has ${list(unsafe)}, which could run code or load something from elsewhere; draw with shapes, paths and text only`,
+    );
   }
   if (colours.size > 0) {
     report(
@@ -91,7 +97,11 @@ export async function checkIllustration(
       `paints with ${list(colours)}; give each colour as an attribute naming a site token (${COLOUR_HINT}; the tokens are ${ILLUSTRATION_COLOURS.join(", ")}), none or currentColor, so it follows the theme`,
     );
   }
-  if (fonts.size > 0) report("illustration-font", `sets ${list(fonts)}; leave the font out, so the site's face draws Traditional Chinese`);
+  if (fonts.size > 0)
+    report(
+      "illustration-font",
+      `sets ${list(fonts)}; leave the font out, so the site's face draws Traditional Chinese`,
+    );
 
   const sizes = Array.from(root.getElementsByTagName("text")).map(fontSize);
   const small = sizes.filter((size) => size < MIN_TEXT_PX);
@@ -161,6 +171,8 @@ let windowPromise: Promise<{ DOMParser: typeof DOMParser }> | undefined;
 
 /** One jsdom window for every check: parsing needs a DOM, and Node has none. */
 function domWindow() {
-  windowPromise ??= import("jsdom").then(({ JSDOM }) => new JSDOM("").window as unknown as { DOMParser: typeof DOMParser });
+  windowPromise ??= import("jsdom").then(
+    ({ JSDOM }) => new JSDOM("").window as unknown as { DOMParser: typeof DOMParser },
+  );
   return windowPromise;
 }

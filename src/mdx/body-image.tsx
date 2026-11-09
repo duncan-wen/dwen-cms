@@ -35,7 +35,13 @@ export function BodyImage({ src, alt = "", width, height, svg, minWidth, phoneSv
         src={src}
         alt={alt}
         enlarged={
-          <Drawings svg={svg} phoneSvg={phoneSvg} id={`${id}-enlarged`} alt={alt} className="h-full w-full [&>svg]:h-full [&>svg]:w-full" />
+          <Drawings
+            svg={svg}
+            phoneSvg={phoneSvg}
+            id={`${id}-enlarged`}
+            alt={alt}
+            className="h-full w-full [&>svg]:h-full [&>svg]:w-full"
+          />
         }
       >
         <Drawings

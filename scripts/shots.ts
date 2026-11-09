@@ -62,7 +62,11 @@ for (const path of paths) {
   for (const theme of themes) {
     for (const width of widths) {
       // Reduced motion, so an animation shows its finished frame rather than wherever it was when the shot was taken.
-      const page = await browser.newPage({ colorScheme: theme, reducedMotion: "reduce", viewport: { width, height: 900 } });
+      const page = await browser.newPage({
+        colorScheme: theme,
+        reducedMotion: "reduce",
+        viewport: { width, height: 900 },
+      });
       const response = await page.goto(base + path);
       await page.evaluate(() => document.fonts.ready);
       // A full-page shot never scrolls, so lazy images below the fold would stay blank:
@@ -75,9 +79,7 @@ for (const path of paths) {
       const name = `${fileName(path)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
       await page.screenshot({ path: file, fullPage: true });
-      const scrolls = await page.evaluate(
-        () => document.documentElement.scrollWidth > window.innerWidth,
-      );
+      const scrolls = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
       if (scrolls) overflowing.push(`${path} (${theme}, ${width}px): the page scrolls horizontally`);
       // A box that clips its content shows it cut off in a screenshot: sideways (only code blocks may scroll),
       // or downwards (an animation's frame cuts off what doesn't fit).
@@ -90,7 +92,10 @@ for (const path of paths) {
             const downwards = el.scrollHeight > el.clientHeight + 1 && style.overflowY !== "visible";
             return sideways || downwards;
           })
-          .map((el) => `<${el.tagName.toLowerCase()}${el.className ? ` class="${String(el.className).slice(0, 60)}"` : ""}>`),
+          .map(
+            (el) =>
+              `<${el.tagName.toLowerCase()}${el.className ? ` class="${String(el.className).slice(0, 60)}"` : ""}>`,
+          ),
       );
       for (const box of clipped) overflowing.push(`${path} (${theme}, ${width}px): ${box} clips its content`);
       const flagged = scrolls || clipped.length > 0;

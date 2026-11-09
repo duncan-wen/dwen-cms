@@ -12,9 +12,7 @@ export async function generateStaticParams() {
   const content = await getContent();
   return content
     .listPublishedPosts()
-    .flatMap(({ slug }) =>
-      content.listPostImages(slug).map(({ file }) => ({ slug, file: file.split("/") })),
-    );
+    .flatMap(({ slug }) => content.listPostImages(slug).map(({ file }) => ({ slug, file: file.split("/") })));
 }
 
 /** An image stored next to a Post, which next/image optimises from this URL; an Illustration opens in the light theme. */

@@ -25,9 +25,7 @@ export type FeedbackIssue = { field: "slug" | "vote" | "line"; rule: "unknown" |
 export type PostReference = { title: string; url: string };
 
 export type InboxResult<Issue = ContactIssue> =
-  | { ok: true }
-  | { ok: false; reason: "invalid"; issues: Issue[] }
-  | { ok: false; reason: "bot" | "unavailable" };
+  { ok: true } | { ok: false; reason: "invalid"; issues: Issue[] } | { ok: false; reason: "bot" | "unavailable" };
 
 type Dependencies = {
   /** Absent when the deployment has no mail settings: sending is then unavailable, never faked. */
