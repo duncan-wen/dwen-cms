@@ -576,6 +576,21 @@ test("a vote offers an optional line, and the Post thanks the Reader on return",
   await expect(page.getByRole("region", { name: "回饋" })).toHaveText("謝謝你的回饋。");
 });
 
+test("a vote is sent to the Feedback endpoint as JSON", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+  const sent = page.waitForRequest((request) => request.method() === "POST" && request.url().endsWith("/api/feedback"));
+  await page.getByRole("region", { name: "回饋" }).getByRole("button", { name: "有幫助" }).click();
+  const request = await sent;
+  expect(request.postDataJSON()).toEqual({ slug: "smoke-post", vote: "up" });
+  expect((await request.response())?.status()).toBe(200);
+});
+
+test("Feedback that isn't about a Published Post is refused", async ({ request }) => {
+  const response = await request.post("/api/feedback", { data: { slug: "no-such-post", vote: "up" } });
+  expect(response.status()).toBe(400);
+  expect(await response.json()).toEqual({ ok: false });
+});
+
 /** The `<loc>`/`<link>` URLs of an XML document, as paths, in document order. */
 const paths = (xml: string, tag: string) =>
   [...xml.matchAll(new RegExp(`<${tag}>([^<]*)</${tag}>`, "g"))].map((m) => new URL(m[1]).pathname);

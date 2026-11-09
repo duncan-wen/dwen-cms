@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { sendFeedback } from "@/app/posts/[slug]/send-feedback";
 import { FEEDBACK_LINE_LIMIT } from "@/owner-inbox/limits";
-import type { Vote } from "@/owner-inbox/owner-inbox";
+import type { Feedback, Vote } from "@/owner-inbox/owner-inbox";
 import { VOTES } from "@/owner-inbox/votes";
 import { inputClass } from "./input-class";
 
@@ -28,7 +27,25 @@ function remember(slug: string, vote: Vote) {
   }
 }
 
-const subscribe = (onChange: () => void) => {
+/**
+ * Sends Feedback to its endpoint. `keepalive` lets the browser finish the request after the page
+ * is gone, so a vote counts even when the Reader leaves right after clicking.
+ */
+async function sendFeedback(feedback: Feedback): Promise<{ ok: boolean }> {
+  try {
+    const response = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(feedback),
+      keepalive: true,
+    });
+    return { ok: response.ok };
+  } catch {
+    return { ok: false };
+  }
+}
+
+const subscribe =(onChange: () => void) => {
   window.addEventListener("storage", onChange);
   return () => window.removeEventListener("storage", onChange);
 };
