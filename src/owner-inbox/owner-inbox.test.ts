@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { CONTACT_LIMITS } from "./limits";
+import { CONTACT_LIMITS, FEEDBACK_LINE_LIMIT } from "./limits";
 import { createOwnerInbox, type Email } from "./owner-inbox";
 
 const reader = { name: "王小明", email: "reader@example.com", message: "想請教你一個專案的事。" };
@@ -167,5 +167,96 @@ describe("sendContactMessage", () => {
     expect(await sendContactMessage(reader)).toEqual({ ok: false, reason: "unavailable" });
     expect(log).toHaveBeenCalledWith(expect.stringContaining("no BotID headers"));
     expect(sent).toHaveLength(0);
+  });
+});
+
+describe("sendFeedback", () => {
+  const post = { title: "Goroutine 是怎麼跑的", url: "https://duncan-wen.aibbm.org/posts/go-goroutines-explained" };
+
+  /** An Owner inbox that knows one Published Post. */
+  function feedbackInbox(options: { isBot?: () => Promise<boolean>; preview?: boolean } = {}) {
+    const sent: Email[] = [];
+    const inbox = createOwnerInbox({
+      transport: async (email) => void sent.push(email),
+      recipient: "owner@example.com",
+      findPost: (slug) => (slug === "go-goroutines-explained" ? post : undefined),
+      log: () => {},
+      ...options,
+    });
+    return { sent, ...inbox };
+  }
+
+  it("emails the Owner the vote with the Post's title and URL", async () => {
+    const { sent, sendFeedback } = feedbackInbox();
+
+    expect(await sendFeedback({ slug: "go-goroutines-explained", vote: "up" })).toEqual({ ok: true });
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toBe("回饋 👍：Goroutine 是怎麼跑的");
+    expect(sent[0].text).toContain(post.url);
+    expect(sent[0].text).toContain("👍 有幫助");
+    expect(sent[0].replyTo).toBeUndefined();
+  });
+
+  it("sends the optional line as its own email, tied to the same Post and vote", async () => {
+    const { sent, sendFeedback } = feedbackInbox();
+
+    await sendFeedback({ slug: "go-goroutines-explained", vote: "down", line: "  第三段的圖看不懂  " });
+    expect(sent[0].subject).toBe("回饋補充 👎：Goroutine 是怎麼跑的");
+    expect(sent[0].text).toContain("👎 沒幫助");
+    expect(sent[0].text).toContain("\n第三段的圖看不懂\n");
+  });
+
+  it("treats a line of only spaces as no line", async () => {
+    const { sent, sendFeedback } = feedbackInbox();
+
+    await sendFeedback({ slug: "go-goroutines-explained", vote: "up", line: "   " });
+    expect(sent[0].subject).toBe("回饋 👍：Goroutine 是怎麼跑的");
+  });
+
+  it("accepts a line at its limit and rejects one character over", async () => {
+    const { sendFeedback } = feedbackInbox();
+    const at = "字".repeat(FEEDBACK_LINE_LIMIT);
+
+    expect(await sendFeedback({ slug: "go-goroutines-explained", vote: "up", line: at })).toEqual({ ok: true });
+    expect(await sendFeedback({ slug: "go-goroutines-explained", vote: "up", line: `${at}字` })).toEqual({
+      ok: false,
+      reason: "invalid",
+      issues: [{ field: "line", rule: "too-long" }],
+    });
+  });
+
+  it("rejects a Slug that names no Published Post, and sends nothing", async () => {
+    const { sent, sendFeedback } = feedbackInbox();
+
+    expect(await sendFeedback({ slug: "no-such-post", vote: "up" })).toEqual({
+      ok: false,
+      reason: "invalid",
+      issues: [{ field: "slug", rule: "unknown" }],
+    });
+    expect(sent).toHaveLength(0);
+  });
+
+  it("rejects a vote other than up or down", async () => {
+    const { sendFeedback } = feedbackInbox();
+
+    expect(await sendFeedback({ slug: "go-goroutines-explained", vote: "maybe" as "up" })).toEqual({
+      ok: false,
+      reason: "invalid",
+      issues: [{ field: "vote", rule: "unknown" }],
+    });
+  });
+
+  it("sends nothing when the bot check says bot", async () => {
+    const { sent, sendFeedback } = feedbackInbox({ isBot: async () => true });
+
+    expect(await sendFeedback({ slug: "go-goroutines-explained", vote: "up" })).toEqual({ ok: false, reason: "bot" });
+    expect(sent).toHaveLength(0);
+  });
+
+  it("starts the subject with 【預覽】 outside production", async () => {
+    const { sent, sendFeedback } = feedbackInbox({ preview: true });
+
+    await sendFeedback({ slug: "go-goroutines-explained", vote: "up" });
+    expect(sent[0].subject).toBe("【預覽】回饋 👍：Goroutine 是怎麼跑的");
   });
 });

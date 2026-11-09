@@ -1,7 +1,7 @@
 "use server";
 
 import { ownerInboxFromEnvironment } from "@/owner-inbox/from-environment";
-import type { Issue } from "@/owner-inbox/owner-inbox";
+import type { ContactIssue } from "@/owner-inbox/owner-inbox";
 
 type Values = { name: string; email: string; message: string };
 
@@ -9,7 +9,7 @@ type Values = { name: string; email: string; message: string };
 export type ContactFormState =
   | { status: "idle" }
   | { status: "sent" }
-  | { status: "invalid"; issues: Issue[]; values: Values }
+  | { status: "invalid"; issues: ContactIssue[]; values: Values }
   | { status: "unavailable"; values: Values };
 
 const text = (form: FormData, name: string) => {

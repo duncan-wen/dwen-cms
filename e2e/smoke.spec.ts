@@ -539,6 +539,32 @@ test("the Contact form won't send with a required field empty", async ({ page })
   await expect(page.getByRole("status")).toHaveCount(0);
 });
 
+test("a Post ends with the Feedback block and a Page doesn't", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+  const feedback = page.getByRole("region", { name: "回饋" });
+  await expect(feedback).toContainText("這篇對你有幫助嗎？");
+  await expect(feedback.getByRole("button", { name: "有幫助" })).toBeVisible();
+  await expect(feedback.getByRole("button", { name: "沒幫助" })).toBeVisible();
+
+  await page.goto("/about");
+  await expect(page.getByRole("region", { name: "回饋" })).toHaveCount(0);
+});
+
+test("a vote offers an optional line, and the Post thanks the Reader on return", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+  const feedback = page.getByRole("region", { name: "回饋" });
+
+  await feedback.getByRole("button", { name: "有幫助" }).click();
+  const line = feedback.getByLabel("謝謝！想多說一句嗎？（選填）");
+  await expect(line).toBeVisible();
+  await line.fill("煙霧測試的一句話");
+  await feedback.getByRole("button", { name: "送出" }).click();
+  await expect(feedback).toHaveText("謝謝你的回饋。");
+
+  await page.reload();
+  await expect(page.getByRole("region", { name: "回饋" })).toHaveText("謝謝你的回饋。");
+});
+
 /** The `<loc>`/`<link>` URLs of an XML document, as paths, in document order. */
 const paths = (xml: string, tag: string) =>
   [...xml.matchAll(new RegExp(`<${tag}>([^<]*)</${tag}>`, "g"))].map((m) => new URL(m[1]).pathname);

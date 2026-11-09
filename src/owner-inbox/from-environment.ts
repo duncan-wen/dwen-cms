@@ -1,5 +1,6 @@
 import { Resend } from "resend";
-import { createOwnerInbox, type MailTransport } from "./owner-inbox";
+import { absoluteUrl } from "@/site-url";
+import { createOwnerInbox, type MailTransport, type PostReference } from "./owner-inbox";
 
 /** The verified sender on the Owner's domain; Resend refuses any address it hasn't verified. */
 export const MAIL_FROM = "Duncan Wen 網站 <noreply@duncan-wen.aibbm.org>";
@@ -18,6 +19,15 @@ function resendTransport(apiKey: string): MailTransport {
   };
 }
 
+/** Each Published Post's title by Slug, written into the build by next.config.ts. */
+const postTitles: Record<string, string> = JSON.parse(process.env.POST_TITLES ?? "{}");
+
+/** The Published Post a Slug names, as the Owner's email shows it. */
+function findPost(slug: string): PostReference | undefined {
+  const title = Object.hasOwn(postTitles, slug) ? postTitles[slug] : undefined;
+  return title === undefined ? undefined : { title, url: absoluteUrl(`/posts/${slug}`) };
+}
+
 /** BotID's verdict on the current request; loaded on demand, since it reads the request's headers. */
 async function botIdSaysBot() {
   const { checkBotId } = await import("botid/server");
@@ -33,11 +43,12 @@ async function botIdSaysBot() {
 export function ownerInboxFromEnvironment(env: Record<string, string | undefined> = process.env) {
   const preview = env.VERCEL_ENV !== "production";
   if (env.MAIL_TRANSPORT === "fake") {
-    return createOwnerInbox({ transport: fakeTransport, recipient: "owner@example.invalid", preview });
+    return createOwnerInbox({ transport: fakeTransport, recipient: "owner@example.invalid", findPost, preview });
   }
   return createOwnerInbox({
     transport: env.RESEND_API_KEY ? resendTransport(env.RESEND_API_KEY) : undefined,
     isBot: botIdSaysBot,
+    findPost,
     recipient: env.OWNER_EMAIL,
     preview,
   });
