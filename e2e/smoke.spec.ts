@@ -505,6 +505,17 @@ test("the About page's #contact section lists the footer's links, less the one t
   expect(await hrefs(page.locator("#contact"))).toEqual(footer.filter((href) => href !== "/about#contact"));
 });
 
+test("the RSS link isn't prefetched as a page", async ({ page }) => {
+  const prefetches: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/feed.xml" && request.headers()["rsc"]) prefetches.push(request.url());
+  });
+  await page.goto("/about#contact");
+  await page.locator("#contact").getByRole("link", { name: "RSS" }).hover();
+  await page.waitForLoadState("networkidle");
+  expect(prefetches).toEqual([]);
+});
+
 test("the About page's #contact section holds the Contact form and its privacy note", async ({ page }) => {
   await page.goto("/about");
   const form = page.locator("#contact").getByRole("form", { name: "聯絡表單" });
@@ -563,6 +574,21 @@ test("a vote offers an optional line, and the Post thanks the Reader on return",
 
   await page.reload();
   await expect(page.getByRole("region", { name: "回饋" })).toHaveText("謝謝你的回饋。");
+});
+
+test("a vote is sent to the Feedback endpoint as JSON", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+  const sent = page.waitForRequest((request) => request.method() === "POST" && request.url().endsWith("/api/feedback"));
+  await page.getByRole("region", { name: "回饋" }).getByRole("button", { name: "有幫助" }).click();
+  const request = await sent;
+  expect(request.postDataJSON()).toEqual({ slug: "smoke-post", vote: "up" });
+  expect((await request.response())?.status()).toBe(200);
+});
+
+test("Feedback that isn't about a Published Post is refused", async ({ request }) => {
+  const response = await request.post("/api/feedback", { data: { slug: "no-such-post", vote: "up" } });
+  expect(response.status()).toBe(400);
+  expect(await response.json()).toEqual({ ok: false });
 });
 
 /** The `<loc>`/`<link>` URLs of an XML document, as paths, in document order. */
