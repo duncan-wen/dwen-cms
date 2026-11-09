@@ -1,18 +1,36 @@
+import { Resend } from "resend";
 import { createOwnerInbox, type MailTransport } from "./owner-inbox";
+
+/** The verified sender on the Owner's domain; Resend refuses any address it hasn't verified. */
+export const MAIL_FROM = "Duncan Wen 網站 <noreply@duncan-wen.aibbm.org>";
 
 /** Stands in for real mail where `MAIL_TRANSPORT=fake` asks for it (the smoke build): logs instead of sending. */
 const fakeTransport: MailTransport = async ({ subject }) => {
   console.info(`Owner inbox (fake transport): would send "${subject}"`);
 };
 
+/** Sends through Resend, throwing on the error Resend returns rather than throws. */
+function resendTransport(apiKey: string): MailTransport {
+  const resend = new Resend(apiKey);
+  return async ({ to, subject, text, replyTo }) => {
+    const { error } = await resend.emails.send({ from: MAIL_FROM, to, subject, text, replyTo });
+    if (error) throw new Error(`Resend: ${error.name}: ${error.message}`);
+  };
+}
+
 /**
- * The Owner inbox as this deployment is configured. Only an explicit `MAIL_TRANSPORT=fake`
- * fakes mail; a deployment without mail settings reports sending as unavailable.
+ * The Owner inbox as this deployment is configured: Resend with `RESEND_API_KEY` to
+ * `OWNER_EMAIL`, or a fake only where `MAIL_TRANSPORT=fake` says so. Without mail
+ * settings, sending is unavailable, never faked. Only production leaves subjects unmarked.
  */
-export function ownerInboxFromEnvironment(env: NodeJS.ProcessEnv = process.env) {
-  const fake = env.MAIL_TRANSPORT === "fake";
+export function ownerInboxFromEnvironment(env: Record<string, string | undefined> = process.env) {
+  const preview = env.VERCEL_ENV !== "production";
+  if (env.MAIL_TRANSPORT === "fake") {
+    return createOwnerInbox({ transport: fakeTransport, recipient: "owner@example.invalid", preview });
+  }
   return createOwnerInbox({
-    transport: fake ? fakeTransport : undefined,
-    recipient: fake ? "owner@example.invalid" : env.OWNER_EMAIL,
+    transport: env.RESEND_API_KEY ? resendTransport(env.RESEND_API_KEY) : undefined,
+    recipient: env.OWNER_EMAIL,
+    preview,
   });
 }

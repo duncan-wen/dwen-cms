@@ -21,6 +21,8 @@ type Dependencies = {
   /** Absent when the deployment has no mail settings: sending is then unavailable, never faked. */
   transport: MailTransport | undefined;
   recipient: string | undefined;
+  /** True everywhere but production: subjects then start with 【預覽】, so a test never passes for a Reader. */
+  preview?: boolean;
   log?: (message: string) => void;
 };
 
@@ -45,14 +47,14 @@ function check(message: Omit<ContactMessage, "honeypot">): Issue[] {
  * Everything a Reader sends the Owner goes through here and arrives as email; none of it
  * ever appears on the site. Mail and its recipient are passed in, so tests run on a fake.
  */
-export function createOwnerInbox({ transport, recipient, log = console.error }: Dependencies) {
+export function createOwnerInbox({ transport, recipient, preview = false, log = console.error }: Dependencies) {
   async function deliver(email: Omit<Email, "to">): Promise<InboxResult> {
     if (!transport || !recipient) {
       log("Owner inbox: no mail transport or recipient is configured, so nothing was sent.");
       return { ok: false, reason: "unavailable" };
     }
     try {
-      await transport({ ...email, to: recipient });
+      await transport({ ...email, subject: preview ? `【預覽】${email.subject}` : email.subject, to: recipient });
       return { ok: true };
     } catch (error) {
       log(`Owner inbox: sending failed: ${error instanceof Error ? error.message : String(error)}`);
