@@ -95,3 +95,15 @@ _Avoid_: Update, rewrite
 **Takedown**:
 Removing a Published Post entirely; its URL then returns 410 Gone. There is no "unpublished" state. Shown to readers as 「移除」.
 _Avoid_: Unpublish, archive
+
+## Reader interaction
+
+Nothing a Reader sends ever appears on the site; it reaches only the Owner.
+
+**Contact form**:
+The form in the About page's contact section where a Reader sends the Owner a message: their name, an email to reply to, and the message, all required. It replaces the email link among the Owner's contact links; every 「聯絡我」 on the site leads to it. Shown to readers as 「聯絡表單」.
+_Avoid_: Contact us, inquiry, comment
+
+**Feedback**:
+A Reader's answer, at the end of a Post, to whether the Post helped them: a thumbs up or down, optionally with one line of text. Counts are never shown on the site.
+_Avoid_: Rating, reaction, like, comment
