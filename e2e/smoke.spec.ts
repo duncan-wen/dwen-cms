@@ -243,6 +243,118 @@ test.describe("a Slide deck", () => {
     expect(response.headers()["content-type"]).toBe("application/pdf");
   });
 
+  test("arrow keys turn slides while the player has focus, and do nothing while it hasn't", async ({ page }) => {
+    await page.goto(post);
+
+    await page.keyboard.press("ArrowRight");
+    await expect(player(page)).toContainText("1 / 3");
+
+    await player(page)
+      .getByRole("group", { name: /^投影片 1 \/ 3/ })
+      .focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(player(page)).toContainText("2 / 3");
+    await page.keyboard.press("ArrowLeft");
+    await expect(player(page)).toContainText("1 / 3");
+    await page.keyboard.press("End");
+    await expect(player(page)).toContainText("3 / 3");
+  });
+
+  test("arrow keys turn slides while the pointer is over the player", async ({ page }) => {
+    await page.goto(post);
+
+    await player(page).getByRole("img").hover({ force: true });
+    await page.keyboard.press("ArrowRight");
+
+    await expect(player(page)).toContainText("2 / 3");
+  });
+
+  test("swiping left on the slide turns forward, and right turns back", async ({ page }) => {
+    await page.goto(post);
+    const frame = player(page).getByRole("group", { name: /^投影片 \d \/ 3/ });
+    const swipe = (fromX: number, toX: number) =>
+      frame.evaluate(
+        (element, [from, to]) => {
+          const touch = (x: number) => new Touch({ identifier: 1, target: element, clientX: x, clientY: 100 });
+          element.dispatchEvent(new TouchEvent("touchstart", { bubbles: true, touches: [touch(from)] }));
+          element.dispatchEvent(new TouchEvent("touchend", { bubbles: true, changedTouches: [touch(to)] }));
+        },
+        [fromX, toX],
+      );
+
+    await swipe(300, 100);
+    await expect(player(page)).toContainText("2 / 3");
+
+    await swipe(100, 300);
+    await expect(player(page)).toContainText("1 / 3");
+
+    await swipe(200, 180);
+    await expect(player(page)).toContainText("1 / 3");
+  });
+
+  test("turning a slide puts it in the address as #slide-N", async ({ page }) => {
+    await page.goto(post);
+
+    await player(page).getByRole("button", { name: "下一頁" }).click();
+
+    await expect(page).toHaveURL(/#slide-2$/);
+  });
+
+  test("opening #slide-3 starts on slide 3 with the player in view", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 300 });
+    await page.goto(`${post}#slide-3`);
+
+    await expect(player(page)).toContainText("3 / 3");
+    await expect(player(page).getByRole("img", { name: slides[2] })).toBeInViewport();
+  });
+
+  for (const hash of ["#slide-9", "#slide-0", "#slide-x", "#slide-2x"]) {
+    test(`opening ${hash} starts on slide 1`, async ({ page }) => {
+      await page.goto(`${post}${hash}`);
+
+      await expect(player(page).getByRole("img", { name: slides[0] })).toBeVisible();
+      await expect(player(page)).toContainText("1 / 3");
+    });
+  }
+
+  test("「所有頁面」 shows every slide's thumbnail, loaded only once opened, and choosing one jumps to it", async ({
+    page,
+  }) => {
+    const thumbs: string[] = [];
+    page.on("request", (request) => {
+      if (/\/deck\/\d+-thumb\.webp$/.test(request.url())) thumbs.push(request.url());
+    });
+    await page.goto(post);
+    await page.waitForLoadState("networkidle");
+    expect(thumbs).toEqual([]);
+
+    await player(page).getByText("所有頁面").click();
+    const grid = player(page).getByRole("list", { name: "所有頁面" });
+    await expect(grid.getByRole("listitem")).toHaveCount(3);
+    await expect.poll(() => new Set(thumbs).size).toBe(3);
+
+    await grid.getByRole("button", { name: "第 3 頁：下載" }).click();
+
+    await expect(player(page)).toContainText("3 / 3");
+    await expect(player(page).getByRole("img", { name: slides[2] })).toBeVisible();
+    await expect(page).toHaveURL(/#slide-3$/);
+  });
+
+  test("「本頁文字」 shows the current slide's title and text, and follows the slide", async ({ page }) => {
+    await page.goto(post);
+
+    await player(page).getByText("本頁文字").click();
+    const text = player(page).getByRole("group").filter({ hasText: "本頁文字" });
+    await expect(text).toContainText("煙霧測試投影片");
+    await expect(text).toContainText("確認投影片在文章裡播放");
+
+    await player(page).getByRole("button", { name: "下一頁" }).click();
+
+    await expect(text).toContainText("翻頁");
+    await expect(text).toContainText("按鈕和點擊投影片都能翻到下一頁");
+    await expect(text).not.toContainText("煙霧測試投影片");
+  });
+
   test("loads only the first slide with the page, and the next two once turned to slide 2", async ({ page }) => {
     const requested: string[] = [];
     page.on("request", (request) => {

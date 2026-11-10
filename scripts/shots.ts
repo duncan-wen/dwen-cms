@@ -2,6 +2,7 @@
 //   pnpm shots /posts/typography-sample /tags      build, then shoot each path
 //   pnpm shots --no-build /                         reuse the last build
 //   pnpm shots --content content /posts/<slug>      build the real content instead
+//   pnpm shots '/posts/<slug>?open=所有頁面'          open that fold first (a shot of its own)
 // Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration
 // and Diagram as <path>-<illustration|diagram>-<n>-<theme>-<width>.png (n counts from the
 // top of the page), plus index.html showing this run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
@@ -67,7 +68,12 @@ for (const path of paths) {
         reducedMotion: "reduce",
         viewport: { width, height: 900 },
       });
-      const response = await page.goto(base + path);
+      // `?open=<label>` isn't sent: it names a fold (<summary>) to open before the shot.
+      const url = new URL(path, base);
+      const folds = url.searchParams.getAll("open");
+      url.searchParams.delete("open");
+      const response = await page.goto(url.href);
+      for (const fold of folds) await page.locator("summary", { hasText: fold }).click();
       await page.evaluate(() => document.fonts.ready);
       // A full-page shot never scrolls, so lazy images below the fold would stay blank:
       // load them all now and wait until each has decoded.
