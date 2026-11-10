@@ -4,7 +4,7 @@
 
 ### Issue tracker
 
-Issues and specs live as local markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+A new feature, even one asked for in chat, starts with `/grilling` and a spec before any code: `docs/agents/issue-tracker.md`. Issues and specs live as local markdown files under `.scratch/<feature>/`.
 
 ### Shipping
 

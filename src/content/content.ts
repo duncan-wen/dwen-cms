@@ -918,8 +918,8 @@ function isLink({ type, name }: MdNode): boolean {
 /**
  * Every ```mermaid block in the body must parse as Mermaid, be a diagram type
  * the site can draw, give a flowchart's nodes ASCII IDs, draw with the
- * site's renderer (mermaidSvg), which reads less than Mermaid does, and fit a
- * phone's column as a phone draws it. Each
+ * site's renderer (mermaidSvg), which reads less than Mermaid does, keep a
+ * flowchart's edges from tangling, and fit a phone's column as a phone draws it. Each
  * problem names the block by its position among the body's Mermaid blocks and
  * its line in the file; `bodyLine` is how many lines into the file the body starts.
  */
@@ -951,6 +951,13 @@ async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
         `${which} has node IDs that aren't ASCII (${nonAscii.map((id) => JSON.stringify(id)).join(", ")}), which the site's renderer can't draw; write each ID in ASCII and its label in Chinese, e.g. review{審閱}`,
       );
     }
+    for (const [hub, partners] of twoWayHubs(parsed.edges)) {
+      report(
+        "body",
+        "mermaid-two-way-edges",
+        `${which} has edges running both ways between "${hub}" and each of ${partners.map((id) => `"${id}"`).join(", ")}, which the renderer draws as crossing lines; keep the edges flowing one way and send the returns to a new node, e.g. coder -->|交付| qa[驗證]`,
+      );
+    }
     try {
       const svg = mermaidSvg(source, "check");
       // A phone shows a sideways flowchart top-down (src/mdx/mermaid.tsx), so that copy must draw too, and fit.
@@ -971,6 +978,21 @@ async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
       );
     }
   }
+}
+
+/**
+ * The nodes joined both ways (A --> B and B --> A) to more than one other node, each with
+ * those partners. One such pair draws as two side-by-side lines; a node with several
+ * tangles them, as their returns cross the edges going out.
+ */
+function twoWayHubs(edges: [string, string][]): [string, string[]][] {
+  const joined = new Set(edges.map(([from, to]) => `${from}\0${to}`));
+  const partners = new Map<string, Set<string>>();
+  for (const [from, to] of edges) {
+    if (from === to || !joined.has(`${to}\0${from}`)) continue;
+    partners.set(from, (partners.get(from) ?? new Set()).add(to));
+  }
+  return [...partners].filter(([, others]) => others.size > 1).map(([hub, others]) => [hub, [...others]]);
 }
 
 /** The diagram types the site draws, as a writer names them: "flowchart, state, … or xychart". */

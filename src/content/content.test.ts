@@ -223,6 +223,15 @@ describe("images", () => {
     expect((error as Error).message).toMatch(/Mermaid block 1 \(line 8\) needs \d+px/);
   });
 
+  it("rejects a node joined both ways to more than one node, naming it and its partners", async () => {
+    const error = await loadContent(fixture("mermaid-two-way-edges")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/tangled-diagram/index.mdx", field: "body", rule: "mermaid-two-way-edges" }],
+    });
+    expect((error as Error).message).toContain('Mermaid block 1 (line 8) has edges running both ways between "human" and each of "coder", "tester"');
+  });
+
   it("rejects a flowchart node ID that isn't ASCII, advising ASCII IDs with Chinese labels", async () => {
     const error = await loadContent(fixture("mermaid-ascii-id")).catch((e: unknown) => e);
 

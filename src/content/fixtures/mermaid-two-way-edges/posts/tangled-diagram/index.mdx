@@ -1,0 +1,14 @@
+---
+title: 打結的流程圖
+description: 一個節點和兩個節點都有來回的線
+date: 2026-10-01
+tags: [meta]
+---
+
+```mermaid
+flowchart TD
+  human[人] -->|指派| coder[AI 寫程式]
+  human -->|指派| tester[AI 測試]
+  coder -->|交付| human
+  tester -->|回報| human
+```
