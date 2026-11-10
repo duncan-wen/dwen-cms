@@ -8,7 +8,11 @@ describe("generateCover", () => {
 
   it("gives different Slugs different contours", () => {
     const slugs = ["why-mdx-in-git", "typography-sample", "a", "b", "hello-world"];
-    const paths = slugs.map((slug) => generateCover(slug).contours.map((c) => c.d).join(""));
+    const paths = slugs.map((slug) =>
+      generateCover(slug)
+        .contours.map((c) => c.d)
+        .join(""),
+    );
     expect(new Set(paths).size).toBe(slugs.length);
   });
 

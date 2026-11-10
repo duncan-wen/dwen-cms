@@ -40,7 +40,9 @@ export function promoImageId(slug: string, size: PromoSize) {
 export async function promoDocument(posts: PromoPost[]): Promise<string> {
   const colours = { light: await lightColours(), dark: await darkColours() };
   const images = posts.flatMap((post) =>
-    PROMO_SIZES.map((size) => <PromoImage key={promoImageId(post.slug, size)} post={post} size={size} colours={colours} />),
+    PROMO_SIZES.map((size) => (
+      <PromoImage key={promoImageId(post.slug, size)} post={post} size={size} colours={colours} />
+    )),
   );
   const serifText = posts.map(serifGlyphs).join("") + SITE_NAME;
   const fontFaces = await Promise.all(

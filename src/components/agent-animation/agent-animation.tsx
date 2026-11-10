@@ -61,7 +61,9 @@ export function AgentAnimation() {
           />
         )}
       </div>
-      <figcaption className="text-[13px] text-ink-soft">示意動畫：AI agent 呼叫工具查資料後回答，資料是虛構的。</figcaption>
+      <figcaption className="text-[13px] text-ink-soft">
+        示意動畫：AI agent 呼叫工具查資料後回答，資料是虛構的。
+      </figcaption>
     </figure>
   );
 }

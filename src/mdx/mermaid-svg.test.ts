@@ -31,9 +31,10 @@ test("a loop back to an earlier node keeps the flow's first node on top", () => 
   /** The top edge of each node's shape, by node id. */
   const top = (id: string) => {
     const node = svg.match(new RegExp(`data-id="${id}"[^>]*>\\s*<(rect|polygon)([^>]*)>`))!;
-    const ys = node[1] === "rect"
-      ? [Number(node[2].match(/ y="([\d.]+)"/)![1])]
-      : [...node[2].matchAll(/[\d.]+,([\d.]+)/g)].map((m) => Number(m[1]));
+    const ys =
+      node[1] === "rect"
+        ? [Number(node[2].match(/ y="([\d.]+)"/)![1])]
+        : [...node[2].matchAll(/[\d.]+,([\d.]+)/g)].map((m) => Number(m[1]));
     return Math.min(...ys);
   };
   expect(top("a")).toBeLessThan(top("b"));
@@ -63,13 +64,12 @@ describe("the top-down version a phone shows", () => {
     expect(topDownFlowchart(source)).toBe(expected);
   });
 
-  test.each([
-    "flowchart TD\n  A --> B",
-    "flowchart TB\n  A --> B",
-    "sequenceDiagram\n  A->>B: LR",
-  ])("leaves %j alone: it already reads top-down or isn't a flowchart", (source) => {
-    expect(topDownFlowchart(source)).toBeUndefined();
-  });
+  test.each(["flowchart TD\n  A --> B", "flowchart TB\n  A --> B", "sequenceDiagram\n  A->>B: LR"])(
+    "leaves %j alone: it already reads top-down or isn't a flowchart",
+    (source) => {
+      expect(topDownFlowchart(source)).toBeUndefined();
+    },
+  );
 });
 
 test("edges run straight, without the small jogs the renderer leaves where lines meet", () => {

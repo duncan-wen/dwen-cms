@@ -6,10 +6,7 @@ import { SiteNav } from "./site-nav";
 export function SiteHeader() {
   return (
     <header className="mx-auto flex w-full max-w-2xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 pt-7">
-      <Link
-        href="/"
-        className="flex items-center gap-3 font-serif text-lg font-bold tracking-[0.02em]"
-      >
+      <Link href="/" className="flex items-center gap-3 font-serif text-lg font-bold tracking-[0.02em]">
         <Seal className="motion-safe:animate-stamp" />
         Duncan Wen
       </Link>

@@ -38,9 +38,7 @@ export function PostGrid({ posts }: Props) {
                 >
                   {post.title}
                 </h3>
-                <p
-                  className={`text-ink-soft ${lead ? "text-[17px] leading-[1.75]" : "text-[15px] leading-[1.75]"}`}
-                >
+                <p className={`text-ink-soft ${lead ? "text-[17px] leading-[1.75]" : "text-[15px] leading-[1.75]"}`}>
                   {post.description}
                 </p>
               </div>

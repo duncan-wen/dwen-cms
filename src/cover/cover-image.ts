@@ -22,8 +22,7 @@ export type CoverRequest = { prompt: string; style: string; seed: number };
 export type CoverCandidate = CoverRequest & { number: number; file: string };
 
 /** What every cover leaves out: SDXL can't draw text, so a cover carries none. */
-export const COVER_NEGATIVE_PROMPT =
-  "text, letters, words, typography, caption, watermark, signature, logo";
+export const COVER_NEGATIVE_PROMPT = "text, letters, words, typography, caption, watermark, signature, logo";
 
 /** A cover's size: 19:13, the closest SDXL size to the site's cover and OG crops. */
 const COVER_ASPECT = "1216×832";
@@ -37,7 +36,9 @@ export function coverTask(config: FooocusConfig, request: CoverRequest) {
   const isState = (id: number) => byId.get(id)?.type === "state";
   const createFnIndex = config.dependencies.reduce(
     (best, dep, i) =>
-      dep.outputs.length === 1 && isState(dep.outputs[0]) && dep.inputs.length > (config.dependencies[best]?.inputs.length ?? -1)
+      dep.outputs.length === 1 &&
+      isState(dep.outputs[0]) &&
+      dep.inputs.length > (config.dependencies[best]?.inputs.length ?? -1)
         ? i
         : best,
     -1,

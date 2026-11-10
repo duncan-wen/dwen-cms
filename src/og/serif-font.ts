@@ -12,9 +12,7 @@ const FILES = { 700: "NotoSerifTC-Bold.ttf", 900: "NotoSerifTC-Black.ttf" } as c
  * The faces are committed, so the build doesn't depend on reaching Google Fonts.
  */
 export async function serifFont(weight: 700 | 900, text: string) {
-  const full = await readFile(
-    path.join(/*turbopackIgnore: true*/ process.cwd(), "src/og/fonts", FILES[weight]),
-  );
+  const full = await readFile(path.join(/*turbopackIgnore: true*/ process.cwd(), "src/og/fonts", FILES[weight]));
   const subset = await subsetFont(full, text, { targetFormat: "truetype" });
   return {
     name: "Noto Serif TC",

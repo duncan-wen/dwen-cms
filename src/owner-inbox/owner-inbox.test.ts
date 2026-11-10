@@ -18,7 +18,11 @@ function inbox(
   const transport =
     overrides.transport === null ? undefined : (overrides.transport ?? (async (email: Email) => void sent.push(email)));
   const recipient = overrides.recipient === null ? undefined : (overrides.recipient ?? "owner@example.com");
-  return { sent, log, ...createOwnerInbox({ transport, recipient, preview: overrides.preview, isBot: overrides.isBot, log }) };
+  return {
+    sent,
+    log,
+    ...createOwnerInbox({ transport, recipient, preview: overrides.preview, isBot: overrides.isBot, log }),
+  };
 }
 
 describe("sendContactMessage", () => {

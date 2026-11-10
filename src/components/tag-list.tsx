@@ -8,10 +8,7 @@ export function TagList({ tags }: Props) {
     <ul className="flex flex-wrap gap-x-3.5 gap-y-1 font-mono text-[13px]" aria-label="標籤">
       {tags.map((tag) => (
         <li key={tag}>
-          <Link
-            href={`/tags/${tag}`}
-            className="text-accent underline-offset-[3px] hover:underline"
-          >
+          <Link href={`/tags/${tag}`} className="text-accent underline-offset-[3px] hover:underline">
             #{tag}
           </Link>
         </li>

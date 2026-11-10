@@ -64,11 +64,15 @@ export function ContactForm() {
 
   return (
     <form action={action} className="mt-5 grid gap-5" aria-label="聯絡表單">
-      {field("name", (props) => <input {...props} type="text" autoComplete="name" maxLength={CONTACT_LIMITS.name} />)}
+      {field("name", (props) => (
+        <input {...props} type="text" autoComplete="name" maxLength={CONTACT_LIMITS.name} />
+      ))}
       {field("email", (props) => (
         <input {...props} type="email" autoComplete="email" maxLength={CONTACT_LIMITS.email} />
       ))}
-      {field("message", (props) => <textarea {...props} rows={6} maxLength={CONTACT_LIMITS.message} />)}
+      {field("message", (props) => (
+        <textarea {...props} rows={6} maxLength={CONTACT_LIMITS.message} />
+      ))}
       {/* Only bots fill this in: it's off-screen, skipped by Tab and hidden from screen readers. */}
       <div aria-hidden="true" className="absolute -left-[9999px]">
         <label htmlFor="contact-website">網站</label>

@@ -66,7 +66,9 @@ function Step({ label, start, next, children }: Props) {
   const { fps } = useVideoConfig();
   const shown = interpolate(frame, [start * fps, (start + 0.35) * fps], [0, 1], { ...CLAMPED, easing: EASE_OUT });
   const railDrawn =
-    next === undefined ? 0 : interpolate(frame, [(next - 0.4) * fps, next * fps], [0, 1], { ...CLAMPED, easing: EASE_OUT });
+    next === undefined
+      ? 0
+      : interpolate(frame, [(next - 0.4) * fps, next * fps], [0, 1], { ...CLAMPED, easing: EASE_OUT });
   return (
     <div style={{ position: "relative", paddingLeft: 26, opacity: shown, translate: `0 ${(1 - shown) * 8}px` }}>
       {next !== undefined && (
@@ -143,9 +145,25 @@ function Rows() {
         const from = (STEP_START.rows + 0.2 + i * 0.25) * fps;
         const grown = interpolate(frame, [from, from + 0.6 * fps], [0, 1], { ...CLAMPED, easing: EASE_OUT });
         return (
-          <div key={row.name} style={{ display: "grid", gridTemplateColumns: "72px 1fr 48px", alignItems: "center", gap: 10, fontSize: 15 }}>
+          <div
+            key={row.name}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "72px 1fr 48px",
+              alignItems: "center",
+              gap: 10,
+              fontSize: 15,
+            }}
+          >
             <span>{row.name}</span>
-            <span style={{ height: 8, borderRadius: 4, background: "var(--accent)", width: `${(row.count / most) * grown * 100}%` }} />
+            <span
+              style={{
+                height: 8,
+                borderRadius: 4,
+                background: "var(--accent)",
+                width: `${(row.count / most) * grown * 100}%`,
+              }}
+            />
             <span style={{ fontFamily: "var(--font-mono)", textAlign: "right", opacity: grown }}>{row.count} 筆</span>
           </div>
         );

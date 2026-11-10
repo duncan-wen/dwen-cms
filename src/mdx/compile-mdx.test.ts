@@ -22,7 +22,7 @@ describe("compileMdx", () => {
   });
 
   test("colours a code block's tokens through CSS variables, not a fixed theme", async () => {
-    const { Body } = await compileMdx("```ts\nconst greeting = \"hi\";\n```");
+    const { Body } = await compileMdx('```ts\nconst greeting = "hi";\n```');
 
     const html = renderToStaticMarkup(createElement(Body));
     expect(html).toContain('<span style="color:var(--shiki-token-keyword)">const</span>');
@@ -34,7 +34,9 @@ describe("compileMdx", () => {
     const { Body } = await compileMdx("| 風格 | 產圖時間 |\n| --- | --- |\n| 水墨 | 19 秒 |");
 
     const html = renderToStaticMarkup(createElement(Body));
-    expect(html).toMatch(/<table[^>]*>.*<thead>.*<th>風格<\/th>.*<th>產圖時間<\/th>.*<\/thead>.*<tbody>.*<td>水墨<\/td>.*<td>19 秒<\/td>.*<\/tbody>.*<\/table>/s);
+    expect(html).toMatch(
+      /<table[^>]*>.*<thead>.*<th>風格<\/th>.*<th>產圖時間<\/th>.*<\/thead>.*<tbody>.*<td>水墨<\/td>.*<td>19 秒<\/td>.*<\/tbody>.*<\/table>/s,
+    );
   });
 
   test("renders a Callout from the component map as an aside around its content", async () => {

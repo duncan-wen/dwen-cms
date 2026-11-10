@@ -9,9 +9,7 @@ describe("siteUrl", () => {
   });
 
   it("falls back to the Vercel deployment URL on previews", () => {
-    expect(siteUrl({ VERCEL_URL: "dwen-cms-git-x.vercel.app" }).href).toBe(
-      "https://dwen-cms-git-x.vercel.app/",
-    );
+    expect(siteUrl({ VERCEL_URL: "dwen-cms-git-x.vercel.app" }).href).toBe("https://dwen-cms-git-x.vercel.app/");
   });
 
   it("falls back to localhost in development", () => {
@@ -25,8 +23,6 @@ describe("siteUrl", () => {
 
 describe("absoluteUrl", () => {
   it("resolves a site path against the base URL", () => {
-    expect(absoluteUrl("/posts/hello", { SITE_URL: "https://dwen.example" })).toBe(
-      "https://dwen.example/posts/hello",
-    );
+    expect(absoluteUrl("/posts/hello", { SITE_URL: "https://dwen.example" })).toBe("https://dwen.example/posts/hello");
   });
 });

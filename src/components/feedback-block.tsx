@@ -45,7 +45,7 @@ async function sendFeedback(feedback: Feedback): Promise<{ ok: boolean }> {
   }
 }
 
-const subscribe =(onChange: () => void) => {
+const subscribe = (onChange: () => void) => {
   window.addEventListener("storage", onChange);
   return () => window.removeEventListener("storage", onChange);
 };
@@ -63,7 +63,11 @@ const voteButton =
 
 /** At the end of a Post: 「這篇對你有幫助嗎？」, a one-click vote, then an optional line. */
 export function FeedbackBlock({ slug }: Props) {
-  const given = useSyncExternalStore(subscribe, () => alreadyGiven(slug), () => false);
+  const given = useSyncExternalStore(
+    subscribe,
+    () => alreadyGiven(slug),
+    () => false,
+  );
   const [phase, setPhase] = useState<Phase>({ step: "ask" });
 
   async function vote(choice: Vote) {

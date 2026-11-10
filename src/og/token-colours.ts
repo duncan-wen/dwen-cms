@@ -44,10 +44,7 @@ export function darkColours(): Promise<Colours> {
 }
 
 async function themeColours(theme: keyof typeof BLOCKS): Promise<Colours> {
-  const css = await readFile(
-    path.join(/*turbopackIgnore: true*/ process.cwd(), "src/app/globals.css"),
-    "utf8",
-  );
+  const css = await readFile(path.join(/*turbopackIgnore: true*/ process.cwd(), "src/app/globals.css"), "utf8");
   const block = css.match(BLOCKS[theme])?.[1] ?? "";
   const entries = NAMES.map((name) => {
     const value = block.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1]?.trim();

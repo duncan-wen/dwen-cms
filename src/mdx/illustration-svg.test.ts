@@ -27,7 +27,13 @@ describe("illustrationSvg", () => {
 
 describe("standaloneIllustration", () => {
   it("defines the colour tokens inside the file, each series colour as its code colour", () => {
-    const colours = { ink: "ink-value", "code-function": "blue-value", "code-keyword": "pink-value", "code-type": "orange-value", "code-string": "green-value" };
+    const colours = {
+      ink: "ink-value",
+      "code-function": "blue-value",
+      "code-keyword": "pink-value",
+      "code-type": "orange-value",
+      "code-string": "green-value",
+    };
 
     const svg = standaloneIllustration(source, colours);
 

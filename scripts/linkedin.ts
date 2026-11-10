@@ -32,7 +32,10 @@ try {
   // No .env.local: the token may come from the environment instead.
 }
 const token = process.env.LINKEDIN_ACCESS_TOKEN;
-if (!token) fail("No LINKEDIN_ACCESS_TOKEN in .env.local; make one with the token generator (see the top of scripts/linkedin.ts).");
+if (!token)
+  fail(
+    "No LINKEDIN_ACCESS_TOKEN in .env.local; make one with the token generator (see the top of scripts/linkedin.ts).",
+  );
 warnIfTokenIsOld(process.env.LINKEDIN_TOKEN_DATE);
 
 const content = await getContent().catch((error: unknown) => {
@@ -53,7 +56,10 @@ const html = await page.text();
 // The page names its own canonical URL from SITE_URL; a card pointing anywhere else would
 // send Readers to a second address of the same site.
 const canonical = html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
-if (canonical !== pageUrl) fail(`${pageUrl} names ${canonical} as its canonical URL: set SITE_URL on Vercel Production to ${SITE} and redeploy.`);
+if (canonical !== pageUrl)
+  fail(
+    `${pageUrl} names ${canonical} as its canonical URL: set SITE_URL on Vercel Production to ${SITE} and redeploy.`,
+  );
 const card = {
   url: pageUrl,
   title: meta(html, "og:title"),
@@ -72,9 +78,13 @@ const imageBytes = await fetch(card.image).then((response) => {
   if (!response.ok) fail(`Couldn't download the OG image: ${response.status}`);
   return response.arrayBuffer();
 });
-const upload = await linkedin<{ value: { uploadUrl: string; image: string } }>("POST", "/rest/images?action=initializeUpload", {
-  initializeUploadRequest: { owner: author },
-});
+const upload = await linkedin<{ value: { uploadUrl: string; image: string } }>(
+  "POST",
+  "/rest/images?action=initializeUpload",
+  {
+    initializeUploadRequest: { owner: author },
+  },
+);
 const uploaded = await fetch(upload.value.uploadUrl, {
   method: "PUT",
   headers: { Authorization: `Bearer ${token}` },
@@ -115,7 +125,9 @@ async function linkedinResponse(method: string, path: string, body?: unknown): P
   });
   if (response.ok) return response;
   const advice =
-    response.status === 401 ? " The token has expired or was revoked: make a new one and replace it in .env.local." : "";
+    response.status === 401
+      ? " The token has expired or was revoked: make a new one and replace it in .env.local."
+      : "";
   fail(`LinkedIn answered ${method} ${path} with ${response.status}: ${await response.text()}${advice}`);
 }
 
@@ -134,7 +146,8 @@ function warnIfTokenIsOld(date: string | undefined) {
   if (!date) return;
   const days = Math.floor((Date.now() - Date.parse(date)) / 86_400_000);
   if (days >= TOKEN_DAYS) fail(`The LinkedIn token is ${days} days old and has expired: make a new one.`);
-  if (days >= TOKEN_DAYS - 10) console.warn(`⚠ The LinkedIn token expires in ${TOKEN_DAYS - days} days: make a new one soon.`);
+  if (days >= TOKEN_DAYS - 10)
+    console.warn(`⚠ The LinkedIn token expires in ${TOKEN_DAYS - days} days: make a new one soon.`);
 }
 
 function fail(message: string): never {
