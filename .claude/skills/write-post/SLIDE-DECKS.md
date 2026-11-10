@@ -12,14 +12,14 @@ When the Owner hands you a NotebookLM PDF (「這篇加上這份投影片：<PDF
    const sharp = require("sharp"), fs = require("fs");
    const [deck, out] = process.argv.slice(1);
    fs.mkdirSync(out, { recursive: true });
-   const slides = fs.readdirSync(deck).filter((f) => /^\d+\.webp$/.test(f)).sort();
+   const slides = fs.readdirSync(deck).filter((f) => /^\d+\.webp$/.test(f)).sort((a, b) => parseInt(a) - parseInt(b));
    (async () => {
      for (let i = 0; i < slides.length; i += 3) {
        const group = slides.slice(i, i + 3);
        const { width, height } = await sharp(`${deck}/${group[0]}`).metadata();
        await sharp({ create: { width, height: height * group.length, channels: 3, background: "#fff" } })
          .composite(group.map((f, j) => ({ input: `${deck}/${f}`, top: j * height, left: 0 })))
-         .png().toFile(`${out}/slides-${group[0].slice(0, 2)}.png`);
+         .png().toFile(`${out}/slides-${group[0].replace(".webp", "")}.png`);
      }
    })();
    ' content/posts/<slug>/deck test-results/deck
@@ -28,7 +28,7 @@ When the Owner hands you a NotebookLM PDF (「這篇加上這份投影片：<PDF
    Read every `test-results/deck/slides-NN.png` (`NN` is its first slide; `test-results/` is gitignored). Done when you have read every slide.
 3. **Write each slide's text** in `deck.yml`, in order, one `title` and one `text` per slide (see **Slide text**). Leave `width`, `height` and the `# NN.webp` comments as `pnpm deck` wrote them. Done when every entry is filled and `pnpm content:check` passes.
 4. **Place `<SlideDeck />`** on its own line in the body, after the paragraph that introduces what the slides cover, so the Reader knows what they're about to play. Not at the very top: the body opens with prose. For a Published Post, also write that introducing paragraph if the body has none.
-5. **Check and shoot**, as steps 6 and 7 of [SKILL.md](SKILL.md). In the page shots, read the deck in both themes and widths: the first slide shows sharp, with ← 1 / N → under it, and nothing is cut off. Done when the shots pass.
+5. **Check and shoot**, as steps 6 and 7 of [SKILL.md](SKILL.md), but shoot the Post twice, the second time with 「所有頁面」 open: `pnpm shots --content content /posts/<slug> '/posts/<slug>?open=所有頁面'` (a path ending `?open=<label>` opens that fold first; see **Screenshots** in [docs/agents/shipping.md](../../../docs/agents/shipping.md)). Read the deck in both themes and widths: the first slide shows sharp, with ← 1 / N → under it, every thumbnail shows in the open shots in slide order, and nothing is cut off. Done when the shots pass.
 6. **List the deck in the PR** under 「請 Owner 確認」 (step 9 of [SKILL.md](SKILL.md)): where it sits (after which paragraph or under which `##` heading), then every slide numbered with its title and text, quoted as written in `deck.yml`, so the Owner checks the text without opening a file.
 
 ## Slide text
