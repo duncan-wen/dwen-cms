@@ -19,6 +19,10 @@ Ask: does the change alter what a Reader learns from the Post?
 
 When unsure, it is a Revision if a Reader who read the old version would want to know.
 
+## Adding a Slide deck
+
+When the Owner gives a NotebookLM PDF for a Published Post, add it by [SLIDE-DECKS.md](SLIDE-DECKS.md). New slides change what a Reader gets, so it is a Revision: append a `revisions` entry (`note: 加上投影片`, or what the slides add).
+
 ## Changing the Slug
 
 Rename the folder `content/posts/<old>/` to `content/posts/<new>/` and add the old Slug to `previousSlugs` (keeping any already there). The old URL then redirects permanently to the new one. The content check enforces:
