@@ -73,11 +73,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  human[人：PM 與品管]
-  human -->|指派| coder[AI 寫程式]
-  human -->|指派| tester[AI 測試]
-  coder -->|交付| human
-  tester -->|回報| human
+  pm[人：拆解與指派]
+  pm --> coder[AI 寫程式]
+  pm --> tester[AI 測試]
+  coder -->|交付| qa[人：驗證把關]
+  tester -->|回報| qa
 ```
 
 人的核心價值會變成兩件事。一是品管 (QA)：有能力認出 AI 的幻覺、錯誤和平庸產出，把重心放在驗證和架構把關。二是產品經理 (PM)：把龐大的任務拆成小模組，準確地指派給不同專長的 AI 代理。
