@@ -63,7 +63,7 @@ describe("compileMdx", () => {
 
     const html = renderToStaticMarkup(createElement(Body));
     expect(html).not.toContain("<pre");
-    expect(html).toMatch(/<figure[^>]*><svg[^>]*viewBox=/);
+    expect(html).toMatch(/<figure[^>]*><div[^>]*cursor-zoom-in[^>]*><span[^>]*><svg[^>]*viewBox=/);
     expect(html).toContain(">草稿</text>");
     expect(html).toContain("--bg:var(--paper)");
     expect(html).toContain("--fg:var(--ink)");
