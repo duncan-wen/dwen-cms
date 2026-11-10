@@ -587,6 +587,39 @@ test("a mermaid block draws an SVG diagram whose colours follow the theme toggle
   await page.close();
 });
 
+test("a diagram opens in a Lightbox from its button, fitted to the screen, and closes back to it", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/posts/typography-sample");
+  const figure = page.locator("article figure:visible", { hasText: "審閱" });
+  const opener = figure.getByRole("button", { name: "放大圖表" });
+  const inPost = await figure.locator("svg").boundingBox();
+
+  await opener.click();
+
+  const lightbox = page.getByRole("dialog", { name: "放大圖表" });
+  const enlarged = await lightbox.locator("svg").boundingBox();
+  expect(enlarged!.width).toBeGreaterThan(inPost!.width);
+  expect(enlarged!.width).toBeLessThanOrEqual(inPost!.width * 2 + 1);
+  expect(enlarged!.y + enlarged!.height).toBeLessThanOrEqual(800);
+  await expect(lightbox.locator("text", { hasText: "審閱" }).first()).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(opener).toBeFocused();
+});
+
+test("a click on a diagram opens it in a Lightbox, and its labels stay readable to screen readers", async ({
+  page,
+}) => {
+  await page.goto("/posts/typography-sample");
+  const figure = page.locator("article figure:visible", { hasText: "審閱" });
+  await expect(figure.getByRole("button")).toHaveText("放大圖表");
+
+  await figure.locator("svg").click();
+
+  await expect(page.getByRole("dialog", { name: "放大圖表" })).toBeVisible();
+});
+
 test("on a phone a sideways flowchart is drawn top-down and fits the column", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/posts/typography-sample");

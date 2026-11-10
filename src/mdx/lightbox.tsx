@@ -12,9 +12,6 @@ type Props = {
   children: ReactNode;
 };
 
-/** Outside the component, so it stays one function and runs only when the dialog mounts. */
-const openOnMount = (dialog: HTMLDialogElement | null) => dialog?.showModal();
-
 /**
  * Wraps a Body image in a link to its original file, which a click opens in a Lightbox
  * instead: without JavaScript, or on a modified click, the link just goes to the file.
@@ -41,25 +38,74 @@ export function Lightbox({ src, alt, enlarged, children }: Props) {
       >
         {children}
       </a>
-      {open &&
-        createPortal(
-          <dialog
-            ref={openOnMount}
-            aria-label="放大圖片"
-            onClick={(event) => event.currentTarget.close()}
-            onClose={() => setOpen(false)}
-            className="m-0 h-dvh max-h-none w-dvw max-w-none cursor-zoom-out bg-paper p-0"
-          >
-            <div className="flex h-full items-center justify-center px-4 py-14">{enlarged}</div>
-            <button
-              type="button"
-              className="absolute top-3 right-3 rounded-full px-3 py-1 text-sm text-ink-soft hover:bg-accent-wash hover:text-ink"
-            >
-              關閉
-            </button>
-          </dialog>,
-          document.body,
-        )}
+      {open && <LightboxDialog label="放大圖片" content={enlarged} onClose={() => setOpen(false)} />}
     </>
+  );
+}
+
+type DiagramProps = {
+  /** What the open Lightbox shows: the Diagram again, fitted to the screen. */
+  enlarged: ReactNode;
+  /** The Diagram as drawn in the body, inside its own sideways-scrolling box. */
+  children: ReactNode;
+  scrollClassName: string;
+};
+
+/**
+ * A Diagram that opens in a Lightbox. A Diagram has no file to link to, and its labels must
+ * stay readable by screen readers, so it isn't wrapped in a link or a button: a click on it
+ * opens the Lightbox, and the 「放大圖表」 button under it does the same for the keyboard. A
+ * Diagram too wide for its box scrolls instead, so only the button opens that one.
+ */
+export function DiagramLightbox({ enlarged, children, scrollClassName }: DiagramProps) {
+  const [open, setOpen] = useState(false);
+
+  const onDiagramClick = (event: MouseEvent<HTMLDivElement>) => {
+    const box = event.currentTarget;
+    if (box.scrollWidth > box.clientWidth) return;
+    setOpen(true);
+  };
+
+  return (
+    <>
+      <div onClick={onDiagramClick} className={`cursor-zoom-in ${scrollClassName}`}>
+        {children}
+      </div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-1 ml-auto block rounded-full px-3 py-1 text-sm text-ink-soft hover:bg-accent-wash hover:text-ink"
+      >
+        放大圖表
+      </button>
+      {open && <LightboxDialog label="放大圖表" content={enlarged} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+/** Outside the component, so it stays one function and runs only when the dialog mounts. */
+const openOnMount = (dialog: HTMLDialogElement | null) => dialog?.showModal();
+
+type DialogProps = { label: string; content: ReactNode; onClose: () => void };
+
+/** The Lightbox itself: the content fitted to the screen, closed by any click, Esc or 「關閉」. */
+function LightboxDialog({ label, content, onClose }: DialogProps) {
+  return createPortal(
+    <dialog
+      ref={openOnMount}
+      aria-label={label}
+      onClick={(event) => event.currentTarget.close()}
+      onClose={onClose}
+      className="m-0 h-dvh max-h-none w-dvw max-w-none cursor-zoom-out bg-paper p-0"
+    >
+      <div className="flex h-full items-center justify-center px-4 py-14">{content}</div>
+      <button
+        type="button"
+        className="absolute top-3 right-3 rounded-full px-3 py-1 text-sm text-ink-soft hover:bg-accent-wash hover:text-ink"
+      >
+        關閉
+      </button>
+    </dialog>,
+    document.body,
   );
 }

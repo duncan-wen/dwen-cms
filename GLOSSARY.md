@@ -55,7 +55,7 @@ A set of slides made outside the site (today with NotebookLM), stored next to a 
 _Avoid_: Presentation, slideshow, carousel, PPT
 
 **Lightbox**:
-The layer over a page that shows one Body image enlarged; the Reader opens it with 「放大圖片」 and leaves it with 「關閉」.
+The layer over a page that shows one Body image or Diagram enlarged, fitted to the screen; the Reader opens it with 「放大圖片」 or 「放大圖表」 and leaves it with 「關閉」.
 _Avoid_: Modal, popup, zoom
 
 **Promo image**:
