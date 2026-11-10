@@ -233,6 +233,23 @@ test.describe("a Slide deck", () => {
     }
   });
 
+  test("puts every slide's title and text in the page's HTML for search engines, out of sight and hearing", async ({
+    page,
+    request,
+  }) => {
+    const response = await request.get(post);
+    // Outside scripts, so it's the page's own text, not the data the player starts from.
+    const html = (await response.text()).replace(/<script\b[\s\S]*?<\/script>/g, "");
+
+    expect(html).toContain("下載");
+    expect(html).toContain("投影片可以下載成 PDF");
+
+    await page.goto(post);
+    await player(page).getByText("本頁文字").click();
+    await expect(player(page).getByText("確認投影片在文章裡播放")).toBeVisible();
+    await expect(player(page).getByText("投影片可以下載成 PDF")).toBeHidden();
+  });
+
   test("offers the download PDF with its size, which answers as a PDF", async ({ page, request }) => {
     await page.goto(post);
     const link = player(page).getByRole("link", { name: /^下載 PDF（\d+ KB）$/ });
@@ -292,6 +309,30 @@ test.describe("a Slide deck", () => {
     await expect(player(page)).toContainText("1 / 3");
   });
 
+  test.describe("on a touch screen", () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+
+    test("a finger swiping across the slide's forward side turns one slide, not two", async ({ page }) => {
+      await page.goto(post);
+      const { x, y, width, height } = (await player(page).getByRole("img").boundingBox())!;
+      // A real finger, so the browser decides whether it was also a tap on the click zone under it.
+      const cdp = await page.context().newCDPSession(page);
+      const finger = (type: "touchStart" | "touchMove" | "touchEnd", at: number) =>
+        cdp.send("Input.dispatchTouchEvent", {
+          type,
+          touchPoints: type === "touchEnd" ? [] : [{ x: x + width * at, y: y + height / 2 }],
+        });
+
+      await finger("touchStart", 0.9);
+      for (const at of [0.85, 0.8, 0.7, 0.6, 0.5]) await finger("touchMove", at);
+      await finger("touchEnd", 0.5);
+
+      await expect(player(page)).toContainText("2 / 3");
+      await page.waitForTimeout(500);
+      await expect(player(page)).toContainText("2 / 3");
+    });
+  });
+
   test("turning a slide puts it in the address as #slide-N", async ({ page }) => {
     await page.goto(post);
 
@@ -345,14 +386,16 @@ test.describe("a Slide deck", () => {
 
     await player(page).getByText("本頁文字").click();
     const text = player(page).getByRole("group").filter({ hasText: "本頁文字" });
-    await expect(text).toContainText("煙霧測試投影片");
-    await expect(text).toContainText("確認投影片在文章裡播放");
+    // As shown: the other slides' text is in the page too, hidden.
+    const shown = { useInnerText: true };
+    await expect(text).toContainText("煙霧測試投影片", shown);
+    await expect(text).toContainText("確認投影片在文章裡播放", shown);
 
     await player(page).getByRole("button", { name: "下一頁" }).click();
 
-    await expect(text).toContainText("翻頁");
-    await expect(text).toContainText("按鈕和點擊投影片都能翻到下一頁");
-    await expect(text).not.toContainText("煙霧測試投影片");
+    await expect(text).toContainText("翻頁", shown);
+    await expect(text).toContainText("按鈕和點擊投影片都能翻到下一頁", shown);
+    await expect(text).not.toContainText("煙霧測試投影片", shown);
   });
 
   test("loads only the first slide with the page, and the next two once turned to slide 2", async ({ page }) => {

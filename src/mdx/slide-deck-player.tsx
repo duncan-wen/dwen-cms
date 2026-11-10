@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { THUMB_WIDTH } from "@/deck/deck-names";
+import { THUMB_WIDTH, thumbHeight } from "@/deck/deck-names";
 import type { SlideDeckSource } from "./compile-mdx";
 
 type Props = { deck: SlideDeckSource };
@@ -325,7 +325,7 @@ export function SlideDeckPlayer({ deck }: Props) {
                     src={each.thumb}
                     alt=""
                     width={THUMB_WIDTH}
-                    height={Math.round((THUMB_WIDTH * deck.height) / deck.width)}
+                    height={thumbHeight(deck.width, deck.height)}
                     draggable={false}
                     className="block h-auto w-full dark:brightness-[.85]"
                   />
@@ -337,8 +337,16 @@ export function SlideDeckPlayer({ deck }: Props) {
       </details>
       <details className="mt-2 text-sm">
         <summary className={summaryClass}>本頁文字</summary>
-        <p className="mt-2 font-bold text-ink">{slide.title}</p>
-        <p className="mt-1 leading-relaxed text-ink-soft">{slide.text}</p>
+        {/*
+          Every slide's text is in the page for search engines; only the current one shows, and
+          the hidden ones are hidden from screen readers too, so nothing is read twice.
+        */}
+        {deck.slides.map((each, at) => (
+          <div key={each.src} hidden={at !== index}>
+            <p className="mt-2 font-bold text-ink">{each.title}</p>
+            <p className="mt-1 leading-relaxed text-ink-soft">{each.text}</p>
+          </div>
+        ))}
       </details>
     </figure>
   );

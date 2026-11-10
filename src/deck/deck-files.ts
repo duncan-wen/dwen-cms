@@ -18,7 +18,8 @@ export async function deckFiles(pdf: Uint8Array): Promise<Map<string, Uint8Array
     const image = () => decoded(slide);
     files.set(slideFile(index + 1), await image().webp({ quality: QUALITY }).toBuffer());
     files.set(thumbFile(index + 1), await image().resize(THUMB_WIDTH).webp({ quality: 70 }).toBuffer());
-    const data = await image().jpeg({ quality: QUALITY, mozjpeg: true }).toBuffer();
+    // RGB even for a grey slide, since the download PDF declares every JPEG /DeviceRGB.
+    const data = await image().toColourspace("srgb").jpeg({ quality: QUALITY, mozjpeg: true }).toBuffer();
     jpegs.push({ format: "jpeg" as const, width: slide.width, height: slide.height, data });
   }
   files.set(DECK_PDF, jpegPdf(jpegs));

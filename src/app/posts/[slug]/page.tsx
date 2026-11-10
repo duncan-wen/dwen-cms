@@ -11,10 +11,11 @@ import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
 import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
+import { slideDeckSource } from "@/deck/slide-deck-source";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
 import { pageAlternates } from "@/page-alternates";
-import { bodyImageSources, slideDeckSource } from "@/post-image-url";
+import { bodyImageSources } from "@/post-image-url";
 
 type Props = { params: Promise<{ slug: string }> };
 

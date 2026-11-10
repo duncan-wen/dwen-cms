@@ -51,6 +51,22 @@ describe("reading a slide deck's PDF", () => {
     expect(colours[1][0]).toBeLessThan(20);
   });
 
+  it("reads a grey Flate image without a predictor as one channel of pixels", async () => {
+    const [slide] = readPdfSlides(await fixture("grey.pdf"));
+
+    expect(slide).toMatchObject({ format: "raw", width: 6, height: 5, channels: 1 });
+    expect(slide.format === "raw" && [...slide.pixels.subarray(6, 12)]).toEqual([10, 50, 90, 130, 170, 210]);
+  });
+
+  it.each(["short-raw.pdf", "short-png.pdf"])(
+    "refuses an image whose data is shorter than its size, naming the page: %s",
+    async (name) => {
+      const pdf = await fixture(name);
+
+      expect(() => readPdfSlides(pdf)).toThrow(/^page 2's image/);
+    },
+  );
+
   it("refuses a PDF with no slide images", () => {
     expect(() => readPdfSlides(new TextEncoder().encode("%PDF-1.4\nnot really\n%%EOF\n"))).toThrow(/page/);
   });

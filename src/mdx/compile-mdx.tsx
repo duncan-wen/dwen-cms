@@ -8,7 +8,7 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { createCssVariablesTheme } from "shiki";
 import { mdxComponents } from "./components";
-import { type MdNode, mdNodes, mermaidBlocks } from "./md-tree";
+import { isSlideDeck, type MdNode, mdNodes, mermaidBlocks } from "./md-tree";
 
 /** One entry of a Post's table of contents: an `h2` heading's id and text. */
 export type Heading = { id: string; label: string };
@@ -113,9 +113,7 @@ const remarkMermaid = () => (tree: MdNode) => {
 /** Hands each `<SlideDeck />` the Post's deck, as `deck="<JSON>"`, since a body names it without props. */
 const remarkSlideDeck = (deck: SlideDeckSource | undefined) => (tree: MdNode) => {
   if (!deck) return;
-  for (const node of mdNodes(tree)) {
-    if (node.type === "mdxJsxFlowElement" && node.name === "SlideDeck") {
-      node.attributes = [{ type: "mdxJsxAttribute", name: "deck", value: JSON.stringify(deck) }];
-    }
+  for (const node of mdNodes(tree).filter(isSlideDeck)) {
+    node.attributes = [{ type: "mdxJsxAttribute", name: "deck", value: JSON.stringify(deck) }];
   }
 };

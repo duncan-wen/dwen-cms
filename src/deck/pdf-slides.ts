@@ -20,7 +20,7 @@ export function readPdfSlides(pdf: Uint8Array): SlideImage[] {
   const file = new PdfFile(pdf);
   const pages = file.pages();
   if (pages.length === 0) throw new Error("the PDF has no pages (or keeps them in object streams, which aren't read)");
-  return pages.map(({ dict, resources }, index) => file.slide(dict, resources, index + 1));
+  return pages.map((resources, index) => file.slide(resources, index + 1));
 }
 
 /** A PDF of one page per JPEG slide, each image filling its page: the Slide deck's download copy. */
@@ -115,15 +115,15 @@ class PdfFile {
     }
   }
 
-  /** Every page in reading order, each with the resources it has or inherits. */
-  pages(): { dict: PdfDict; resources: PdfValue | undefined }[] {
+  /** Every page's resources, which it has or inherits, in reading order. */
+  pages(): (PdfValue | undefined)[] {
     const catalog = [...this.objects.values()].find(({ value }) => this.name(value, "Type") === "Catalog");
-    const pages: { dict: PdfDict; resources: PdfValue | undefined }[] = [];
+    const pages: (PdfValue | undefined)[] = [];
     const visit = (node: PdfValue | undefined, inherited: PdfValue | undefined, depth: number) => {
       const dict = this.resolve(node);
       if (!isDict(dict) || depth > 64) return;
       const resources = dict.dict.get("Resources") ?? inherited;
-      if (this.name(dict, "Type") === "Page") pages.push({ dict, resources });
+      if (this.name(dict, "Type") === "Page") pages.push(resources);
       const kids = this.resolve(dict.dict.get("Kids"));
       if (Array.isArray(kids)) for (const kid of kids) visit(kid, resources, depth + 1);
     };
@@ -131,11 +131,10 @@ class PdfFile {
     return pages;
   }
 
-  /** Page `number`'s slide: the largest image it draws. */
-  slide(page: PdfDict, resources: PdfValue | undefined, number: number): SlideImage {
-    const xObjects = this.resolve(
-      isDict(this.resolve(resources)) ? (this.resolve(resources) as PdfDict).dict.get("XObject") : undefined,
-    );
+  /** Page `number`'s slide, from the page's `resources`: the largest image it draws. */
+  slide(resources: PdfValue | undefined, number: number): SlideImage {
+    const resolved = this.resolve(resources);
+    const xObjects = this.resolve(isDict(resolved) ? resolved.dict.get("XObject") : undefined);
     const images = (isDict(xObjects) ? [...xObjects.dict.values()] : [])
       .map((ref) => (typeof ref === "object" && ref !== null && "ref" in ref ? this.objects.get(ref.ref) : undefined))
       .filter(
@@ -164,8 +163,17 @@ class PdfFile {
     const predictor = isDict(parms) ? this.number(parms, "Predictor", 1) : 1;
     const zlib = inflateSync(stream);
     const inflated = new Uint8Array(zlib.buffer, zlib.byteOffset, zlib.byteLength);
+    if (predictor !== 1 && predictor < 10) {
+      throw new Error(`page ${number}'s image uses TIFF predictor ${predictor}, which can't be read`);
+    }
+    // PNG row filters start each row with a byte naming its filter.
+    const expected = (predictor === 1 ? width * channels : width * channels + 1) * height;
+    if (inflated.length !== expected) {
+      throw new Error(
+        `page ${number}'s image holds ${inflated.length} bytes of pixels, but ${width}×${height} needs ${expected}; the PDF is damaged`,
+      );
+    }
     if (predictor === 1) return { format: "raw", width, height, channels, pixels: inflated };
-    if (predictor < 10) throw new Error(`page ${number}'s image uses TIFF predictor ${predictor}, which can't be read`);
     return {
       format: "raw",
       width,

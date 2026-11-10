@@ -7,6 +7,10 @@
  *   `/DecodeParms` and `/Resources`, and a nested page tree. Every row filter (0–4) is used.
  *   Page 1's pixel at (x, y) is [x·40, y·60, 100], page 2's [200, x·30, y·50]; both 6×5.
  * - `dct.pdf`: each page one JPEG (`/DCTDecode`), 16×8, solid red then solid blue.
+ * - `grey.pdf`: one page, a grey (`/DeviceGray`) Flate image without a predictor, 6×5, whose
+ *   pixel at (x, y) is x·40 + y·10.
+ * - `short-raw.pdf` and `short-png.pdf`: two pages whose second image inflates to fewer bytes
+ *   than its size needs, without a predictor and with PNG row filters.
  *
  * It writes PDFs on its own rather than through pdf-slides.ts, so the reader is checked against
  * an independent writer.
@@ -146,5 +150,58 @@ async function writeDct() {
   );
 }
 
+/** A PDF of one page per image, each 6×5 and Flate-compressed, with `extra` in its dictionary. */
+function flatePages(images: { colorSpace: string; extra: string; data: Buffer }[]): Buffer {
+  const [width, height] = [6, 5];
+  const draw = Buffer.from(`q ${width} 0 0 ${height} 0 0 cm /X1 Do Q`, "latin1");
+  const kids = images.map((_, index) => `${4 + index * 2} 0 R`).join(" ");
+  return pdfFile([
+    /* 1 */ { dict: "<< /Type /Catalog /Pages 2 0 R >>" },
+    /* 2 */ { dict: `<< /Type /Pages /Kids [${kids}] /Count ${images.length} >>` },
+    /* 3 */ { dict: `<< /Length ${draw.length} >>`, stream: draw },
+    ...images.flatMap(({ colorSpace, extra, data }, index) => [
+      {
+        dict: `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /XObject << /X1 ${5 + index * 2} 0 R >> >> /Contents 3 0 R >>`,
+      },
+      {
+        dict: `<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /${colorSpace} /BitsPerComponent 8 /Filter /FlateDecode ${extra} /Length ${data.length} >>`,
+        stream: data,
+      },
+    ]),
+  ]);
+}
+
+function writeGrey() {
+  const pixels = Buffer.alloc(6 * 5);
+  for (let y = 0; y < 5; y++) for (let x = 0; x < 6; x++) pixels[y * 6 + x] = x * 40 + y * 10;
+  writeFileSync(
+    path.join(here, "grey.pdf"),
+    flatePages([{ colorSpace: "DeviceGray", extra: "", data: deflateSync(pixels) }]),
+  );
+}
+
+function writeShort() {
+  const full = rgb(6, 5, () => [10, 20, 30]);
+  const raw = { colorSpace: "DeviceRGB", extra: "" };
+  const png = { colorSpace: "DeviceRGB", extra: "/DecodeParms << /Predictor 15 /Colors 3 /Columns 6 >>" };
+  const filtered = pngFilter(full, 6, 5, 3);
+  writeFileSync(
+    path.join(here, "short-raw.pdf"),
+    flatePages([
+      { ...raw, data: deflateSync(full) },
+      { ...raw, data: deflateSync(full.subarray(0, full.length - 18)) },
+    ]),
+  );
+  writeFileSync(
+    path.join(here, "short-png.pdf"),
+    flatePages([
+      { ...png, data: deflateSync(filtered) },
+      { ...png, data: deflateSync(filtered.subarray(0, filtered.length - 19)) },
+    ]),
+  );
+}
+
 writeFlate();
 await writeDct();
+writeGrey();
+writeShort();

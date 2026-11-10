@@ -12,9 +12,10 @@ import {
   slideFile,
   THUMB_WIDTH,
   thumbFile,
+  thumbHeight,
 } from "../deck/deck-names";
 import { linkedInHashtags } from "../linkedin";
-import { type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
+import { isInlineSlideDeck, isSlideDeck, type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
 import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
 import { checkIllustration, type IllustrationShape } from "../mdx/illustration-svg";
@@ -156,8 +157,8 @@ export type Content = {
   /** Every Page, in name order. */
   listPages(): Page[];
   /**
-   * Every image the Post uses: its cover first, then its body images, each
-   * file once. Empty for a Post without images or an unknown Slug.
+   * Every image the Post uses: its cover first, then its body images, then its Slide deck's
+   * slides and thumbnails, each file once. Empty for a Post without images or an unknown Slug.
    */
   listPostImages(slug: string): PostImage[];
   /**
@@ -165,9 +166,16 @@ export type Content = {
    * and media type. Undefined for any other file.
    */
   readPostImage(slug: string, file: string): Promise<PostImageFile | undefined>;
+  /**
+   * Every file served next to the Post: its images (listPostImages), then its Slide deck's
+   * download PDF. Empty for an unknown Slug.
+   */
+  listPostFiles(slug: string): string[];
+  /** A file served next to the Post (one of listPostFiles): its bytes and media type. Undefined for any other file. */
+  readPostFile(slug: string, file: string): Promise<PostImageFile | undefined>;
 };
 
-/** An image file's bytes and its media type, e.g. `image/png`. */
+/** A file's bytes and its media type, e.g. `image/png` or `application/pdf`. */
 export type PostImageFile = { bytes: Uint8Array; type: string };
 
 export type TagCount = { tag: string; count: number };
@@ -348,11 +356,27 @@ export async function loadContent(contentDir: string): Promise<Content> {
     listPostImages,
     async readPostImage(slug, file) {
       if (!listPostImages(slug).some((image) => image.file === file)) return undefined;
-      const bytes = await readFile(path.join(postsDir, slug, file));
-      if (isIllustration(file)) return { bytes, type: SVG_TYPE };
-      return { bytes, type: file.endsWith(".pdf") ? PDF_TYPE : imageFormat(bytes)!.mediaType };
+      return readServedFile(slug, file);
+    },
+    listPostFiles,
+    async readPostFile(slug, file) {
+      if (!listPostFiles(slug).includes(file)) return undefined;
+      return readServedFile(slug, file);
     },
   };
+
+  /** A file served next to a Post, which the caller has checked is one of listPostFiles. */
+  async function readServedFile(slug: string, file: string): Promise<PostImageFile> {
+    const bytes = await readFile(path.join(postsDir, slug, file));
+    if (file === bySlug.get(slug)?.deck?.pdf.file) return { bytes, type: PDF_TYPE };
+    if (isIllustration(file)) return { bytes, type: SVG_TYPE };
+    return { bytes, type: imageFormat(bytes)!.mediaType };
+  }
+
+  function listPostFiles(slug: string): string[] {
+    const pdf = bySlug.get(slug)?.deck?.pdf.file;
+    return [...listPostImages(slug).map(({ file }) => file), ...(pdf ? [pdf] : [])];
+  }
 
   function listPostImages(slug: string): PostImage[] {
     const post = bySlug.get(slug);
@@ -365,27 +389,19 @@ export async function loadContent(contentDir: string): Promise<Content> {
   }
 }
 
-/** A Slide deck's files, served next to its Post: each slide then its thumbnail, then the download PDF. */
+/** A Slide deck's images, served next to its Post: each slide, then its thumbnail. */
 function deckImages(deck: SlideDeck | undefined): PostImage[] {
   if (!deck) return [];
   const { width, height } = deck;
-  const thumb = { width: THUMB_WIDTH, height: Math.round((THUMB_WIDTH * height) / width) };
-  return [
-    ...deck.slides.flatMap((slide) => [
-      { file: slide.image, width, height },
-      { file: slide.thumb, ...thumb },
-    ]),
-    { file: deck.pdf.file, width, height },
-  ];
+  const thumb = { width: THUMB_WIDTH, height: thumbHeight(width, height) };
+  return deck.slides.flatMap((slide) => [
+    { file: slide.image, width, height },
+    { file: slide.thumb, ...thumb },
+  ]);
 }
 
 /** The download PDF's media type. */
 const PDF_TYPE = "application/pdf";
-
-/** Whether a body node is a `<SlideDeck />`. */
-function isSlideDeck({ type, name }: MdNode): boolean {
-  return (type === "mdxJsxFlowElement" || type === "mdxJsxTextElement") && name === "SlideDeck";
-}
 
 /**
  * A Post's Slide deck: the `deck/` folder next to it, which `pnpm deck` writes and the body
@@ -398,7 +414,16 @@ async function loadSlideDeck(
   problems: ContentProblem[],
   report: Report,
 ): Promise<SlideDeck | undefined> {
-  const placed = mdNodes(tree).filter(isSlideDeck).length;
+  const inline = mdNodes(tree).filter(isInlineSlideDeck).length;
+  if (inline > 0) {
+    report(
+      "body",
+      "slide-deck-own-line",
+      "puts <SlideDeck /> inside a line of text; give it its own line, with a blank line before and after",
+    );
+  }
+  // An inline one is refused above, so it still counts as placed.
+  const placed = mdNodes(tree).filter(isSlideDeck).length + inline;
   const deckPath = `posts/${slug}/${DECK_DIR}`;
   const names = await readdir(path.join(contentDir, deckPath)).catch(() => undefined);
   const convert = `run pnpm deck ${slug} <path-to.pdf>`;
@@ -432,6 +457,9 @@ async function loadSlideDeck(
     );
   }
   const slideCount = slideNames.length;
+  if (slideCount === 0) {
+    deckReport(slideFile(1))("file", "deck-slides", `is missing: a Slide deck needs at least one slide; ${convert}`);
+  }
   for (const name of slideNames) {
     const thumb = thumbFile(parseInt(name));
     if (!names.includes(thumb)) deckReport(name)("thumbnail", "slide-thumbnail", `has no thumbnail "${thumb}"; ${convert} again`);

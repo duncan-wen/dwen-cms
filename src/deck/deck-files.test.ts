@@ -43,6 +43,17 @@ describe("converting a NotebookLM PDF into a Slide deck's files", () => {
     ]);
   });
 
+  it("turns a grey slide into an RGB JPEG in the download PDF, as the PDF declares it", async () => {
+    const files = await deckFiles(await readFile(path.join(import.meta.dirname, "fixtures", "grey.pdf")));
+    const pdf = files.get("deck.pdf") as Uint8Array;
+
+    const [page] = readPdfSlides(pdf);
+    const jpeg = page.format === "jpeg" ? await sharp(page.data).metadata() : undefined;
+
+    expect(jpeg?.channels).toBe(3);
+    expect(Buffer.from(pdf).toString("latin1")).toMatch(/\/ColorSpace \/DeviceRGB\b/);
+  });
+
   it("leaves deck.yml the slide size and an empty title and text per slide, for the Writing Agent to fill", async () => {
     const files = await deckFiles(await flatePdf());
 

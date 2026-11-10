@@ -262,19 +262,33 @@ describe("Slide decks", () => {
     expect(result.kind === "post" && result.post.deck).toBeUndefined();
   });
 
-  it("lists the deck's files among the Post's images, and reads them with their media types", async () => {
+  it("lists the deck's slides and thumbnails among the Post's images, at their sizes", async () => {
     const content = await loadContent(fixture("slide-deck"));
 
-    expect(content.listPostImages("with-deck").map((image) => image.file)).toEqual([
+    expect(content.listPostImages("with-deck")).toEqual([
+      { file: "deck/01.webp", width: 6, height: 5 },
+      { file: "deck/01-thumb.webp", width: 320, height: 267 },
+      { file: "deck/02.webp", width: 6, height: 5 },
+      { file: "deck/02-thumb.webp", width: 320, height: 267 },
+    ]);
+    expect((await content.readPostImage("with-deck", "deck/02.webp"))?.type).toBe("image/webp");
+    expect(await content.readPostImage("with-deck", "deck/deck.pdf")).toBeUndefined();
+  });
+
+  it("lists the download PDF among the Post's files, after its images, and reads it as a PDF", async () => {
+    const content = await loadContent(fixture("slide-deck"));
+
+    expect(content.listPostFiles("with-deck")).toEqual([
       "deck/01.webp",
       "deck/01-thumb.webp",
       "deck/02.webp",
       "deck/02-thumb.webp",
       "deck/deck.pdf",
     ]);
-    expect((await content.readPostImage("with-deck", "deck/02.webp"))?.type).toBe("image/webp");
-    expect((await content.readPostImage("with-deck", "deck/deck.pdf"))?.type).toBe("application/pdf");
-    expect(await content.readPostImage("with-deck", "deck/deck.yml")).toBeUndefined();
+    expect((await content.readPostFile("with-deck", "deck/deck.pdf"))?.type).toBe("application/pdf");
+    expect((await content.readPostFile("with-deck", "deck/01.webp"))?.type).toBe("image/webp");
+    expect(await content.readPostFile("with-deck", "deck/deck.yml")).toBeUndefined();
+    expect(content.listPostFiles("no-such-post")).toEqual([]);
   });
 
   it.each([
@@ -287,6 +301,8 @@ describe("Slide decks", () => {
     ["slide-text-required", "posts/blank-text/deck/deck.yml", "slides", "Slide 2"],
     ["deck-size", "posts/no-size/deck/deck.yml", "width", "width"],
     ["deck-pdf", "posts/no-pdf/deck/deck.pdf", "file", "pnpm deck"],
+    ["deck-slides", "posts/no-slides/deck/01.webp", "file", "at least one slide"],
+    ["slide-deck-own-line", "posts/inline/index.mdx", "body", "own line"],
   ])("rejects a deck breaking %s: %s %s, naming %s", async (rule, file, field, named) => {
     const error = await loadContent(fixture(rule)).catch((e: unknown) => e);
 
