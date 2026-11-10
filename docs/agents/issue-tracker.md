@@ -11,7 +11,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Dependencies are a `**Blocked by:** NN, NN` line
 - **Spec first**: a feature's tickets start only once its spec and ticket files are on `main`. While the spec's PR is open, its tickets wait, so every ticket branch can start off `main` and tick its own file there. A feature first asked for in chat starts the same way: run `/grilling`, write the agreed decisions to `.scratch/<feature-slug>/spec.md`, then write code. For a visual change, the first question is the job it does for readers (introduce the Owner, show technical skill, help them find Posts); offer looks only once that's agreed.
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
-- **Shipping**: how a ticket or any other change reaches `main` (branches, review, screenshots, merging, the production check) is in `shipping.md`.
+- **Shipping**: a ticket reaches `main` as `shipping.md` describes.
 - **Prototypes**: a prototype lives on its own `prototype/<name>` branch, kept after the work ships: tickets cite it as a primary source.
 - **Done**: when a ticket's work lands, tick every acceptance box it met and set `**Status:** done`, in the same commit as the code. A box the Owner checks stays unticked until they say OK; then tick it and note the approval under `## Comments`. A `Blocked by:` edge clears when the blocking ticket reads `done` on the integration branch it ships on, or on `main` for a ticket outside it. The PR that lands a spec's last open ticket also sets the spec's own `**Status:**` to `done`.
 
