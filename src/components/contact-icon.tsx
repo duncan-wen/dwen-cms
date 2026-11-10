@@ -32,10 +32,22 @@ const paths: Record<ContactIconName, ReactNode> = {
   ),
 };
 
-/** A contact link's mark, sized to sit inline before its label in the text's colour. */
+/** Each service's own brand colour, from the `--brand-*` tokens in globals.css. */
+const colours: Record<ContactIconName, string> = {
+  github: "text-brand-github",
+  linkedin: "text-brand-linkedin",
+  rss: "text-brand-rss",
+  mail: "",
+};
+
+/** A contact link's mark, sized to sit inline before its label in its service's colour (the mail mark keeps the text's). */
 export function ContactIcon({ name }: Props) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="mr-1.5 inline-block size-[1em] align-[-0.125em]">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={`mr-1.5 inline-block size-[1em] align-[-0.125em] ${colours[name]}`}
+    >
       {paths[name]}
     </svg>
   );
