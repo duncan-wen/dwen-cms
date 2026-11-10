@@ -12,6 +12,7 @@ Judgement calls for the reviewer. Lint, Prettier (`pnpm format` fixes it), typec
 - A content-check error names the file, the field and the rule, and its advice matches the spec's wording for that rule.
 - An error about one entry of a list names that entry: its value, or its position when it has no single value (`Revision 2`).
 - Every page, feed and image reads content through the content module's query interface, never from content files directly.
+- A content rule and the code that renders what it checks find that thing with one shared predicate (as `isSlideDeck` in `src/mdx/md-tree.ts` serves both the check and `remarkSlideDeck`), so the check can't pass something the build then rejects.
 
 ## Tests
 
