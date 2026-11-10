@@ -1,4 +1,5 @@
 import { contactLinks } from "@/contact-links";
+import { ContactIcon } from "./contact-icon";
 import { Seal } from "./seal";
 
 /** Every page's footer: the seal, © year, and links to follow or contact the Owner. */
@@ -10,8 +11,9 @@ export function SiteFooter() {
           <Seal size="small" />© {new Date().getFullYear()} Duncan Wen
         </span>
         <nav aria-label="聯絡與訂閱" className="flex flex-wrap gap-x-5 gap-y-2">
-          {contactLinks.map(({ href, label }) => (
+          {contactLinks.map(({ href, label, icon }) => (
             <a key={href} href={href} className="break-all hover:text-accent">
+              <ContactIcon name={icon} />
               {label}
             </a>
           ))}
