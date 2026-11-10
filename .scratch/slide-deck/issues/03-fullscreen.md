@@ -20,4 +20,8 @@ Keys, swiping, click zones and `#slide-N` all keep working in fullscreen. See `.
   - F and the button enter fullscreen (or the covering layer);
   - Esc leaves it on the same slide;
   - the hint shows once and not on the second entry
-- [ ] Checked by hand on the PR's preview on a phone: swiping, the covering layer on iPhone, and the hint; named in the PR
+- [x] Checked by hand on the PR's preview on a phone: swiping, the covering layer on iPhone, and the hint; named in the PR
+
+## Comments
+
+- 2026-11-10: the Owner checked the screenshots and the phone checks on PR #69 and said OK.
