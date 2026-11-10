@@ -14,6 +14,7 @@ const post = (slug: string, date: string): Post => ({
   images: {},
   promo: { template: "contour", titleLines: [slug], points: [] },
   linkedInShare: undefined,
+  deck: undefined,
   body: "",
 });
 

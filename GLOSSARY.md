@@ -50,6 +50,10 @@ _Avoid_: Figure, drawing, picture, graphic
 A process or architecture drawn from a Mermaid block in a Post's body, in the site's colours. Shown to readers as 「圖表」.
 _Avoid_: Chart, graph, flowchart (for the general term)
 
+**Slide deck**:
+A set of slides made outside the site (today with NotebookLM), stored next to a Post and played inside it. Shown to readers as 「投影片」. A Post containing a Slide deck is still a Post, and a Slide deck isn't a Demo, since nothing in it is interactive beyond turning slides.
+_Avoid_: Presentation, slideshow, carousel, PPT
+
 **Lightbox**:
 The layer over a page that shows one Body image enlarged; the Reader opens it with 「放大圖片」 and leaves it with 「關閉」.
 _Avoid_: Modal, popup, zoom

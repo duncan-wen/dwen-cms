@@ -186,6 +186,79 @@ test("a Post with a cover image opens with it instead of the generated cover", a
   await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 });
 
+test.describe("a Slide deck", () => {
+  const post = "/posts/slide-deck-smoke-post";
+  const slides = [
+    "煙霧測試投影片。確認投影片在文章裡播放",
+    "翻頁。按鈕和點擊投影片都能翻到下一頁",
+    "下載。投影片可以下載成 PDF",
+  ];
+  const player = (page: Page) => page.getByRole("figure", { name: "投影片" });
+
+  test("plays in the Post, starting on slide 1 of 3", async ({ page }) => {
+    await page.goto(post);
+
+    await expect(player(page).getByRole("img", { name: slides[0] })).toBeVisible();
+    await expect(player(page)).toContainText("1 / 3");
+    await expect(player(page)).toContainText("由 NotebookLM 產生");
+  });
+
+  test("the next button goes to slide 2", async ({ page }) => {
+    await page.goto(post);
+
+    await player(page).getByRole("button", { name: "下一頁" }).click();
+
+    await expect(player(page)).toContainText("2 / 3");
+    await expect(player(page).getByRole("img", { name: slides[1] })).toBeVisible();
+  });
+
+  test("clicking the slide's right side goes to slide 2, and its left third back", async ({ page }) => {
+    await page.goto(post);
+    const slide = player(page).getByRole("img");
+    const { width, height } = (await slide.boundingBox())!;
+
+    await slide.click({ position: { x: width * 0.8, y: height / 2 }, force: true });
+    await expect(player(page)).toContainText("2 / 3");
+
+    await slide.click({ position: { x: width * 0.1, y: height / 2 }, force: true });
+    await expect(player(page)).toContainText("1 / 3");
+  });
+
+  test("describes each slide by its title and text", async ({ page }) => {
+    await page.goto(post);
+
+    for (const [index, alt] of slides.entries()) {
+      await expect(player(page).getByRole("img")).toHaveAttribute("alt", alt);
+      if (index < slides.length - 1) await player(page).getByRole("button", { name: "下一頁" }).click();
+    }
+  });
+
+  test("offers the download PDF with its size, which answers as a PDF", async ({ page, request }) => {
+    await page.goto(post);
+    const link = player(page).getByRole("link", { name: /^下載 PDF（\d+ KB）$/ });
+
+    const response = await request.get((await link.getAttribute("href"))!);
+
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toBe("application/pdf");
+  });
+
+  test("loads only the first slide with the page, and the next two once turned to slide 2", async ({ page }) => {
+    const requested: string[] = [];
+    page.on("request", (request) => {
+      const match = request.url().match(/\/deck\/(\d+)\.webp$/);
+      if (match) requested.push(match[1]);
+    });
+    await page.goto(post);
+    await page.waitForLoadState("networkidle");
+    expect(requested).toEqual(["01"]);
+
+    await player(page).getByRole("button", { name: "下一頁" }).click();
+
+    await expect.poll(() => [...new Set(requested)].sort()).toEqual(["01", "02", "03"]);
+  });
+});
+
 test("code blocks colour their tokens with the theme's code colours", async ({ page }) => {
   await page.goto("/posts/typography-sample");
   const keyword = page.locator("pre code span", { hasText: /^export$/ }).first();
@@ -593,6 +666,7 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
     "/posts/smoke-post",
     "/posts/revised-smoke-post",
     "/posts/typography-sample",
+    "/posts/slide-deck-smoke-post",
     "/posts/last-year-smoke-post",
   ]);
   expect(xml).toContain("煙霧測試文章");

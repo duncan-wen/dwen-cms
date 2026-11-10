@@ -2,6 +2,7 @@ import type { MDXComponents } from "mdx/types";
 import { BodyImage } from "./body-image";
 import { Callout } from "./callout";
 import { Mermaid } from "./mermaid";
+import { SlideDeck } from "./slide-deck";
 
 /**
  * The single component map every MDX body renders through: Markdown elements
@@ -13,4 +14,5 @@ export const mdxComponents: MDXComponents = {
   img: BodyImage,
   Callout,
   Mermaid,
+  SlideDeck,
 };

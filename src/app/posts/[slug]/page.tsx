@@ -14,7 +14,7 @@ import { getContent } from "@/content/site-content";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
 import { pageAlternates } from "@/page-alternates";
-import { bodyImageSources } from "@/post-image-url";
+import { bodyImageSources, slideDeckSource } from "@/post-image-url";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -70,7 +70,7 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
-  const { Body, headings } = await compileMdx(post.body, bodyImageSources(post));
+  const { Body, headings } = await compileMdx(post.body, bodyImageSources(post), slideDeckSource(post));
   return (
     <article>
       <PostCover post={post} sizes={bodyColumnSizes} preload className="aspect-[21/9] rounded-md" />

@@ -1,3 +1,5 @@
+import { cp, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { ContentValidationError, loadContent } from "./content";
@@ -230,6 +232,80 @@ describe("images", () => {
     expect((error as Error).message).toContain("Mermaid block 1 (line 8)");
     expect((error as Error).message).toContain('"審閱"');
     expect((error as Error).message).toContain("review{審閱}");
+  });
+});
+
+describe("Slide decks", () => {
+  it("gives a Post its Slide deck: the slide size, and each slide's image, thumbnail, title and text in order", async () => {
+    const content = await loadContent(fixture("slide-deck"));
+
+    const result = content.resolveSlug("with-deck");
+    const deck = result.kind === "post" ? result.post.deck : undefined;
+
+    expect(deck).toMatchObject({
+      width: 6,
+      height: 5,
+      slides: [
+        { image: "deck/01.webp", thumb: "deck/01-thumb.webp", title: "第一頁", text: "第一頁的文字。" },
+        { image: "deck/02.webp", thumb: "deck/02-thumb.webp", title: "第二頁", text: "第二頁的文字。" },
+      ],
+      pdf: { file: "deck/deck.pdf" },
+    });
+    expect(deck?.pdf.bytes).toBeGreaterThan(1000);
+  });
+
+  it("gives a Post without a deck no Slide deck", async () => {
+    const content = await loadContent(fixture("images"));
+
+    const result = content.resolveSlug("with-images");
+
+    expect(result.kind === "post" && result.post.deck).toBeUndefined();
+  });
+
+  it("lists the deck's files among the Post's images, and reads them with their media types", async () => {
+    const content = await loadContent(fixture("slide-deck"));
+
+    expect(content.listPostImages("with-deck").map((image) => image.file)).toEqual([
+      "deck/01.webp",
+      "deck/01-thumb.webp",
+      "deck/02.webp",
+      "deck/02-thumb.webp",
+      "deck/deck.pdf",
+    ]);
+    expect((await content.readPostImage("with-deck", "deck/02.webp"))?.type).toBe("image/webp");
+    expect((await content.readPostImage("with-deck", "deck/deck.pdf"))?.type).toBe("application/pdf");
+    expect(await content.readPostImage("with-deck", "deck/deck.yml")).toBeUndefined();
+  });
+
+  it.each([
+    ["slide-deck-needs-deck", "posts/no-deck/index.mdx", "body", "<SlideDeck />"],
+    ["deck-needs-slide-deck", "posts/unplaced/index.mdx", "body", "<SlideDeck />"],
+    ["one-slide-deck", "posts/twice/index.mdx", "body", "2"],
+    ["slide-numbering", "posts/gap/deck/03.webp", "file", "02.webp"],
+    ["slide-thumbnail", "posts/no-thumb/deck/02.webp", "thumbnail", "02-thumb.webp"],
+    ["slide-text-count", "posts/one-text/deck/deck.yml", "slides", "2 slides"],
+    ["slide-text-required", "posts/blank-text/deck/deck.yml", "slides", "Slide 2"],
+    ["deck-size", "posts/no-size/deck/deck.yml", "width", "width"],
+    ["deck-pdf", "posts/no-pdf/deck/deck.pdf", "file", "pnpm deck"],
+  ])("rejects a deck breaking %s: %s %s, naming %s", async (rule, file, field, named) => {
+    const error = await loadContent(fixture(rule)).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file, field, rule }] });
+    expect((error as Error).message).toContain(named);
+  });
+
+  it("rejects a download PDF over 5 MB", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "deck-pdf-"));
+    await cp(fixture("slide-deck"), dir, { recursive: true });
+    await writeFile(path.join(dir, "posts/with-deck/deck/deck.pdf"), Buffer.alloc(5_000_001));
+
+    const error = await loadContent(dir).catch((e: unknown) => e);
+    await rm(dir, { recursive: true });
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/with-deck/deck/deck.pdf", field: "file", rule: "deck-pdf" }],
+    });
+    expect((error as Error).message).toContain("5 MB");
   });
 });
 
