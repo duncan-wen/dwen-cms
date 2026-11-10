@@ -39,7 +39,7 @@ export default async function HomePage() {
             <AgentAnimation />
           </div>
           <p className="font-serif text-[21px] leading-[1.6] font-bold">
-            我是 Duncan Wen，一名軟體工程師，專注在網頁開發與 AI 應用。
+            我是 Duncan Wen，一名軟體工程師，把 AI 從對話框帶進真正能運作的系統。
           </p>
           <p className="max-w-[22em] text-ink-soft">這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。</p>
           <LinkRow
