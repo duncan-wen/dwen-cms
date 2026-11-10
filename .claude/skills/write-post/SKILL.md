@@ -15,7 +15,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 
 1. **Branch.** `git fetch origin main` and create `post-<slug>` off `origin/main`. A Post is a change outside a spec, so it gets its own branch and its own PR.
 2. **Pick the mode and the hook.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1. Done when you can name the mode and the **hook**: the one surprising finding or concrete result the title, the opening and the promo images all lead with.
-3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, an Illustration (**Illustrations**) wherever a Reader needs to see something Mermaid can't draw, and images (**Images**) only when you have a real file. Then reread it as a Reader who has never seen the repo. Done when every PR number, file path, frontmatter field and internal name (Owner, skill names, ticket) is said in plain words, unless the Post is teaching that very thing and explains it.
+3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, an Illustration (**Illustrations**) wherever a Reader needs to see something Mermaid can't draw, and images (**Images**) only when you have a real file. When the Owner gave a NotebookLM PDF, add it as the Post's Slide deck by [SLIDE-DECKS.md](SLIDE-DECKS.md). Then reread it as a Reader who has never seen the repo. Done when every PR number, file path, frontmatter field and internal name (Owner, skill names, ticket) is said in plain words, unless the Post is teaching that very thing and explains it.
 4. **Draw the cover** (**Cover image**). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
 5. **Add `promo` frontmatter** (**Promo images**).
 6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
@@ -29,6 +29,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - the LinkedIn share's text, quoted, so the Owner reviews it with the Post;
    - any new Tag and the reason it's needed;
    - every personal detail you couldn't verify, under 「請 Owner 確認」;
+   - a Slide deck's place in the Post and every slide's title and text, under 「請 Owner 確認」 ([SLIDE-DECKS.md](SLIDE-DECKS.md) step 6);
    - the cover candidates, promo images and page shots: `covers/`, `promo/` and `test-results/` are gitignored and `gh` can't upload images, so list the files and give the Owner `explorer.exe covers/<slug>.html`, `explorer.exe promo/index.html` and `explorer.exe test-results/shots/index.html` to open the contact sheets.
 
 10. **Offer to share it.** Once the Owner has merged the Post and it's live, ask them once: 「要發 LinkedIn 嗎？」. Only on a yes, follow **LinkedIn share** to post it.
@@ -103,7 +104,7 @@ The body starts with prose (the page shows the title), uses `##` and `###` for s
 
 ## Images
 
-Store each image in the Post's folder and reference it by a path relative to that folder: `![草稿經過審閱才發布的流程圖](./flow.png)`, with Chinese alt text describing what it shows. Formats: PNG, JPEG, GIF, WebP or AVIF, and SVG for an Illustration you drew. `cover` takes the same kind of path, but not SVG. A diagram you can express in Mermaid is a Mermaid block, not an image.
+Store each image in the Post's folder and reference it by a path relative to that folder: `![草稿經過審閱才發布的流程圖](./flow.png)`, with Chinese alt text describing what it shows. Formats: PNG, JPEG, GIF, WebP or AVIF, and SVG for an Illustration you drew. `cover` takes the same kind of path, but not SVG. A diagram you can express in Mermaid is a Mermaid block, not an image. A NotebookLM PDF the Owner gives you is a Slide deck, not images: follow [SLIDE-DECKS.md](SLIDE-DECKS.md).
 
 ## Illustrations
 

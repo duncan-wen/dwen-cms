@@ -1,6 +1,6 @@
 # Spec: Slide decks in a Post
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 

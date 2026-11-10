@@ -20,7 +20,8 @@
     "cover": "tsx scripts/cover.ts",
     "linkedin": "tsx scripts/linkedin.ts",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm content:check && pnpm content:check e2e/content && pnpm test",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "deck": "tsx scripts/deck.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm check"
@@ -66,6 +67,7 @@
     "eslint-config-next": "^16.4.3",
     "postcss": "^8.5.32",
     "prettier": "3.9.10",
+    "sharp": "^0.35.5",
     "simple-git-hooks": "^2.14.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",

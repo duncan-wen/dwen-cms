@@ -186,6 +186,357 @@ test("a Post with a cover image opens with it instead of the generated cover", a
   await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 });
 
+test.describe("a Slide deck", () => {
+  const post = "/posts/slide-deck-smoke-post";
+  const slides = [
+    "煙霧測試投影片。確認投影片在文章裡播放",
+    "翻頁。按鈕和點擊投影片都能翻到下一頁",
+    "下載。投影片可以下載成 PDF",
+  ];
+  const player = (page: Page) => page.getByRole("figure", { name: "投影片" });
+
+  test("plays in the Post, starting on slide 1 of 3", async ({ page }) => {
+    await page.goto(post);
+
+    await expect(player(page).getByRole("img", { name: slides[0] })).toBeVisible();
+    await expect(player(page)).toContainText("1 / 3");
+    await expect(player(page)).toContainText("由 NotebookLM 產生");
+  });
+
+  test("the next button goes to slide 2", async ({ page }) => {
+    await page.goto(post);
+
+    await player(page).getByRole("button", { name: "下一頁" }).click();
+
+    await expect(player(page)).toContainText("2 / 3");
+    await expect(player(page).getByRole("img", { name: slides[1] })).toBeVisible();
+  });
+
+  test("clicking the slide's right side goes to slide 2, and its left third back", async ({ page }) => {
+    await page.goto(post);
+    const slide = player(page).getByRole("img");
+    const { width, height } = (await slide.boundingBox())!;
+
+    await slide.click({ position: { x: width * 0.8, y: height / 2 }, force: true });
+    await expect(player(page)).toContainText("2 / 3");
+
+    await slide.click({ position: { x: width * 0.1, y: height / 2 }, force: true });
+    await expect(player(page)).toContainText("1 / 3");
+  });
+
+  test("describes each slide by its title and text", async ({ page }) => {
+    await page.goto(post);
+
+    for (const [index, alt] of slides.entries()) {
+      await expect(player(page).getByRole("img")).toHaveAttribute("alt", alt);
+      if (index < slides.length - 1) await player(page).getByRole("button", { name: "下一頁" }).click();
+    }
+  });
+
+  test("puts every slide's title and text in the page's HTML for search engines, out of sight and hearing", async ({
+    page,
+    request,
+  }) => {
+    const response = await request.get(post);
+    // Outside scripts, so it's the page's own text, not the data the player starts from.
+    const html = (await response.text()).replace(/<script\b[\s\S]*?<\/script>/g, "");
+
+    expect(html).toContain("下載");
+    expect(html).toContain("投影片可以下載成 PDF");
+
+    await page.goto(post);
+    await player(page).getByText("本頁文字").click();
+    await expect(player(page).getByText("確認投影片在文章裡播放")).toBeVisible();
+    await expect(player(page).getByText("投影片可以下載成 PDF")).toBeHidden();
+  });
+
+  test("offers the download PDF with its size, which answers as a PDF", async ({ page, request }) => {
+    await page.goto(post);
+    const link = player(page).getByRole("link", { name: /^下載 PDF（\d+ KB）$/ });
+
+    const response = await request.get((await link.getAttribute("href"))!);
+
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toBe("application/pdf");
+  });
+
+  test("arrow keys turn slides while the player has focus, and do nothing while it hasn't", async ({ page }) => {
+    await page.goto(post);
+
+    await page.keyboard.press("ArrowRight");
+    await expect(player(page)).toContainText("1 / 3");
+
+    await player(page)
+      .getByRole("group", { name: /^投影片 1 \/ 3/ })
+      .focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(player(page)).toContainText("2 / 3");
+    await page.keyboard.press("ArrowLeft");
+    await expect(player(page)).toContainText("1 / 3");
+    await page.keyboard.press("End");
+    await expect(player(page)).toContainText("3 / 3");
+  });
+
+  test("arrow keys turn slides while the pointer is over the player", async ({ page }) => {
+    await page.goto(post);
+
+    await player(page).getByRole("img").hover({ force: true });
+    await page.keyboard.press("ArrowRight");
+
+    await expect(player(page)).toContainText("2 / 3");
+  });
+
+  test("swiping left on the slide turns forward, and right turns back", async ({ page }) => {
+    await page.goto(post);
+    const frame = player(page).getByRole("group", { name: /^投影片 \d \/ 3/ });
+    const swipe = (fromX: number, toX: number) =>
+      frame.evaluate(
+        (element, [from, to]) => {
+          const touch = (x: number) => new Touch({ identifier: 1, target: element, clientX: x, clientY: 100 });
+          element.dispatchEvent(new TouchEvent("touchstart", { bubbles: true, touches: [touch(from)] }));
+          element.dispatchEvent(new TouchEvent("touchend", { bubbles: true, changedTouches: [touch(to)] }));
+        },
+        [fromX, toX],
+      );
+
+    await swipe(300, 100);
+    await expect(player(page)).toContainText("2 / 3");
+
+    await swipe(100, 300);
+    await expect(player(page)).toContainText("1 / 3");
+
+    await swipe(200, 180);
+    await expect(player(page)).toContainText("1 / 3");
+  });
+
+  test.describe("on a touch screen", () => {
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+
+    test("a finger swiping across the slide's forward side turns one slide, not two", async ({ page }) => {
+      await page.goto(post);
+      const { x, y, width, height } = (await player(page).getByRole("img").boundingBox())!;
+      // A real finger, so the browser decides whether it was also a tap on the click zone under it.
+      const cdp = await page.context().newCDPSession(page);
+      const finger = (type: "touchStart" | "touchMove" | "touchEnd", at: number) =>
+        cdp.send("Input.dispatchTouchEvent", {
+          type,
+          touchPoints: type === "touchEnd" ? [] : [{ x: x + width * at, y: y + height / 2 }],
+        });
+
+      await finger("touchStart", 0.9);
+      for (const at of [0.85, 0.8, 0.7, 0.6, 0.5]) await finger("touchMove", at);
+      await finger("touchEnd", 0.5);
+
+      await expect(player(page)).toContainText("2 / 3");
+      await page.waitForTimeout(500);
+      await expect(player(page)).toContainText("2 / 3");
+    });
+  });
+
+  test("turning a slide puts it in the address as #slide-N", async ({ page }) => {
+    await page.goto(post);
+
+    await player(page).getByRole("button", { name: "下一頁" }).click();
+
+    await expect(page).toHaveURL(/#slide-2$/);
+  });
+
+  test("opening #slide-3 starts on slide 3 with the player in view", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 300 });
+    await page.goto(`${post}#slide-3`);
+
+    await expect(player(page)).toContainText("3 / 3");
+    await expect(player(page).getByRole("img", { name: slides[2] })).toBeInViewport();
+  });
+
+  for (const hash of ["#slide-9", "#slide-0", "#slide-x", "#slide-2x"]) {
+    test(`opening ${hash} starts on slide 1`, async ({ page }) => {
+      await page.goto(`${post}${hash}`);
+
+      await expect(player(page).getByRole("img", { name: slides[0] })).toBeVisible();
+      await expect(player(page)).toContainText("1 / 3");
+    });
+  }
+
+  test("「所有頁面」 shows every slide's thumbnail, loaded only once opened, and choosing one jumps to it", async ({
+    page,
+  }) => {
+    const thumbs: string[] = [];
+    page.on("request", (request) => {
+      if (/\/deck\/\d+-thumb\.webp$/.test(request.url())) thumbs.push(request.url());
+    });
+    await page.goto(post);
+    await page.waitForLoadState("networkidle");
+    expect(thumbs).toEqual([]);
+
+    await player(page).getByText("所有頁面").click();
+    const grid = player(page).getByRole("list", { name: "所有頁面" });
+    await expect(grid.getByRole("listitem")).toHaveCount(3);
+    await expect.poll(() => new Set(thumbs).size).toBe(3);
+
+    await grid.getByRole("button", { name: "第 3 頁：下載" }).click();
+
+    await expect(player(page)).toContainText("3 / 3");
+    await expect(player(page).getByRole("img", { name: slides[2] })).toBeVisible();
+    await expect(page).toHaveURL(/#slide-3$/);
+  });
+
+  test("「本頁文字」 shows the current slide's title and text, and follows the slide", async ({ page }) => {
+    await page.goto(post);
+
+    await player(page).getByText("本頁文字").click();
+    const text = player(page).getByRole("group").filter({ hasText: "本頁文字" });
+    // As shown: the other slides' text is in the page too, hidden.
+    const shown = { useInnerText: true };
+    await expect(text).toContainText("煙霧測試投影片", shown);
+    await expect(text).toContainText("確認投影片在文章裡播放", shown);
+
+    await player(page).getByRole("button", { name: "下一頁" }).click();
+
+    await expect(text).toContainText("翻頁", shown);
+    await expect(text).toContainText("按鈕和點擊投影片都能翻到下一頁", shown);
+    await expect(text).not.toContainText("煙霧測試投影片", shown);
+  });
+
+  test("loads only the first slide with the page, and the next two once turned to slide 2", async ({ page }) => {
+    const requested: string[] = [];
+    page.on("request", (request) => {
+      const match = request.url().match(/\/deck\/(\d+)\.webp$/);
+      if (match) requested.push(match[1]);
+    });
+    await page.goto(post);
+    await page.waitForLoadState("networkidle");
+    expect(requested).toEqual(["01"]);
+
+    await player(page).getByRole("button", { name: "下一頁" }).click();
+
+    await expect.poll(() => [...new Set(requested)].sort()).toEqual(["01", "02", "03"]);
+  });
+
+  test.describe("fullscreen", () => {
+    /** The accessible name of the element the browser shows fullscreen, or null outside it. */
+    const fullscreenName = (page: Page) => page.evaluate(() => document.fullscreenElement?.ariaLabel ?? null);
+    const close = (page: Page) => player(page).getByRole("button", { name: "關閉" });
+    const hint = (page: Page) => player(page).getByText("← → 或左右滑動翻頁 · Esc 離開");
+
+    test("「全螢幕」 shows the slide fullscreen, keys still turn it, and 「關閉」 leaves on the same slide", async ({
+      page,
+    }) => {
+      await page.goto(post);
+
+      await player(page).getByRole("button", { name: "全螢幕" }).click();
+      await expect.poll(() => fullscreenName(page)).toMatch(/^投影片 1 \/ 3/);
+      await expect(close(page)).toBeVisible();
+      await page.keyboard.press("ArrowRight");
+      await expect.poll(() => fullscreenName(page)).toMatch(/^投影片 2 \/ 3/);
+
+      await close(page).click();
+
+      await expect.poll(() => fullscreenName(page)).toBeNull();
+      await expect(player(page)).toContainText("2 / 3");
+      await expect(page).toHaveURL(/#slide-2$/);
+      await expect(player(page).getByRole("img", { name: slides[1] })).toBeInViewport();
+    });
+
+    test("F enters fullscreen and Esc leaves it on the same slide", async ({ page }) => {
+      await page.goto(post);
+      await player(page).getByRole("img").hover({ force: true });
+
+      await page.keyboard.press("f");
+      await expect.poll(() => fullscreenName(page)).toMatch(/^投影片 1 \/ 3/);
+      await expect(close(page)).toBeVisible();
+      await page.keyboard.press("End");
+      await page.keyboard.press("Escape");
+
+      await expect.poll(() => fullscreenName(page)).toBeNull();
+      await expect(close(page)).toBeHidden();
+      await expect(player(page)).toContainText("3 / 3");
+      await expect(player(page).getByRole("img", { name: slides[2] })).toBeInViewport();
+    });
+
+    test("without element fullscreen, the player covers the page and holds it still until left", async ({ page }) => {
+      await page.addInitScript(() =>
+        Object.defineProperty(Document.prototype, "fullscreenEnabled", { get: () => false }),
+      );
+      await page.setViewportSize({ width: 375, height: 667 });
+      await page.goto(post);
+
+      await player(page).getByRole("button", { name: "全螢幕" }).click();
+      const frame = player(page).getByRole("group", { name: /^投影片 1 \/ 3/ });
+      await expect(close(page)).toBeVisible();
+      expect(await frame.boundingBox()).toEqual({ x: 0, y: 0, width: 375, height: 667 });
+      const scrolled = await page.evaluate(() => window.scrollY);
+      await page.mouse.wheel(0, 400);
+      await page.waitForTimeout(300);
+      expect(await page.evaluate(() => window.scrollY)).toBe(scrolled);
+      await page.keyboard.press("ArrowRight");
+      await expect(player(page)).toContainText("2 / 3");
+
+      await page.keyboard.press("Escape");
+
+      await expect(close(page)).toBeHidden();
+      await expect(player(page)).toContainText("2 / 3");
+      await expect(player(page).getByRole("img", { name: slides[1] })).toBeInViewport();
+      await page.mouse.wheel(0, 400);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrolled);
+    });
+
+    test("the slide is dimmed in the dark theme's reading column, and undimmed fullscreen", async ({ page }) => {
+      await page.emulateMedia({ colorScheme: "dark" });
+      await page.goto(post);
+      const filter = () =>
+        player(page)
+          .getByRole("img")
+          .evaluate((img) => getComputedStyle(img).filter);
+      expect(await filter()).toContain("brightness");
+
+      await player(page).getByRole("button", { name: "全螢幕" }).click();
+      await expect(close(page)).toBeVisible();
+
+      expect(await filter()).toBe("none");
+    });
+
+    test("the hint shows on the first fullscreen, fades by itself, and not on the next", async ({ page }) => {
+      await page.goto(post);
+      const enter = async () => {
+        await player(page).getByRole("button", { name: "全螢幕" }).click();
+        await expect(close(page)).toBeVisible();
+      };
+
+      await enter();
+      await expect(hint(page)).toBeVisible();
+      await expect(hint(page)).toBeHidden({ timeout: 5000 });
+      await close(page).click();
+      await enter();
+      await expect(hint(page)).toHaveCount(0);
+      await close(page).click();
+
+      await page.reload();
+      await enter();
+      await expect(hint(page)).toHaveCount(0);
+    });
+
+    test("where storage fails, fullscreen still works and the hint shows each time", async ({ page }) => {
+      await page.addInitScript(() =>
+        Object.defineProperty(window, "localStorage", {
+          get: () => {
+            throw new DOMException("blocked", "SecurityError");
+          },
+        }),
+      );
+      await page.goto(post);
+
+      for (let entry = 0; entry < 2; entry++) {
+        await player(page).getByRole("button", { name: "全螢幕" }).click();
+        await expect(close(page)).toBeVisible();
+        await expect(hint(page)).toBeVisible();
+        await close(page).click();
+        await expect(close(page)).toBeHidden();
+      }
+    });
+  });
+});
+
 test("code blocks colour their tokens with the theme's code colours", async ({ page }) => {
   await page.goto("/posts/typography-sample");
   const keyword = page.locator("pre code span", { hasText: /^export$/ }).first();
@@ -593,6 +944,7 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
     "/posts/smoke-post",
     "/posts/revised-smoke-post",
     "/posts/typography-sample",
+    "/posts/slide-deck-smoke-post",
     "/posts/last-year-smoke-post",
   ]);
   expect(xml).toContain("煙霧測試文章");

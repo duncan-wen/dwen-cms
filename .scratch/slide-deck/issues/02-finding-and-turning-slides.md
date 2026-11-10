@@ -12,16 +12,16 @@ Nothing in the player scrolls sideways. See `../spec.md`. The prototype's varian
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Keys turn slides only while the player has focus or the pointer is over it; typing in a text box is never intercepted
-- [ ] Swiping left or right on the slide turns it
-- [ ] Turning updates `#slide-N`; opening `#slide-N` starts on slide N with the player in view; an out-of-range or malformed hash starts on slide 1
-- [ ] 「所有頁面」 opens a thumbnail grid, 5 per row at desktop width and 3 on a phone; thumbnails are requested only once it opens; choosing one jumps to that slide
-- [ ] 「本頁文字」 shows the current slide's title and text and follows the slide as it turns
-- [ ] Smoke checks:
+- [x] Keys turn slides only while the player has focus or the pointer is over it; typing in a text box is never intercepted
+- [x] Swiping left or right on the slide turns it
+- [x] Turning updates `#slide-N`; opening `#slide-N` starts on slide N with the player in view; an out-of-range or malformed hash starts on slide 1
+- [x] 「所有頁面」 opens a thumbnail grid, 5 per row at desktop width and 3 on a phone; thumbnails are requested only once it opens; choosing one jumps to that slide
+- [x] 「本頁文字」 shows the current slide's title and text and follows the slide as it turns
+- [x] Smoke checks:
   - arrow keys with the player focused, and no effect unfocused;
   - opening `#slide-3`;
   - 「所有頁面」 showing three thumbnails and jumping;
   - 「本頁文字」 showing the current slide's text
-- [ ] `pnpm shots` in light and dark at 1280px and 375px, with 「所有頁面」 open in one shot, read before ticking; the shots pass (nothing clipped or scrolling sideways)
+- [x] `pnpm shots` in light and dark at 1280px and 375px, with 「所有頁面」 open in one shot, read before ticking; the shots pass (nothing clipped or scrolling sideways)

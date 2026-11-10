@@ -1,11 +1,21 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { createProcessor } from "@mdx-js/mdx";
 import matter from "gray-matter";
 import { imageSize } from "image-size";
 import { CORE_SCHEMA, load as loadYaml } from "js-yaml";
+import {
+  DECK_DIR,
+  DECK_PDF,
+  DECK_PDF_LIMIT_BYTES,
+  DECK_TEXT,
+  slideFile,
+  THUMB_WIDTH,
+  thumbFile,
+  thumbHeight,
+} from "../deck/deck-names";
 import { linkedInHashtags } from "../linkedin";
-import { type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
+import { isInlineSlideDeck, isSlideDeck, type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
 import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
 import { checkIllustration, type IllustrationShape } from "../mdx/illustration-svg";
@@ -36,7 +46,26 @@ export type Post = {
   body: string;
   /** What the Owner shares the Post on LinkedIn with, from `linkedin.txt` next to it; optional. */
   linkedInShare: LinkedInShare | undefined;
+  /** The Slide deck its body places with `<SlideDeck />`, from the `deck/` folder next to it; optional. */
+  deck: SlideDeck | undefined;
 };
+
+/**
+ * A set of slides made outside the site (today with NotebookLM), stored next to a Post in its
+ * `deck/` folder and played inside it. `pnpm deck` writes its files; files are relative to
+ * the Post's folder.
+ */
+export type SlideDeck = {
+  /** Every slide's size, in px. */
+  width: number;
+  height: number;
+  slides: Slide[];
+  /** The download copy, and its size in bytes. */
+  pdf: { file: string; bytes: number };
+};
+
+/** One slide: its image and thumbnail, and the title and text a Writing Agent read off it. */
+export type Slide = { image: string; thumb: string; title: string; text: string };
 
 /**
  * A LinkedIn share: the text above the Post's link card, and once it's posted, the LinkedIn
@@ -128,8 +157,8 @@ export type Content = {
   /** Every Page, in name order. */
   listPages(): Page[];
   /**
-   * Every image the Post uses: its cover first, then its body images, each
-   * file once. Empty for a Post without images or an unknown Slug.
+   * Every image the Post uses: its cover first, then its body images, then its Slide deck's
+   * slides and thumbnails, each file once. Empty for a Post without images or an unknown Slug.
    */
   listPostImages(slug: string): PostImage[];
   /**
@@ -137,9 +166,16 @@ export type Content = {
    * and media type. Undefined for any other file.
    */
   readPostImage(slug: string, file: string): Promise<PostImageFile | undefined>;
+  /**
+   * Every file served next to the Post: its images (listPostImages), then its Slide deck's
+   * download PDF. Empty for an unknown Slug.
+   */
+  listPostFiles(slug: string): string[];
+  /** A file served next to the Post (one of listPostFiles): its bytes and media type. Undefined for any other file. */
+  readPostFile(slug: string, file: string): Promise<PostImageFile | undefined>;
 };
 
-/** An image file's bytes and its media type, e.g. `image/png`. */
+/** A file's bytes and its media type, e.g. `image/png` or `application/pdf`. */
 export type PostImageFile = { bytes: Uint8Array; type: string };
 
 export type TagCount = { tag: string; count: number };
@@ -253,6 +289,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     if (tree) await checkDiagrams(tree, bodyLine, report);
     const promo = checkPromo(data.promo, title, description, report);
     const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
+    const deck = tree ? await loadSlideDeck(tree, contentDir, slug, problems, report) : undefined;
 
     posts.push({
       slug,
@@ -267,6 +304,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
       promo,
       body,
       linkedInShare,
+      deck,
     });
   }
 
@@ -318,20 +356,177 @@ export async function loadContent(contentDir: string): Promise<Content> {
     listPostImages,
     async readPostImage(slug, file) {
       if (!listPostImages(slug).some((image) => image.file === file)) return undefined;
-      const bytes = await readFile(path.join(postsDir, slug, file));
-      return { bytes, type: isIllustration(file) ? SVG_TYPE : imageFormat(bytes)!.mediaType };
+      return readServedFile(slug, file);
+    },
+    listPostFiles,
+    async readPostFile(slug, file) {
+      if (!listPostFiles(slug).includes(file)) return undefined;
+      return readServedFile(slug, file);
     },
   };
+
+  /** A file served next to a Post, which the caller has checked is one of listPostFiles. */
+  async function readServedFile(slug: string, file: string): Promise<PostImageFile> {
+    const bytes = await readFile(path.join(postsDir, slug, file));
+    if (file === bySlug.get(slug)?.deck?.pdf.file) return { bytes, type: PDF_TYPE };
+    if (isIllustration(file)) return { bytes, type: SVG_TYPE };
+    return { bytes, type: imageFormat(bytes)!.mediaType };
+  }
+
+  function listPostFiles(slug: string): string[] {
+    const pdf = bySlug.get(slug)?.deck?.pdf.file;
+    return [...listPostImages(slug).map(({ file }) => file), ...(pdf ? [pdf] : [])];
+  }
 
   function listPostImages(slug: string): PostImage[] {
     const post = bySlug.get(slug);
     if (!post) return [];
     const byFile = new Map<string, PostImage>();
-    for (const image of [post.cover, ...Object.values(post.images)]) {
+    for (const image of [post.cover, ...Object.values(post.images), ...deckImages(post.deck)]) {
       if (image && !byFile.has(image.file)) byFile.set(image.file, image);
     }
     return [...byFile.values()];
   }
+}
+
+/** A Slide deck's images, served next to its Post: each slide, then its thumbnail. */
+function deckImages(deck: SlideDeck | undefined): PostImage[] {
+  if (!deck) return [];
+  const { width, height } = deck;
+  const thumb = { width: THUMB_WIDTH, height: thumbHeight(width, height) };
+  return deck.slides.flatMap((slide) => [
+    { file: slide.image, width, height },
+    { file: slide.thumb, ...thumb },
+  ]);
+}
+
+/** The download PDF's media type. */
+const PDF_TYPE = "application/pdf";
+
+/**
+ * A Post's Slide deck: the `deck/` folder next to it, which `pnpm deck` writes and the body
+ * places once with `<SlideDeck />`. Each problem with a deck file names that file.
+ */
+async function loadSlideDeck(
+  tree: MdNode,
+  contentDir: string,
+  slug: string,
+  problems: ContentProblem[],
+  report: Report,
+): Promise<SlideDeck | undefined> {
+  const inline = mdNodes(tree).filter(isInlineSlideDeck).length;
+  if (inline > 0) {
+    report(
+      "body",
+      "slide-deck-own-line",
+      "puts <SlideDeck /> inside a line of text; give it its own line, with a blank line before and after",
+    );
+  }
+  // An inline one is refused above, so it still counts as placed.
+  const placed = mdNodes(tree).filter(isSlideDeck).length + inline;
+  const deckPath = `posts/${slug}/${DECK_DIR}`;
+  const names = await readdir(path.join(contentDir, deckPath)).catch(() => undefined);
+  const convert = `run pnpm deck ${slug} <path-to.pdf>`;
+  if (placed > 1) {
+    report("body", "one-slide-deck", `places <SlideDeck /> ${placed} times; a Post has at most one Slide deck`);
+  }
+  if (placed > 0 && names === undefined) {
+    report("body", "slide-deck-needs-deck", `places <SlideDeck />, but there's no ${DECK_DIR}/ folder next to the Post; ${convert}`);
+  }
+  if (names === undefined) return undefined;
+  if (placed === 0) {
+    report(
+      "body",
+      "deck-needs-slide-deck",
+      `doesn't place the Slide deck in ${DECK_DIR}/; add <SlideDeck /> after the paragraph that introduces what the slides cover`,
+    );
+  }
+  const before = problems.length;
+  const deckReport = (name: string): Report => (field, rule, message) =>
+    problems.push({ file: `${deckPath}/${name}`, field, rule, message });
+
+  const slideNames = names
+    .filter((name) => /^\d+\.webp$/.test(name))
+    .sort((a, b) => parseInt(a) - parseInt(b));
+  const gap = slideNames.findIndex((name, index) => name !== slideFile(index + 1));
+  if (gap !== -1) {
+    deckReport(slideNames[gap])(
+      "file",
+      "slide-numbering",
+      `should be "${slideFile(gap + 1)}": slide images are numbered 01 up with no gaps`,
+    );
+  }
+  const slideCount = slideNames.length;
+  if (slideCount === 0) {
+    deckReport(slideFile(1))("file", "deck-slides", `is missing: a Slide deck needs at least one slide; ${convert}`);
+  }
+  for (const name of slideNames) {
+    const thumb = thumbFile(parseInt(name));
+    if (!names.includes(thumb)) deckReport(name)("thumbnail", "slide-thumbnail", `has no thumbnail "${thumb}"; ${convert} again`);
+  }
+
+  const text = await loadDeckText(path.join(contentDir, deckPath, DECK_TEXT), slideCount, deckReport(DECK_TEXT));
+
+  const pdfReport = deckReport(DECK_PDF);
+  const pdfBytes = await stat(path.join(contentDir, deckPath, DECK_PDF)).then(({ size }) => size, () => undefined);
+  if (pdfBytes === undefined) pdfReport("file", "deck-pdf", `is missing; ${convert} to write the download copy`);
+  else if (pdfBytes > DECK_PDF_LIMIT_BYTES) {
+    pdfReport(
+      "file",
+      "deck-pdf",
+      `is ${(pdfBytes / 1e6).toFixed(1)} MB, more than ${DECK_PDF_LIMIT_BYTES / 1e6} MB; commit the copy pnpm deck writes, never the original`,
+    );
+  }
+
+  if (problems.length > before || text === undefined || pdfBytes === undefined) return undefined;
+  return {
+    width: text.width,
+    height: text.height,
+    slides: text.slides.map((slide, index) => ({
+      image: `${DECK_DIR}/${slideFile(index + 1)}`,
+      thumb: `${DECK_DIR}/${thumbFile(index + 1)}`,
+      ...slide,
+    })),
+    pdf: { file: `${DECK_DIR}/${DECK_PDF}`, bytes: pdfBytes },
+  };
+}
+
+/** A deck's `deck.yml`: the slide size, and exactly one non-empty title and text per slide. */
+async function loadDeckText(file: string, slideCount: number, report: Report) {
+  const perSlide = `give exactly one title and text per slide, in order, for its ${slideCount} slides`;
+  const source = await readFile(file, "utf8").catch(() => undefined);
+  if (source === undefined) {
+    report("slides", "slide-text-count", `is missing; ${perSlide}`);
+    return undefined;
+  }
+  let data: Record<string, unknown>;
+  try {
+    data = parseYaml(source);
+  } catch (error) {
+    report("file", "yaml-syntax", firstLine(error));
+    return undefined;
+  }
+  const size = (field: "width" | "height") => {
+    const value = data[field];
+    if (typeof value === "number" && Number.isInteger(value) && value > 0) return value;
+    report(field, "deck-size", `must be the slides' ${field} in px, as pnpm deck writes it`);
+    return undefined;
+  };
+  const [width, height] = [size("width"), size("height")];
+  const entries = Array.isArray(data.slides) ? (data.slides as unknown[]) : [];
+  if (entries.length !== slideCount) {
+    const count = `${entries.length} ${entries.length === 1 ? "entry" : "entries"}`;
+    report("slides", "slide-text-count", `has ${count} for ${slideCount} slides; ${perSlide}`);
+  }
+  const slides = entries.map((entry, index) => {
+    const fields = (typeof entry === "object" && entry !== null ? entry : {}) as Record<string, unknown>;
+    const which = `Slide ${index + 1} (${slideFile(index + 1)})`;
+    const [title, text] = [requiredString(fields.title), requiredString(fields.text)];
+    if (title === undefined) report("slides", "slide-text-required", `${which} needs a title: the slide's heading, read off its image`);
+    if (text === undefined) report("slides", "slide-text-required", `${which} needs a text: everything else the slide says, read off its image`);
+    return { title: title ?? "", text: text ?? "" };
+  });
+  return width && height ? { width, height, slides } : undefined;
 }
 
 /** LinkedIn's limit on a post's text, in characters. */

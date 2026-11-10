@@ -26,6 +26,9 @@
   --code-comment: #858d88;
   --code-function: #2b5c8a;
   --code-type: #8a5a1c;
+  /* A fullscreen Slide deck plays on black in both themes, so these two stay out of dark's list. */
+  --stage: #000000;
+  --on-stage: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -106,6 +109,19 @@
       transform: none;
     }
   }
+
+  /* A fullscreen Slide deck's first-time hint stays for about two seconds, then fades. */
+  --animate-hint: hint 2.6s ease-in forwards;
+
+  @keyframes hint {
+    0%,
+    75% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
 }
 
 /* Drop Tailwind's palette so a literal colour class (text-zinc-500) generates nothing. */
@@ -130,6 +146,8 @@
   --color-code-comment: var(--code-comment);
   --color-code-function: var(--code-function);
   --color-code-type: var(--code-type);
+  --color-stage: var(--stage);
+  --color-on-stage: var(--on-stage);
 
   /* --font-noto-serif-tc and --font-jetbrains-mono come from next/font in the root layout. */
   --font-sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
@@ -156,8 +174,9 @@
   }
 }
 
-/* A Lightbox holds the page still behind it. */
-:root:has(dialog[open]) {
+/* A Lightbox, and a Slide deck covering the page where there's no element fullscreen, hold the page still behind them. */
+:root:has(dialog[open]),
+:root:has([data-covering-page]) {
   overflow: hidden;
 }
 

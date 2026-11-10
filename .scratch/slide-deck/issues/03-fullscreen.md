@@ -10,14 +10,18 @@ Keys, swiping, click zones and `#slide-N` all keep working in fullscreen. See `.
 
 **Blocked by:** 02 (same component; no functional dependency)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 「全螢幕」 and F enter fullscreen; Esc and 「關閉」 leave it, returning to the same slide in the reading column
-- [ ] Without element fullscreen, the player covers the page, and the page doesn't scroll underneath
-- [ ] The slide is undimmed in fullscreen in both themes
-- [ ] The hint shows on the first fullscreen only, fades by itself, and storage failures don't break anything
-- [ ] Smoke checks:
+- [x] 「全螢幕」 and F enter fullscreen; Esc and 「關閉」 leave it, returning to the same slide in the reading column
+- [x] Without element fullscreen, the player covers the page, and the page doesn't scroll underneath
+- [x] The slide is undimmed in fullscreen in both themes
+- [x] The hint shows on the first fullscreen only, fades by itself, and storage failures don't break anything
+- [x] Smoke checks:
   - F and the button enter fullscreen (or the covering layer);
   - Esc leaves it on the same slide;
   - the hint shows once and not on the second entry
-- [ ] Checked by hand on the PR's preview on a phone: swiping, the covering layer on iPhone, and the hint; named in the PR
+- [x] Checked by hand on the PR's preview on a phone: swiping, the covering layer on iPhone, and the hint; named in the PR
+
+## Comments
+
+- 2026-11-10: the Owner checked the screenshots and the phone checks on PR #69 and said OK.

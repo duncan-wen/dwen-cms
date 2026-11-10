@@ -11,6 +11,7 @@ import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
 import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
+import { slideDeckSource } from "@/deck/slide-deck-source";
 import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
 import { pageAlternates } from "@/page-alternates";
@@ -70,7 +71,7 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
-  const { Body, headings } = await compileMdx(post.body, bodyImageSources(post));
+  const { Body, headings } = await compileMdx(post.body, bodyImageSources(post), slideDeckSource(post));
   return (
     <article>
       <PostCover post={post} sizes={bodyColumnSizes} preload className="aspect-[21/9] rounded-md" />

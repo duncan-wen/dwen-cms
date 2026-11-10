@@ -1,7 +1,7 @@
 import type { Post } from "@/content/content";
 import type { BodyImageSource } from "@/mdx/compile-mdx";
 
-/** Where an image stored next to a Post is served: `/posts/<slug>/<file>`. */
+/** Where a file stored next to a Post is served: `/posts/<slug>/<file>`. */
 export function postImageUrl(slug: string, file: string): string {
   return `/posts/${slug}/${file.split("/").map(encodeURIComponent).join("/")}`;
 }

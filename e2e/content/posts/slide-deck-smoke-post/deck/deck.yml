@@ -1,0 +1,10 @@
+# Each slide's title and text, in order: its image's description and 「本頁文字」.
+width: 1376
+height: 768
+slides:
+  - title: 煙霧測試投影片 # 01.webp
+    text: 確認投影片在文章裡播放
+  - title: 翻頁 # 02.webp
+    text: 按鈕和點擊投影片都能翻到下一頁
+  - title: 下載 # 03.webp
+    text: 投影片可以下載成 PDF

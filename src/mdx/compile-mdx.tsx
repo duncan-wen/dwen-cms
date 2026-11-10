@@ -8,7 +8,7 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { createCssVariablesTheme } from "shiki";
 import { mdxComponents } from "./components";
-import { type MdNode, mermaidBlocks } from "./md-tree";
+import { isSlideDeck, type MdNode, mdNodes, mermaidBlocks } from "./md-tree";
 
 /** One entry of a Post's table of contents: an `h2` heading's id and text. */
 export type Heading = { id: string; label: string };
@@ -29,6 +29,15 @@ export type BodyImageSource = {
   phoneSvg?: string;
 };
 
+/** A Post's Slide deck as its player takes it: where each slide and the download PDF are served. */
+export type SlideDeckSource = {
+  width: number;
+  height: number;
+  slides: { src: string; thumb: string; title: string; text: string }[];
+  /** The download PDF, and its size as a Reader reads it, e.g. `1.6 MB`. */
+  pdf: { src: string; size: string };
+};
+
 /**
  * Code blocks colour each token with `var(--shiki-token-*)`, so globals.css
  * maps them onto the theme's code tokens.
@@ -38,9 +47,14 @@ const codeTheme = createCssVariablesTheme();
 /**
  * Compiles an MDX body, GitHub-flavoured (tables and the rest, remark-gfm per ADR-0003); every heading gets a stable id from its text (rehype-slug, per ADR-0003)
  * and fenced code with a language is highlighted (Shiki). `images` maps each image reference
- * the body writes, `./diagram.png`, to where it is served and its size.
+ * the body writes, `./diagram.png`, to where it is served and its size; `deck` is the Post's
+ * Slide deck, which `<SlideDeck />` plays.
  */
-export async function compileMdx(source: string, images: Record<string, BodyImageSource> = {}): Promise<CompiledMdx> {
+export async function compileMdx(
+  source: string,
+  images: Record<string, BodyImageSource> = {},
+  deck?: SlideDeckSource,
+): Promise<CompiledMdx> {
   const headings: Heading[] = [];
   const collectHeadings = () => (tree: Root) => {
     for (const node of tree.children) {
@@ -65,7 +79,7 @@ export async function compileMdx(source: string, images: Record<string, BodyImag
   };
   const { default: Content } = await evaluate(source, {
     ...runtime,
-    remarkPlugins: [remarkGfm, remarkMermaid],
+    remarkPlugins: [remarkGfm, remarkMermaid, [remarkSlideDeck, deck]],
     rehypePlugins: [
       rehypeSlug,
       collectHeadings,
@@ -94,4 +108,12 @@ const remarkMermaid = () => (tree: MdNode) => {
       children: [],
     });
   });
+};
+
+/** Hands each `<SlideDeck />` the Post's deck, as `deck="<JSON>"`, since a body names it without props. */
+const remarkSlideDeck = (deck: SlideDeckSource | undefined) => (tree: MdNode) => {
+  if (!deck) return;
+  for (const node of mdNodes(tree).filter(isSlideDeck)) {
+    node.attributes = [{ type: "mdxJsxAttribute", name: "deck", value: JSON.stringify(deck) }];
+  }
 };
