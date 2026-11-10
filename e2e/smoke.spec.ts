@@ -483,6 +483,15 @@ test("the About page's #contact section lists the footer's links, less the one t
   expect(await hrefs(page.locator("#contact"))).toEqual(footer.filter((href) => href !== "/about#contact"));
 });
 
+test("each contact link shows its mark before its label, in the footer and on the About page", async ({ page }) => {
+  await page.goto("/about");
+  for (const scope of [page.getByRole("contentinfo"), page.locator("#contact")]) {
+    for (const name of ["GitHub", "LinkedIn", "RSS"]) {
+      await expect(scope.getByRole("link", { name }).locator("svg")).toHaveCount(1);
+    }
+  }
+});
+
 test("the RSS link isn't prefetched as a page", async ({ page }) => {
   const prefetches: string[] = [];
   page.on("request", (request) => {

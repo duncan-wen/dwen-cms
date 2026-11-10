@@ -17,6 +17,10 @@
   --accent: #2c5a45;
   --accent-wash: #e1eae3;
   --on-accent: #f5f6f1;
+  /* Brand colours for the contact marks; GitHub's mark turns white on dark, as GitHub's does. */
+  --brand-github: #181717;
+  --brand-linkedin: #0a66c2;
+  --brand-rss: #f26522;
   --code-keyword: #8a3b5c;
   --code-string: #2f6b3f;
   --code-comment: #858d88;
@@ -35,6 +39,7 @@
     --accent: #8fc3a6;
     --accent-wash: #1e2c24;
     --on-accent: #121614;
+    --brand-github: #f0f6fc;
     --code-keyword: #e29bb8;
     --code-string: #9ccf9f;
     --code-comment: #6c7771;
@@ -53,6 +58,7 @@
   --accent: #8fc3a6;
   --accent-wash: #1e2c24;
   --on-accent: #121614;
+  --brand-github: #f0f6fc;
   --code-keyword: #e29bb8;
   --code-string: #9ccf9f;
   --code-comment: #6c7771;
@@ -116,6 +122,9 @@
   --color-accent: var(--accent);
   --color-accent-wash: var(--accent-wash);
   --color-on-accent: var(--on-accent);
+  --color-brand-github: var(--brand-github);
+  --color-brand-linkedin: var(--brand-linkedin);
+  --color-brand-rss: var(--brand-rss);
   --color-code-keyword: var(--code-keyword);
   --color-code-string: var(--code-string);
   --color-code-comment: var(--code-comment);
