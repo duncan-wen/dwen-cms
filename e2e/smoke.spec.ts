@@ -369,6 +369,129 @@ test.describe("a Slide deck", () => {
 
     await expect.poll(() => [...new Set(requested)].sort()).toEqual(["01", "02", "03"]);
   });
+
+  test.describe("fullscreen", () => {
+    /** The accessible name of the element the browser shows fullscreen, or null outside it. */
+    const fullscreenName = (page: Page) => page.evaluate(() => document.fullscreenElement?.ariaLabel ?? null);
+    const close = (page: Page) => player(page).getByRole("button", { name: "關閉" });
+    const hint = (page: Page) => player(page).getByText("← → 或左右滑動翻頁 · Esc 離開");
+
+    test("「全螢幕」 shows the slide fullscreen, keys still turn it, and 「關閉」 leaves on the same slide", async ({
+      page,
+    }) => {
+      await page.goto(post);
+
+      await player(page).getByRole("button", { name: "全螢幕" }).click();
+      await expect.poll(() => fullscreenName(page)).toMatch(/^投影片 1 \/ 3/);
+      await expect(close(page)).toBeVisible();
+      await page.keyboard.press("ArrowRight");
+      await expect.poll(() => fullscreenName(page)).toMatch(/^投影片 2 \/ 3/);
+
+      await close(page).click();
+
+      await expect.poll(() => fullscreenName(page)).toBeNull();
+      await expect(player(page)).toContainText("2 / 3");
+      await expect(page).toHaveURL(/#slide-2$/);
+      await expect(player(page).getByRole("img", { name: slides[1] })).toBeInViewport();
+    });
+
+    test("F enters fullscreen and Esc leaves it on the same slide", async ({ page }) => {
+      await page.goto(post);
+      await player(page).getByRole("img").hover({ force: true });
+
+      await page.keyboard.press("f");
+      await expect.poll(() => fullscreenName(page)).toMatch(/^投影片 1 \/ 3/);
+      await expect(close(page)).toBeVisible();
+      await page.keyboard.press("End");
+      await page.keyboard.press("Escape");
+
+      await expect.poll(() => fullscreenName(page)).toBeNull();
+      await expect(close(page)).toBeHidden();
+      await expect(player(page)).toContainText("3 / 3");
+      await expect(player(page).getByRole("img", { name: slides[2] })).toBeInViewport();
+    });
+
+    test("without element fullscreen, the player covers the page and holds it still until left", async ({ page }) => {
+      await page.addInitScript(() =>
+        Object.defineProperty(Document.prototype, "fullscreenEnabled", { get: () => false }),
+      );
+      await page.setViewportSize({ width: 375, height: 667 });
+      await page.goto(post);
+
+      await player(page).getByRole("button", { name: "全螢幕" }).click();
+      const frame = player(page).getByRole("group", { name: /^投影片 1 \/ 3/ });
+      await expect(close(page)).toBeVisible();
+      expect(await frame.boundingBox()).toEqual({ x: 0, y: 0, width: 375, height: 667 });
+      const scrolled = await page.evaluate(() => window.scrollY);
+      await page.mouse.wheel(0, 400);
+      await page.waitForTimeout(300);
+      expect(await page.evaluate(() => window.scrollY)).toBe(scrolled);
+      await page.keyboard.press("ArrowRight");
+      await expect(player(page)).toContainText("2 / 3");
+
+      await page.keyboard.press("Escape");
+
+      await expect(close(page)).toBeHidden();
+      await expect(player(page)).toContainText("2 / 3");
+      await expect(player(page).getByRole("img", { name: slides[1] })).toBeInViewport();
+      await page.mouse.wheel(0, 400);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrolled);
+    });
+
+    test("the slide is dimmed in the dark theme's reading column, and undimmed fullscreen", async ({ page }) => {
+      await page.emulateMedia({ colorScheme: "dark" });
+      await page.goto(post);
+      const filter = () =>
+        player(page)
+          .getByRole("img")
+          .evaluate((img) => getComputedStyle(img).filter);
+      expect(await filter()).toContain("brightness");
+
+      await player(page).getByRole("button", { name: "全螢幕" }).click();
+      await expect(close(page)).toBeVisible();
+
+      expect(await filter()).toBe("none");
+    });
+
+    test("the hint shows on the first fullscreen, fades by itself, and not on the next", async ({ page }) => {
+      await page.goto(post);
+      const enter = async () => {
+        await player(page).getByRole("button", { name: "全螢幕" }).click();
+        await expect(close(page)).toBeVisible();
+      };
+
+      await enter();
+      await expect(hint(page)).toBeVisible();
+      await expect(hint(page)).toBeHidden({ timeout: 5000 });
+      await close(page).click();
+      await enter();
+      await expect(hint(page)).toHaveCount(0);
+      await close(page).click();
+
+      await page.reload();
+      await enter();
+      await expect(hint(page)).toHaveCount(0);
+    });
+
+    test("where storage fails, fullscreen still works and the hint shows each time", async ({ page }) => {
+      await page.addInitScript(() =>
+        Object.defineProperty(window, "localStorage", {
+          get: () => {
+            throw new DOMException("blocked", "SecurityError");
+          },
+        }),
+      );
+      await page.goto(post);
+
+      for (let entry = 0; entry < 2; entry++) {
+        await player(page).getByRole("button", { name: "全螢幕" }).click();
+        await expect(close(page)).toBeVisible();
+        await expect(hint(page)).toBeVisible();
+        await close(page).click();
+        await expect(close(page)).toBeHidden();
+      }
+    });
+  });
 });
 
 test("code blocks colour their tokens with the theme's code colours", async ({ page }) => {
