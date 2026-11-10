@@ -17,6 +17,8 @@ export type ParsedMermaid = {
   diagramType: string;
   /** A flowchart's node IDs, as the source writes them; empty for other types. */
   nodeIds: string[];
+  /** A flowchart's edges, each as the IDs of the nodes it runs from and to; empty for other types. */
+  edges: [from: string, to: string][];
 };
 
 let mermaidModule: Promise<typeof import("mermaid").default> | undefined;
@@ -29,10 +31,17 @@ let mermaidModule: Promise<typeof import("mermaid").default> | undefined;
 export async function parseMermaid(source: string): Promise<ParsedMermaid> {
   const mermaid = await loadMermaid();
   const { diagramType } = await mermaid.parse(source);
-  if (diagramType !== "flowchart-v2") return { diagramType, nodeIds: [] };
+  if (diagramType !== "flowchart-v2") return { diagramType, nodeIds: [], edges: [] };
   const { db } = await mermaid.mermaidAPI.getDiagramFromText(source);
-  const vertices = (db as { getVertices(): Map<string, unknown> }).getVertices();
-  return { diagramType, nodeIds: [...vertices.keys()] };
+  const flowchart = db as {
+    getVertices(): Map<string, unknown>;
+    getEdges(): { start: string; end: string }[];
+  };
+  return {
+    diagramType,
+    nodeIds: [...flowchart.getVertices().keys()],
+    edges: flowchart.getEdges().map(({ start, end }) => [start, end]),
+  };
 }
 
 /**

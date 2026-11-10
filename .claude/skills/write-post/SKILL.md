@@ -13,7 +13,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 
 ## Steps
 
-1. **Branch.** `git fetch origin main` and create `post-<slug>` off `origin/main`. A Post is a change outside a spec, so it gets its own branch and its own PR.
+1. **Branch.** `git fetch origin main` and create `post-<slug>` off `origin/main`. A Post is a change outside a spec, so it gets its own branch and its own PR. Run `pnpm cover --ping`: when Fooocus isn't answering, ask the Owner now to start it, so it is up by step 4.
 2. **Pick the mode and the hook.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1. Done when you can name the mode and the **hook**: the one surprising finding or concrete result the title, the opening and the promo images all lead with.
 3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, an Illustration (**Illustrations**) wherever a Reader needs to see something Mermaid can't draw, and images (**Images**) only when you have a real file. When the Owner gave a NotebookLM PDF, add it as the Post's Slide deck by [SLIDE-DECKS.md](SLIDE-DECKS.md). Then reread it as a Reader who has never seen the repo. Done when every PR number, file path, frontmatter field and internal name (Owner, skill names, ticket) is said in plain words, unless the Post is teaching that very thing and explains it.
 4. **Draw the cover** (**Cover image**). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
@@ -47,7 +47,7 @@ The Owner is a middle-aged Taiwanese software engineer, a parent, and a stock an
 The traits and samples show how the Owner sounds; they are a reference, not a checklist. Each Post draws its images and metaphors from its own topic, and reads as written fresh, never as a sample with the nouns swapped.
 
 - **First person, lived.** 我 did this, felt this. Honest about limits and emotion (有點不知所措, 這一個月的燒腦都值了), never boastful.
-- **Specific numbers and names.** 1 個月, 34 萬公里的老 K12, 五天四夜; DeepSeek, Python, MCP, 那霸大拔河祭, 牧志市場. Replace every vague quantity with the real one. Prefer facts you can verify (the repo, its git log, real command output); a personal detail you can't verify goes in the PR body under 「請 Owner 確認」.
+- **Specific numbers and names.** 1 個月, 34 萬公里的老 K12, 五天四夜; DeepSeek, Python, MCP, 那霸大拔河祭, 牧志市場. Replace every vague quantity with the real one. Prefer facts you can verify (the repo, its git log, real command output); a personal detail you can't verify goes in the PR body under 「請 Owner 確認」. A YouTube source's title and channel come from `curl "https://www.youtube.com/oembed?url=<URL>&format=json"` (the page itself serves no text); its content comes from what the Owner gave you.
 - **Sensory detail** at the emotional beats: 切菜的規律聲, 鍋裡的煙火氣, 沖繩湛藍的海岸線, 第一次成功呼叫自訂 Tool 的那一刻.
 - **The 「……」 pause.** A full-width six-dot ellipsis where the thought turns or holds before the payoff: 再幫它配上了該有的手跟腳 (Tools)……讓這顆大腦終於能真正落地做事. A few per Post, at turning points.
 - **A metaphor from the topic's own world.** The model is 大腦 and its Tools are 手跟腳: an image the Reader already holds that makes the idea land. Investing and trading images (K 線, 回檔整理, 反彈) belong to Posts about investing, career or money, the way Sample 2 uses them; a tech Post finds its image elsewhere, or needs none. One well-placed metaphor in a Post beats one per section.
@@ -127,6 +127,7 @@ Draw processes and architecture in a ```` ```mermaid ```` block; the site draws 
 - An architecture diagram is a flowchart with `subgraph`s (`architecture-beta` isn't drawn).
 - A sideways (`LR`) flowchart is drawn top-down on phones and when wider than the reading column, so both directions must read well. Keep labels short.
 - Every diagram fits a phone's column as a phone draws it (rule `mermaid-phone-width`): give each level at most two side-by-side nodes. A decision with more outcomes reads better as numbered questions in prose.
+- Edges flow one way (rule `mermaid-two-way-edges`): a node sending work to several nodes gets their returns at a new node below them, e.g. `coder -->|交付| qa[驗證把關]`.
 
 The two flowcharts in the typography sample are working models.
 

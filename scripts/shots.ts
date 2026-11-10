@@ -3,6 +3,7 @@
 //   pnpm shots --no-build /                         reuse the last build
 //   pnpm shots --content content /posts/<slug>      build the real content instead
 //   pnpm shots '/posts/<slug>?open=所有頁面'          open that fold first (a shot of its own)
+//   pnpm shots '/posts/<slug>?open=放大圖表'          or press that button: a Lightbox is shot as the screen shows it
 // Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration
 // and Diagram as <path>-<illustration|diagram>-<n>-<theme>-<width>.png (n counts from the
 // top of the page), plus index.html showing this run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
@@ -68,12 +69,29 @@ for (const path of paths) {
         reducedMotion: "reduce",
         viewport: { width, height: 900 },
       });
-      // `?open=<label>` isn't sent: it names a fold (<summary>) to open before the shot.
+      // `?open=<label>` isn't sent: it names a fold (<summary>) to open before the shot, or,
+      // when no fold has that label, the first visible button named so, such as 放大圖表.
       const url = new URL(path, base);
-      const folds = url.searchParams.getAll("open");
+      const labels = url.searchParams.getAll("open");
       url.searchParams.delete("open");
       const response = await page.goto(url.href);
-      for (const fold of folds) await page.locator("summary", { hasText: fold }).click();
+      // A button named exactly so wins over a fold whose text merely contains the label. A
+      // Lightbox covers the page, so its button belongs last among the labels.
+      for (const label of labels) {
+        const button = page.getByRole("button", { name: label, exact: true }).locator("visible=true");
+        const pressed = (await button.count()) > 0;
+        const target = pressed ? button.first() : page.locator("summary", { hasText: label });
+        await target.click({ timeout: 5_000 }).catch(() => {
+          throw new Error(`${path}: nothing visible at ${width}px is a button or fold named "${label}"`);
+        });
+        if (pressed)
+          await page
+            .locator("dialog[open]")
+            .waitFor({ timeout: 2_000 })
+            .catch(() => undefined);
+      }
+      // An open dialog covers the page, so it's shot as the screen shows it, and only it is checked for clipping.
+      const dialogOpen = (await page.locator("dialog[open]").count()) > 0;
       await page.evaluate(() => document.fonts.ready);
       // A full-page shot never scrolls, so lazy images below the fold would stay blank:
       // load them all now and wait until each has decoded.
@@ -84,29 +102,34 @@ for (const path of paths) {
       });
       const name = `${fileName(path)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
-      await page.screenshot({ path: file, fullPage: true });
+      await page.screenshot({ path: file, fullPage: !dialogOpen });
       const scrolls = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
       if (scrolls) overflowing.push(`${path} (${theme}, ${width}px): the page scrolls horizontally`);
       // A box that clips its content shows it cut off in a screenshot: sideways (only code blocks may scroll),
       // or downwards (an animation's frame cuts off what doesn't fit).
-      const clipped = await page.evaluate(() =>
-        [...document.body.querySelectorAll("*")]
-          .filter((el) => !el.closest("pre"))
-          .filter((el) => {
-            const style = getComputedStyle(el);
-            const sideways = el.scrollWidth > el.clientWidth + 1 && style.overflowX !== "visible";
-            const downwards = el.scrollHeight > el.clientHeight + 1 && style.overflowY !== "visible";
-            return sideways || downwards;
-          })
-          .map(
-            (el) =>
-              `<${el.tagName.toLowerCase()}${el.className ? ` class="${String(el.className).slice(0, 60)}"` : ""}>`,
-          ),
+      const clipped = await page.evaluate(
+        (dialogOpen) =>
+          (dialogOpen
+            ? [document.querySelector("dialog[open]")!, ...document.querySelectorAll("dialog[open] *")]
+            : [...document.body.querySelectorAll("*")]
+          )
+            .filter((el) => !el.closest("pre"))
+            .filter((el) => {
+              const style = getComputedStyle(el);
+              const sideways = el.scrollWidth > el.clientWidth + 1 && style.overflowX !== "visible";
+              const downwards = el.scrollHeight > el.clientHeight + 1 && style.overflowY !== "visible";
+              return sideways || downwards;
+            })
+            .map(
+              (el) =>
+                `<${el.tagName.toLowerCase()}${el.className ? ` class="${String(el.className).slice(0, 60)}"` : ""}>`,
+            ),
+        dialogOpen,
       );
       for (const box of clipped) overflowing.push(`${path} (${theme}, ${width}px): ${box} clips its content`);
       const flagged = scrolls || clipped.length > 0;
       console.log(`${response?.status()} ${file}${flagged ? "  ← overflows" : ""}`);
-      for (const { kind, label: kindLabel, selector } of elements) {
+      for (const { kind, label: kindLabel, selector } of dialogOpen ? [] : elements) {
         const visible = await page.locator(selector).locator("visible=true").all();
         for (const [index, element] of visible.entries()) {
           const key = `${kindLabel} ${index + 1}`;
@@ -175,8 +198,10 @@ function widthLabel(width: number): string {
   return `${width >= 640 ? "桌機" : "手機"} ${width}px`;
 }
 
+/** A path as a file name; each Chinese `?open=` label becomes its code points, so two labels never share a name. */
 function fileName(path: string): string {
-  return path.replace(/^\/|\/$/g, "").replace(/[^\w-]+/g, "_") || "home";
+  const ascii = path.replace(/[^\x00-\x7f]/g, (char) => char.codePointAt(0)!.toString(16));
+  return ascii.replace(/^\/|\/$/g, "").replace(/[^\w-]+/g, "_") || "home";
 }
 
 function freePort(): Promise<number> {

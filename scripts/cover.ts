@@ -4,6 +4,7 @@
 // covers/<slug>.html showing every candidate so far for the Owner. covers/ is gitignored:
 // copy the chosen one to content/posts/<slug>/cover.jpg. --seed redraws a candidate exactly;
 // FOOOCUS_URL points at a Fooocus elsewhere.
+//   pnpm cover --ping     only check that Fooocus answers, before the Post exists
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -31,8 +32,22 @@ function fail(message: string): never {
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
-  options: { prompt: { type: "string" }, style: { type: "string" }, seed: { type: "string" } },
+  options: {
+    prompt: { type: "string" },
+    style: { type: "string" },
+    seed: { type: "string" },
+    ping: { type: "boolean" },
+  },
 });
+const notAnswering = `Fooocus isn't answering at ${fooocusUrl}: start it, or leave the Post on its generated cover`;
+if (values.ping) {
+  const response = await fetch(`${fooocusUrl}/config`, { signal: AbortSignal.timeout(10_000) }).catch(() =>
+    fail(notAnswering),
+  );
+  if (!response.ok) fail(`Something answers at ${fooocusUrl}, but not as Fooocus (${response.status})`);
+  console.log(`Fooocus is answering at ${fooocusUrl}`);
+  process.exit(0);
+}
 const [slug] = positionals;
 if (positionals.length !== 1 || !values.prompt || !values.style)
   fail('Usage: pnpm cover <slug> --prompt "<scene>" --style "<Fooocus style>" [--seed <n>]');
@@ -52,9 +67,7 @@ if (content.resolveSlug(slug).kind !== "post") fail(`No Post has the Slug "${slu
 
 const config = (await fetch(`${fooocusUrl}/config`)
   .then((response) => response.json())
-  .catch(() =>
-    fail(`Fooocus isn't answering at ${fooocusUrl}: start it, or leave the Post on its generated cover`),
-  )) as FooocusConfig;
+  .catch(() => fail(notAnswering))) as FooocusConfig;
 
 /** One call through Gradio 3's queue: hand over the session, then the data, then await the result. */
 function gradioQueueCall(fnIndex: number, data: unknown[], session: string): Promise<unknown[]> {

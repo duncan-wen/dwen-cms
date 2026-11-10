@@ -21,7 +21,8 @@
     "linkedin": "tsx scripts/linkedin.ts",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm content:check && pnpm content:check e2e/content && pnpm test",
     "prepare": "simple-git-hooks",
-    "deck": "tsx scripts/deck.ts"
+    "deck": "tsx scripts/deck.ts",
+    "prod:check": "bash scripts/prod-check.sh"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm check"
