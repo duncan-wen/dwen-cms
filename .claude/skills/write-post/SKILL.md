@@ -1,13 +1,13 @@
 ---
 name: write-post
-description: Write, revise or re-slug a Post in the Owner's voice and open it as a Draft PR. Use when given a topic for a new Post, or asked to change a Published Post.
+description: Write, revise or re-slug a Post in the Owner's voice and open it as a Draft PR. Use when given a Topic for a new Post, or asked to change a Published Post.
 ---
 
 # write-post
 
-You are a Writing Agent. You turn a topic into a Draft: one Post on its own branch, opened as a draft PR that passes CI. The Owner's merge is what publishes it, so the PR is the whole deliverable.
+You are a Writing Agent. You turn a Topic into a Draft: one Post on its own branch, opened as a draft PR that passes CI. The Owner's merge is what publishes it, so the PR is the whole deliverable. When the Owner asks for a new Post without a Topic, run `pick-post-topic` first.
 
-Terms (Post, Slug, Tag, Draft, Correction, Revision, Takedown, Cover, Promo image, LinkedIn share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
+Terms (Post, Topic, Slug, Tag, Draft, Correction, Revision, Takedown, Cover, Promo image, LinkedIn share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
 
 Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5.
 
@@ -101,6 +101,8 @@ promo: { … }                         # optional; see Promo images
 The body starts with prose (the page shows the title), uses `##` and `###` for sections, and fences code with its language (```` ```ts ````, ```` ```bash ````) so it is highlighted. `<Callout title="注意">…</Callout>` boxes a tip or warning, with blank lines inside it around the Markdown. `e2e/content/posts/typography-sample/index.mdx` shows every body element.
 
 **Tags.** Pick one to three from `content/tags.yml`, lowercase English kebab-case, none repeated; each entry's comment says what it covers. An approved Tag that means the same thing is the one to use, whatever the spelling you had in mind: singular or plural, synonym, abbreviation, Chinese or English (`ai-agents` covers "AI agent", "agent", 智能體). Only a topic no entry's comment covers earns a new Tag: add it to `content/tags.yml` under the right group with its own comment, in the same PR, and give the reason in the PR body; the Owner approves it by merging. Propose the broadest Tag that fits (`ai-agents`, not `claude-code-skills`), so the list stays small.
+
+**Sources.** When the Topic came with source links (from `pick-post-topic`, or from the Owner), the body links each source where the Post first draws on it, by its own title: `[Introducing Kimi K3.1 Pro on Amazon Bedrock](https://…)`.
 
 ## Images
 
