@@ -1,3 +1,5 @@
+posted: https://www.linkedin.com/feed/update/urn:li:share:7526364721789227008/
+
 我做了一個工具，每天把 AI 新聞餵給我的寫作 AI。結果第一個嫌它不好用的，就是那個 AI。
 
 ai-news-mcp 是一個 MCP server，從 23 個來源收集 AI 新聞，讓 Claude 一句話就能回答「最近有什麼新的」。它最反直覺的地方是：一個 AI 新聞工具，自己卻從不呼叫 AI。
