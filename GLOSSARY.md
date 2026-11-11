@@ -26,9 +26,13 @@ _Avoid_: Article, blog, entry
 The lowercase English kebab-case identifier in a Post's URL (`/posts/<slug>`); when it changes, the old one is kept and redirected permanently.
 _Avoid_: Permalink, path, ID
 
+**Topic**:
+The subject a Post is written about, shown to readers as 「題材」. It can come from one or more pieces of AI news, or from the Owner directly. A Post has one Topic and one or more Tags.
+_Avoid_: 主題, subject, idea
+
 **Tag**:
 A lowercase English label from the approved tag list; a Post has one or more. Shown to readers as 「標籤」, and only once at least one Post carries it.
-_Avoid_: Category, label, topic, 主題, 分類
+_Avoid_: Category, label, 主題, 分類
 
 **Page**:
 Standalone undated content outside listings, such as the About page.
