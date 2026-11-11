@@ -9,7 +9,8 @@ A skill that picks a Topic for the next Post from recent AI news, read from the 
 1. **Trigger**: model-invoked. Fires when the Owner asks what to write next, or asks for a new Post without giving a Topic (`write-post` sends that case here).
 2. **Search**: only the ai-news `search` tool, never `whats_new`, which moves a Checkpoint every client shares and can't be undone. Default range is the last 7 days, Categories Engineering, Applications and Models. The Owner can give another range or a keyword. A News Item is kept only when it has a technical angle the Owner can build on.
 3. **Fit**:
-   - it can be written in mode 1 (hands-on technical): the Owner can build, try or measure it within a day and show the result;
+   - a Reader who doesn't code can follow it, in plain words; this ranks first (revised 2026-11-11, after the Owner dropped an eval-experiment Post as too hard for Readers);
+   - the Owner can try it hands-on in an afternoon and share what happened: a light try, never an eval suite or a multi-version experiment;
    - its Topic isn't already a Post, or an open Draft;
    - candidates no approved Tag covers rank lower;
    - at most two candidates share a primary Tag.

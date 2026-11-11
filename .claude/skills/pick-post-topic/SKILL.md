@@ -14,7 +14,8 @@ The news is in the `ai-news` MCP server. Read it with `search` and `read_item` o
 1. **List what's covered.** Read the `title`, `description` and `tags` of every `content/posts/*/index.mdx`, and the open Drafts: `gh pr list --state open --search "head:post-" --json title,headRefName`. Done when you can name every Topic already written or in a Draft.
 2. **Search.** Call `search` with `since` 7 days before today, `categories: ["Engineering", "Applications", "Models"]` and `limit: 100`; then once more with `categories: ["News"]`, keeping only a News Item that has a technical angle (a model, API or tool the Owner can try). When the Owner gave a range or a keyword, use it as `since`/`until` or `query` instead. A week often holds more than 100 Items: whenever a call returns exactly `limit` Items, call again with `until` set to the oldest returned `published_at`. Done when every call has come back short of `limit` and you've read every returned title and summary.
 3. **Shortlist.** Group Items about the same subject into one candidate Topic. A candidate **fits** when:
-   - it is a mode 1 Post (`write-post`'s **Modes**): the Owner can build, try or measure it within a day and show the result (code, command output, a measured number), beyond retelling the news;
+   - a Reader who doesn't code can follow it: its finding and why it matters fit in plain words, with no code, table or experiment needed to understand it. This ranks above every other condition;
+   - the Owner can try it hands-on in an afternoon and share what happened (use a new tool, compare two models' answers to one question, try a prompt), beyond retelling the news; a light try, never an eval suite or a multi-version experiment;
    - no Post or Draft from step 1 covers it;
    - an approved Tag in `content/tags.yml` covers it; a candidate that would need a new Tag ranks below every one that doesn't;
    - at most two candidates share a primary Tag.
