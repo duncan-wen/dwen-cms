@@ -22,6 +22,9 @@ jobs:
           fi
   check:
     runs-on: ubuntu-latest
+    # Playwright's image ships Chromium's system packages and fonts, so no apt
+    # download can fail mid-run. Keep its tag at the lockfile's @playwright/test.
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -33,7 +36,7 @@ jobs:
       - run: pnpm check
       - name: Build real content (fails on warnings)
         run: pnpm build:check
-      - name: Install Chromium for the smoke tests
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Chromium for the smoke tests (already in the image when versions match)
+        run: pnpm exec playwright install chromium
       - name: Smoke tests (builds e2e/content)
         run: pnpm smoke
