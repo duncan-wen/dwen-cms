@@ -102,6 +102,8 @@ The body starts with prose (the page shows the title), uses `##` and `###` for s
 
 **Tags.** Pick one to three from `content/tags.yml`, lowercase English kebab-case, none repeated; each entry's comment says what it covers. An approved Tag that means the same thing is the one to use, whatever the spelling you had in mind: singular or plural, synonym, abbreviation, Chinese or English (`ai-agents` covers "AI agent", "agent", 智能體). Only a topic no entry's comment covers earns a new Tag: add it to `content/tags.yml` under the right group with its own comment, in the same PR, and give the reason in the PR body; the Owner approves it by merging. Propose the broadest Tag that fits (`ai-agents`, not `claude-code-skills`), so the list stays small.
 
+**Experiments.** A mode 1 Post whose result comes from calling a model (an eval, a model comparison, a prompt test) uses DeepSeek: load `DEEPSEEK_API_KEY` from `~/projects/kai/.env` into the environment without printing it, call the OpenAI-compatible `https://api.deepseek.com/chat/completions` with model `deepseek-v4-flash`, and pass `tool_choice: "auto"` (its thinking mode rejects `"required"`). The shell's `GEMINI_API_KEY` has no quota and answers 402. Keep the script and its data in the scratchpad; every number in the Post is the script's real output, and the PR body says under 「請 Owner 確認」 that the Writing Agent ran it.
+
 **Sources.** When the Topic came with source links (from `pick-post-topic`, or from the Owner), the body links each source where the Post first draws on it, by its own title: `[Introducing Kimi K3.1 Pro on Amazon Bedrock](https://…)`.
 
 ## Images
