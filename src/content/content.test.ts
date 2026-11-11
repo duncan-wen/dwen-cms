@@ -516,6 +516,13 @@ describe("validating Tags", () => {
 });
 
 describe("validating Post files", () => {
+  it("rejects an ISO date in prose, but not in code", async () => {
+    const error = await loadContent(fixture("prose-date")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file: "posts/iso-date/index.mdx", field: "body", rule: "prose-date" }] });
+    expect((error as Error).message).toContain('"2026-11-12"');
+  });
+
   it("rejects a Post folder without an index.mdx", async () => {
     await expect(loadContent(fixture("missing-index"))).rejects.toMatchObject({
       problems: [{ file: "posts/empty-folder/index.mdx", field: "file", rule: "required" }],
