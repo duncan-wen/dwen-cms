@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 412" font-size="14">
+  <!-- One morning: only Models is asked about. Top: one shared mark; bottom: one mark per Category. -->
+  <text x="16" y="28" font-size="16" font-weight="600" fill="var(--ink)">早上只問了 Models 之後</text>
+
+  <!-- A shared mark: asking about Models marks News as seen too. -->
+  <text x="16" y="64" font-weight="600" fill="var(--ink)">所有分類共用一個記號</text>
+  <rect x="16" y="76" width="308" height="40" rx="6" fill="var(--paper-deep)"/>
+  <text x="28" y="101" fill="var(--ink)">Models</text>
+  <text x="312" y="101" text-anchor="end" fill="var(--ink-soft)">看過了</text>
+  <rect x="16" y="124" width="308" height="40" rx="6" fill="var(--paper-deep)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="28" y="149" fill="var(--ink)">News</text>
+  <text x="312" y="149" text-anchor="end" fill="var(--accent)">沒看，卻被標成看過</text>
+
+  <!-- One mark per Category: News keeps its own. -->
+  <text x="16" y="208" font-weight="600" fill="var(--ink)">每個分類各記一個記號</text>
+  <rect x="16" y="220" width="308" height="40" rx="6" fill="var(--paper-deep)"/>
+  <text x="28" y="245" fill="var(--ink)">Models</text>
+  <text x="312" y="245" text-anchor="end" fill="var(--ink-soft)">看過了</text>
+  <rect x="16" y="268" width="308" height="40" rx="6" fill="var(--paper-deep)"/>
+  <text x="28" y="293" fill="var(--ink)">News</text>
+  <text x="312" y="293" text-anchor="end" fill="var(--ink)">還沒看，下次照樣出現</text>
+
+  <!-- The takeaway. -->
+  <rect x="16" y="332" width="308" height="64" rx="6" fill="var(--accent-wash)"/>
+  <text x="28" y="358" fill="var(--accent)">共用一個記號，問一個分類，</text>
+  <text x="28" y="382" fill="var(--accent)">其他分類的新聞就永遠消失了</text>
+</svg>
