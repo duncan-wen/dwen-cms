@@ -1049,6 +1049,14 @@ test("a Post page describes itself as a BlogPosting by the Owner, with date-only
   ]);
 });
 
+test("a Post's structured-data image answers as a PNG", async ({ page, request }) => {
+  const [posting] = await structuredData(page, "/posts/smoke-post");
+  const response = await request.get(new URL(posting.image as string).pathname);
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+});
+
 test("a revised Post's structured data is modified on its latest Revision's date", async ({ page }) => {
   const [posting] = await structuredData(page, "/posts/revised-smoke-post");
 

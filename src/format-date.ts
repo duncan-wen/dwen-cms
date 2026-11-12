@@ -26,3 +26,8 @@ export function monthDay(date: string): string {
 export function year(date: string): string {
   return date.slice(0, 4);
 }
+
+/** When a Post last changed: its latest Revision's date, else its publication date. The sitemap and structured data agree on it. */
+export function lastUpdated(post: { date: string; latestRevision?: { date: string } | undefined }): string {
+  return post.latestRevision?.date ?? post.date;
+}

@@ -1,7 +1,7 @@
 import { Feed } from "feed";
 import { getContent } from "@/content/site-content";
 import { dateValue } from "@/format-date";
-import { SITE_NAME } from "@/site-name";
+import { SITE_LANGUAGE, SITE_NAME } from "@/site-name";
 import { absoluteUrl } from "@/site-url";
 
 export const dynamic = "force-static";
@@ -14,7 +14,7 @@ export async function GET() {
     link: absoluteUrl("/"),
     title: SITE_NAME,
     description: `${SITE_NAME} 的文章：把 AI 做進真的產品裡，再把過程寫下來。`,
-    language: "zh-Hant",
+    language: SITE_LANGUAGE,
     copyright: `© ${SITE_NAME}`,
     updated: posts[0] && dateValue(posts[0].date),
     feedLinks: { rss: absoluteUrl("/feed.xml") },

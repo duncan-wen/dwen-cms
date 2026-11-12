@@ -11,6 +11,7 @@ import { PostCover } from "@/components/post-cover";
 import { Seal } from "@/components/seal";
 import { TableOfContents } from "@/components/table-of-contents";
 import { TagList } from "@/components/tag-list";
+import { linkUnderline } from "@/components/text-link";
 import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { slideDeckSource } from "@/deck/slide-deck-source";
@@ -18,6 +19,7 @@ import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
 import { pageAlternates } from "@/page-alternates";
 import { bodyImageSources } from "@/post-image-url";
+import { OWNER_NAME } from "@/site-name";
 import { blogPosting } from "@/structured-data";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -104,11 +106,8 @@ export default async function PostPage({ params }: Props) {
           <Seal size="large" />
           <p className="grid leading-[1.6]">
             {/* The byline links to the About Page, so Readers and search engines can tell who wrote it. */}
-            <Link
-              href="/about"
-              className="justify-self-start font-serif font-bold underline decoration-rule decoration-1 underline-offset-[5px] hover:decoration-accent"
-            >
-              Duncan Wen
+            <Link href="/about" className={`justify-self-start font-serif font-bold ${linkUnderline}`}>
+              {OWNER_NAME}
             </Link>
             <span className="text-sm text-ink-soft">寫於 {formatDate(post.date)}</span>
           </p>

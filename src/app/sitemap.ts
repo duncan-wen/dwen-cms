@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getContent } from "@/content/site-content";
+import { lastUpdated } from "@/format-date";
 import { absoluteUrl } from "@/site-url";
 
 /**
@@ -15,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/posts"), lastModified: posts[0]?.date },
     ...posts.map((post) => ({
       url: absoluteUrl(`/posts/${post.slug}`),
-      lastModified: post.latestRevision?.date ?? post.date,
+      lastModified: lastUpdated(post),
     })),
     ...content.listPages().map((page) => ({ url: absoluteUrl(`/${page.name}`) })),
     { url: absoluteUrl("/tags") },

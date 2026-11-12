@@ -1,22 +1,18 @@
-import { contactLinks } from "@/contact-links";
+import { ownerProfiles } from "@/contact-links";
 import type { Post } from "@/content/content";
-import { isoDate } from "@/format-date";
-import { OWNER_NAME, SITE_NAME } from "@/site-name";
+import { isoDate, lastUpdated } from "@/format-date";
+import { OWNER_NAME, SITE_LANGUAGE, SITE_NAME } from "@/site-name";
 import { absoluteUrl } from "@/site-url";
 
 /** A schema.org object, rendered as JSON-LD by `JsonLd`. */
 export type StructuredData = { "@context": "https://schema.org"; "@type": string; [key: string]: unknown };
-
-/** The language every page is written in, as `<html lang>` and the feed give it. */
-const LANGUAGE = "zh-Hant";
 
 /** The Owner as a schema.org Person, pointing at the About Page. */
 const owner = () => ({ "@type": "Person", name: OWNER_NAME, url: absoluteUrl("/about") });
 
 /**
  * A Published Post as a `BlogPosting`. Dates stay date-only: a Post records no time of day,
- * so adding one would invent it. `dateModified` follows the sitemap's rule: the latest
- * Revision's date, else the publication date.
+ * so adding one would invent it. `dateModified` is `lastUpdated`, as in the sitemap.
  */
 export function blogPosting(post: Post): StructuredData {
   const url = absoluteUrl(`/posts/${post.slug}`);
@@ -26,10 +22,10 @@ export function blogPosting(post: Post): StructuredData {
     headline: post.title,
     description: post.description,
     datePublished: isoDate(post.date),
-    dateModified: isoDate(post.latestRevision?.date ?? post.date),
+    dateModified: isoDate(lastUpdated(post)),
     author: owner(),
     image: absoluteUrl(`/posts/${post.slug}/opengraph-image`),
-    inLanguage: LANGUAGE,
+    inLanguage: SITE_LANGUAGE,
     keywords: post.tags,
     url,
     mainEntityOfPage: url,
@@ -37,8 +33,8 @@ export function blogPosting(post: Post): StructuredData {
 }
 
 /**
- * The About Page as a `ProfilePage` about the Owner. `sameAs` is the Owner's profiles elsewhere:
- * the contact links that leave the site. No image: the site has no photo of the Owner, and the
+ * The About Page as a `ProfilePage` about the Owner. `sameAs` is the Owner's profiles elsewhere.
+ * No image: the site has no photo of the Owner, and the
  * seal is a logo, not a portrait.
  */
 export function profilePage(): StructuredData {
@@ -46,10 +42,10 @@ export function profilePage(): StructuredData {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
     url: absoluteUrl("/about"),
-    inLanguage: LANGUAGE,
+    inLanguage: SITE_LANGUAGE,
     mainEntity: {
       ...owner(),
-      sameAs: contactLinks.map(({ href }) => href).filter((href) => href.startsWith("https://")),
+      sameAs: ownerProfiles.map(({ href }) => href),
     },
   };
 }
@@ -61,7 +57,7 @@ export function webSite(): StructuredData {
     "@type": "WebSite",
     name: SITE_NAME,
     url: absoluteUrl("/"),
-    inLanguage: LANGUAGE,
+    inLanguage: SITE_LANGUAGE,
   };
 }
 
