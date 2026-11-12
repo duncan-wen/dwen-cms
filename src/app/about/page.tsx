@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeading } from "@/components/page-heading";
 import { ContactForm } from "@/components/contact-form";
+import { JsonLd } from "@/components/json-ld";
 import { LinkRow } from "@/components/link-row";
 import { contactFormHref, contactLinks } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { MdxBody } from "@/mdx/mdx-body";
 import { pageAlternates } from "@/page-alternates";
+import { profilePage } from "@/structured-data";
 
 /** The About Page, or a 404 when the content directory has none. */
 async function getAboutPage() {
@@ -26,6 +28,7 @@ export default async function AboutPage() {
   const page = await getAboutPage();
   return (
     <article>
+      <JsonLd data={profilePage()} />
       <PageHeading size="page" title={page.title} />
       <div className="prose prose-site max-w-none">
         <MdxBody source={page.body} />

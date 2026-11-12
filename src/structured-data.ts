@@ -1,6 +1,7 @@
+import { contactLinks } from "@/contact-links";
 import type { Post } from "@/content/content";
 import { isoDate } from "@/format-date";
-import { OWNER_NAME } from "@/site-name";
+import { OWNER_NAME, SITE_NAME } from "@/site-name";
 import { absoluteUrl } from "@/site-url";
 
 /** A schema.org object, rendered as JSON-LD by `JsonLd`. */
@@ -32,6 +33,35 @@ export function blogPosting(post: Post): StructuredData {
     keywords: post.tags,
     url,
     mainEntityOfPage: url,
+  };
+}
+
+/**
+ * The About Page as a `ProfilePage` about the Owner. `sameAs` is the Owner's profiles elsewhere:
+ * the contact links that leave the site. No image: the site has no photo of the Owner, and the
+ * seal is a logo, not a portrait.
+ */
+export function profilePage(): StructuredData {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    url: absoluteUrl("/about"),
+    inLanguage: LANGUAGE,
+    mainEntity: {
+      ...owner(),
+      sameAs: contactLinks.map(({ href }) => href).filter((href) => href.startsWith("https://")),
+    },
+  };
+}
+
+/** The site as a `WebSite`, so search results show its name rather than its domain. */
+export function webSite(): StructuredData {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: absoluteUrl("/"),
+    inLanguage: LANGUAGE,
   };
 }
 

@@ -1059,6 +1059,35 @@ test("a taken-down Slug carries no structured data", async ({ page }) => {
   expect(await structuredData(page, "/posts/taken-down-post")).toEqual([]);
 });
 
+test("the About Page describes the Owner as a Person with their GitHub and LinkedIn", async ({ page }) => {
+  expect(await structuredData(page, "/about")).toEqual([
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      url: "https://dwen.example/about",
+      inLanguage: "zh-Hant",
+      mainEntity: {
+        "@type": "Person",
+        name: "Duncan Wen",
+        url: "https://dwen.example/about",
+        sameAs: ["https://github.com/duncan-wen", "https://www.linkedin.com/in/duncan-wen"],
+      },
+    },
+  ]);
+});
+
+test("the home page names the site as a WebSite", async ({ page }) => {
+  expect(await structuredData(page, "/")).toEqual([
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Duncan Wen",
+      url: "https://dwen.example/",
+      inLanguage: "zh-Hant",
+    },
+  ]);
+});
+
 test("the signature at the end of a Post links the Owner's name to the About Page", async ({ page }) => {
   await page.goto("/posts/smoke-post");
 
