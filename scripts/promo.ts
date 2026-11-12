@@ -10,6 +10,7 @@ import { ContentValidationError, type Post } from "../src/content/content";
 import { getContent } from "../src/content/site-content";
 import { escapeHtml } from "../src/escape-html";
 import { fitPromoText, PROMO_SIZES, promoDocument, promoImageId } from "../src/promo/promo-images";
+import { SITE_LANGUAGE } from "../src/site-name";
 
 const outDir = "promo";
 
@@ -68,7 +69,7 @@ writeFileSync(`${outDir}/index.html`, contactSheet(sections));
 console.log(`Contact sheet: ${outDir}/index.html`);
 
 function contactSheet(sections: string[]): string {
-  return `<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>文宣圖</title>
+  return `<!doctype html><html lang="${SITE_LANGUAGE}"><meta charset="utf-8"><title>文宣圖</title>
 <style>
   body { margin: 24px; font: 15px/1.6 system-ui, sans-serif; background: #eee; color: #222; }
   h2 { font-size: 18px; margin: 32px 0 8px; }

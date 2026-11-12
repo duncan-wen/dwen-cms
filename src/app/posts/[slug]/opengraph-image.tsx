@@ -7,19 +7,20 @@ import { ImageSeal, sealFont } from "@/og/image-seal";
 import { type Colours, lightColours } from "@/og/token-colours";
 import { serifFont } from "@/og/serif-font";
 import { OgTitle, titleGlyphs } from "@/og/og-title";
+import { OWNER_NAME } from "@/site-name";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "文章標題與 Duncan Wen 的印章";
+export const alt = `文章標題與 ${OWNER_NAME} 的印章`;
 
 /** How far the title panel sits from the image's sides, and its own side padding, in pixels. */
 const PANEL_INSET = 64;
 const PANEL_PADDING_X = 56;
 
 /** The glyphs the image draws besides the title and the seal: the Owner's name by the seal. */
-const SIGNATURE_GLYPHS = "Duncan Wen";
+const SIGNATURE_GLYPHS = OWNER_NAME;
 
 export const dynamicParams = false;
 

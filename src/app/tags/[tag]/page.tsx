@@ -5,6 +5,7 @@ import { PostList } from "@/components/post-list";
 import { TextLink } from "@/components/text-link";
 import { getContent } from "@/content/site-content";
 import { pageAlternates } from "@/page-alternates";
+import { OWNER_NAME } from "@/site-name";
 
 type Props = { params: Promise<{ tag: string }> };
 
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tag } = await findPosts(params);
   return {
     title: `#${tag}`,
-    description: `Duncan Wen 標記為 #${tag} 的文章。`,
+    description: `${OWNER_NAME} 標記為 #${tag} 的文章。`,
     alternates: pageAlternates(`/tags/${tag}`),
   };
 }

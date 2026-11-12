@@ -10,8 +10,22 @@ const readContentThroughGetContent =
 // Palette classes (text-zinc-500) are handled in globals.css, which drops Tailwind's palette.
 const literalColour =
   "/(^|[\\s\\[:(\"'=])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})(?![\\w-])|\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix)\\(/";
+// The site's and Owner's names and the page language, which live once in src/site-name.ts.
+const siteIdentity = "/Duncan\\s+Wen|zh-Hant/i";
+const useSiteName =
+  "Names and the page language come from src/site-name.ts (SITE_NAME, OWNER_NAME, SITE_LANGUAGE), never a literal.";
+
 const useColourToken =
   "Colours come from the tokens in src/app/globals.css (bg-paper, text-accent, var(--accent)), never a literal.";
+
+const noLiteralColour = [`Literal[value=${literalColour}]`, `TemplateElement[value.raw=${literalColour}]`].map(
+  (selector) => ({ selector, message: useColourToken }),
+);
+const noLiteralIdentity = [
+  `Literal[value=${siteIdentity}]`,
+  `TemplateElement[value.raw=${siteIdentity}]`,
+  `JSXText[value=${siteIdentity}]`,
+].map((selector) => ({ selector, message: useSiteName }));
 
 export default defineConfig([
   ...nextVitals,
@@ -37,17 +51,20 @@ export default defineConfig([
       ],
     },
   },
+  // One `no-restricted-syntax` per file: a later block setting the rule replaces an earlier one,
+  // so each block lists every restriction its files get.
   {
     files: ["src/**/*.{ts,tsx}"],
-    rules: {
-      "no-restricted-syntax": [
-        "error",
-        ...[`Literal[value=${literalColour}]`, `TemplateElement[value.raw=${literalColour}]`].map((selector) => ({
-          selector,
-          message: useColourToken,
-        })),
-      ],
-    },
+    ignores: ["src/site-name.ts"],
+    rules: { "no-restricted-syntax": ["error", ...noLiteralColour, ...noLiteralIdentity] },
+  },
+  {
+    files: ["src/site-name.ts"],
+    rules: { "no-restricted-syntax": ["error", ...noLiteralColour] },
+  },
+  {
+    files: ["scripts/**/*.ts"],
+    rules: { "no-restricted-syntax": ["error", ...noLiteralIdentity] },
   },
   globalIgnores([".next/**", "next-env.d.ts", "test-results/**", "playwright-report/**", ".claude/**"]),
 ]);

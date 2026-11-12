@@ -4,7 +4,7 @@ import type { Post, PostImageFile, Promo, PromoTemplate } from "@/content/conten
 import { isoDate } from "@/format-date";
 import { type Colours, darkColours, lightColours } from "@/og/token-colours";
 import { serifFont } from "@/og/serif-font";
-import { SITE_NAME } from "@/site-name";
+import { SITE_LANGUAGE, SITE_NAME } from "@/site-name";
 import { titleGlyphs } from "@/og/og-title";
 import { PromoCover } from "./promo-cover";
 
@@ -53,7 +53,7 @@ export async function promoDocument(posts: PromoPost[]): Promise<string> {
     }),
   );
   const templateCss = Object.values(TEMPLATES).map((template) => template.css);
-  return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+  return `<!doctype html><html lang="${SITE_LANGUAGE}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="${SANS_AND_MONO_FONTS}">
 <style>${fontFaces.join("\n")}
 ${CSS}

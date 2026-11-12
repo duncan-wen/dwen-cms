@@ -3,10 +3,11 @@ import Link from "next/link";
 import { PageHeading } from "@/components/page-heading";
 import { getContent } from "@/content/site-content";
 import { pageAlternates } from "@/page-alternates";
+import { OWNER_NAME } from "@/site-name";
 
 export const metadata: Metadata = {
   title: "標籤",
-  description: "Duncan Wen 文章的所有標籤與篇數。",
+  description: `${OWNER_NAME} 文章的所有標籤與篇數。`,
   alternates: pageAlternates("/tags"),
 };
 
