@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { bodyColumnSizes } from "@/body-column";
 import { FeedbackBlock } from "@/components/feedback-block";
+import { JsonLd } from "@/components/json-ld";
 import { LinkRow } from "@/components/link-row";
 import { MutedParagraph } from "@/components/muted-paragraph";
 import { PageHeading } from "@/components/page-heading";
@@ -16,6 +18,7 @@ import { formatDate, isoDate } from "@/format-date";
 import { compileMdx } from "@/mdx/compile-mdx";
 import { pageAlternates } from "@/page-alternates";
 import { bodyImageSources } from "@/post-image-url";
+import { blogPosting } from "@/structured-data";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -74,6 +77,7 @@ export default async function PostPage({ params }: Props) {
   const { Body, headings } = await compileMdx(post.body, bodyImageSources(post), slideDeckSource(post));
   return (
     <article>
+      <JsonLd data={blogPosting(post)} />
       <PostCover post={post} sizes={bodyColumnSizes} preload className="aspect-[21/9] rounded-md" />
       {/* The table of contents hangs off the column's right edge, so the column never moves. */}
       <div className="relative">
@@ -99,7 +103,13 @@ export default async function PostPage({ params }: Props) {
         <footer className="mt-14 flex items-center gap-3.5 border-t border-rule pt-7">
           <Seal size="large" />
           <p className="grid leading-[1.6]">
-            <b className="font-serif font-bold">Duncan Wen</b>
+            {/* The byline links to the About Page, so Readers and search engines can tell who wrote it. */}
+            <Link
+              href="/about"
+              className="justify-self-start font-serif font-bold underline decoration-rule decoration-1 underline-offset-[5px] hover:decoration-accent"
+            >
+              Duncan Wen
+            </Link>
             <span className="text-sm text-ink-soft">寫於 {formatDate(post.date)}</span>
           </p>
         </footer>
