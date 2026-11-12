@@ -12,6 +12,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { chromium } from "@playwright/test";
+import { SITE_LANGUAGE } from "../src/site-name";
 
 const outDir = "test-results/shots";
 const themes = ["light", "dark"] as const;
@@ -170,7 +171,7 @@ if (overflowing.length > 0) {
 process.exit(0);
 
 function contactSheet(sections: string[]): string {
-  return `<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>截圖</title>
+  return `<!doctype html><html lang="${SITE_LANGUAGE}"><meta charset="utf-8"><title>截圖</title>
 <style>
   body { margin: 24px; font: 15px/1.6 system-ui, sans-serif; background: #eee; color: #222; }
   h2 { font-size: 18px; margin: 32px 0 8px; }

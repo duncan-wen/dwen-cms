@@ -1,7 +1,7 @@
 import { contactLinks } from "@/contact-links";
+import { OWNER_NAME } from "@/site-name";
 import { ContactIcon } from "./contact-icon";
 import { Seal } from "./seal";
-import { OWNER_NAME } from "@/site-name";
 
 /** Every page's footer: the seal, © year, and links to follow or contact the Owner. */
 export function SiteFooter() {

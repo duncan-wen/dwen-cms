@@ -4,10 +4,9 @@ import type { Post, PostImageFile, Promo, PromoTemplate } from "@/content/conten
 import { isoDate } from "@/format-date";
 import { type Colours, darkColours, lightColours } from "@/og/token-colours";
 import { serifFont } from "@/og/serif-font";
-import { SITE_NAME } from "@/site-name";
+import { SITE_LANGUAGE, SITE_NAME } from "@/site-name";
 import { titleGlyphs } from "@/og/og-title";
 import { PromoCover } from "./promo-cover";
-import { SITE_LANGUAGE } from "@/site-name";
 
 /**
  * Promo images (文宣圖): a Post drawn at the main social sizes from one of three brand
