@@ -529,6 +529,15 @@ describe("validating Post files", () => {
   });
 });
 
+describe("validating the body", () => {
+  it("rejects an ISO date in prose, but not in code or a URL", async () => {
+    const error = await loadContent(fixture("prose-date")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file: "posts/iso-date/index.mdx", field: "body", rule: "prose-date" }] });
+    expect((error as Error).message).toContain('"2026-11-12"');
+  });
+});
+
 describe("validating Slugs", () => {
   it("rejects every Slug that isn't lowercase English kebab-case", async () => {
     const error = await loadContent(fixture("bad-slug")).catch((e: unknown) => e);

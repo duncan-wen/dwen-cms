@@ -286,6 +286,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const tree = parseBody(body, report);
     const images = tree ? await checkBodyImages(tree, postDir, report) : {};
     if (tree) checkImagesNotLinked(tree, report);
+    if (tree) checkProseDates(tree, report);
     if (tree) await checkDiagrams(tree, bodyLine, report);
     const promo = checkPromo(data.promo, title, description, report);
     const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
@@ -908,6 +909,26 @@ function checkImagesNotLinked(tree: MdNode, report: Report) {
       }
     }
   }
+}
+
+const ISO_DATE = /\b\d{4}-\d{2}-\d{2}\b/;
+const BARE_URL = /https?:\/\/\S+/g;
+
+/**
+ * Prose says a date the way a Reader says it (11 月 12 日), not as an ISO date.
+ * Code, inline code and URLs, bare or in a link, aren't prose, so a date there is left alone.
+ */
+function checkProseDates(tree: MdNode, report: Report) {
+  for (const node of mdNodes(tree).filter(isText)) {
+    const date = ISO_DATE.exec(String(node.value).replace(BARE_URL, ""));
+    if (date) {
+      report("body", "prose-date", `"${date[0]}" is an ISO date in prose; write it the way a Reader says it, e.g. 11 月 12 日`);
+    }
+  }
+}
+
+function isText({ type, value }: MdNode): boolean {
+  return type === "text" && typeof value === "string";
 }
 
 function isLink({ type, name }: MdNode): boolean {
