@@ -8,7 +8,7 @@ A new feature, even one asked for in chat, starts with `/grilling` and a spec be
 
 ### Shipping
 
-Any change bound for a PR, from a spec or one-off, and any visual change shown to the Owner: `docs/agents/shipping.md` (branches, `/code-review`, screenshots with `pnpm shots <path>`, merging, the production check, Vercel preview env vars).
+Any change bound for a PR, from a spec or one-off, and any visual change shown to the Owner: `docs/agents/shipping.md` (branches, which code review, screenshots with `pnpm shots <path>`, merging, the production check, Vercel preview env vars, Vercel data such as Web Analytics).
 
 ### Triage labels
 

@@ -9,6 +9,7 @@ import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { pageAlternates } from "@/page-alternates";
 import { webSite } from "@/structured-data";
+import { OWNER_NAME } from "@/site-name";
 
 export const metadata: Metadata = { alternates: pageAlternates("/") };
 
@@ -42,7 +43,7 @@ export default async function HomePage() {
             <AgentAnimation />
           </div>
           <p className="font-serif text-[21px] leading-[1.6] font-bold">
-            我是 Duncan Wen，一名軟體工程師，把 AI 從對話框帶進真正能運作的系統。
+            我是 {OWNER_NAME}，一名軟體工程師，把 AI 從對話框帶進真正能運作的系統。
           </p>
           <p className="max-w-[22em] text-ink-soft">這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。</p>
           <LinkRow

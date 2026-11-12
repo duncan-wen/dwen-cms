@@ -7,6 +7,7 @@ import { serifFont } from "@/og/serif-font";
 import { SITE_NAME } from "@/site-name";
 import { titleGlyphs } from "@/og/og-title";
 import { PromoCover } from "./promo-cover";
+import { SITE_LANGUAGE } from "@/site-name";
 
 /**
  * Promo images (文宣圖): a Post drawn at the main social sizes from one of three brand
@@ -53,7 +54,7 @@ export async function promoDocument(posts: PromoPost[]): Promise<string> {
     }),
   );
   const templateCss = Object.values(TEMPLATES).map((template) => template.css);
-  return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+  return `<!doctype html><html lang="${SITE_LANGUAGE}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="${SANS_AND_MONO_FONTS}">
 <style>${fontFaces.join("\n")}
 ${CSS}

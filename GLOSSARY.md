@@ -22,6 +22,10 @@ _Avoid_: Bot, assistant, writer
 Dated content with tags that appears in listings and feeds. Shown to readers as 「文章」.
 _Avoid_: Article, blog, entry
 
+**Signature**:
+The block that closes every Post: the seal, the Owner's name linking to the About page, and 「寫於」 with the Post's date. It is the Post's only byline; the Post's opening shows the date and Tags, not the Owner's name. Shown to readers as 「署名」.
+_Avoid_: Byline, author box, footer
+
 **Slug**:
 The lowercase English kebab-case identifier in a Post's URL (`/posts/<slug>`); when it changes, the old one is kept and redirected permanently.
 _Avoid_: Permalink, path, ID

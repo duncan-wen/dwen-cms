@@ -1,9 +1,10 @@
 import { Resend } from "resend";
 import { absoluteUrl } from "@/site-url";
 import { createOwnerInbox, type MailTransport, type PostReference } from "./owner-inbox";
+import { OWNER_NAME } from "@/site-name";
 
 /** The verified sender on the Owner's domain; Resend refuses any address it hasn't verified. */
-export const MAIL_FROM = "Duncan Wen 網站 <noreply@duncan-wen.aibbm.org>";
+export const MAIL_FROM = `${OWNER_NAME} 網站 <noreply@duncan-wen.aibbm.org>`;
 
 /** Stands in for real mail where `MAIL_TRANSPORT=fake` asks for it (the smoke build): logs instead of sending. */
 const fakeTransport: MailTransport = async ({ subject }) => {

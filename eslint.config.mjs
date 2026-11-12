@@ -10,6 +10,11 @@ const readContentThroughGetContent =
 // Palette classes (text-zinc-500) are handled in globals.css, which drops Tailwind's palette.
 const literalColour =
   "/(^|[\\s\\[:(\"'=])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})(?![\\w-])|\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix)\\(/";
+// The site's and Owner's names and the page language, which live once in src/site-name.ts.
+const siteIdentity = "/Duncan Wen|zh-Hant/";
+const useSiteName =
+  "Names and the page language come from src/site-name.ts (SITE_NAME, OWNER_NAME, SITE_LANGUAGE), never a literal.";
+
 const useColourToken =
   "Colours come from the tokens in src/app/globals.css (bg-paper, text-accent, var(--accent)), never a literal.";
 
@@ -39,6 +44,7 @@ export default defineConfig([
   },
   {
     files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/site-name.ts"],
     rules: {
       "no-restricted-syntax": [
         "error",
@@ -46,6 +52,11 @@ export default defineConfig([
           selector,
           message: useColourToken,
         })),
+        ...[
+          `Literal[value=${siteIdentity}]`,
+          `TemplateElement[value.raw=${siteIdentity}]`,
+          `JSXText[value=${siteIdentity}]`,
+        ].map((selector) => ({ selector, message: useSiteName })),
       ],
     },
   },
