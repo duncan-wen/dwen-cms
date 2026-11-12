@@ -1022,6 +1022,52 @@ test("robots.txt allows every crawler and names the sitemap on the base URL", as
   expect(lines).toContain("Sitemap: https://dwen.example/sitemap.xml");
 });
 
+/** Every JSON-LD object a page carries, parsed. */
+async function structuredData(page: Page, path: string): Promise<Record<string, unknown>[]> {
+  await page.goto(path);
+  const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
+  return scripts.map((text) => JSON.parse(text) as Record<string, unknown>);
+}
+
+test("a Post page describes itself as a BlogPosting by the Owner, with date-only dates", async ({ page }) => {
+  // `pnpm smoke` builds with SITE_URL=https://dwen.example.
+  expect(await structuredData(page, "/posts/smoke-post")).toEqual([
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: "煙霧測試文章",
+      description: "煙霧測試用的文章，不會出現在正式網站。",
+      datePublished: "2026-11-01",
+      dateModified: "2026-11-01",
+      author: { "@type": "Person", name: "Duncan Wen", url: "https://dwen.example/about" },
+      image: "https://dwen.example/posts/smoke-post/opengraph-image",
+      inLanguage: "zh-Hant",
+      keywords: ["smoke"],
+      url: "https://dwen.example/posts/smoke-post",
+      mainEntityOfPage: "https://dwen.example/posts/smoke-post",
+    },
+  ]);
+});
+
+test("a revised Post's structured data is modified on its latest Revision's date", async ({ page }) => {
+  const [posting] = await structuredData(page, "/posts/revised-smoke-post");
+
+  expect(posting).toMatchObject({ datePublished: "2026-10-01", dateModified: "2026-10-15" });
+});
+
+test("a taken-down Slug carries no structured data", async ({ page }) => {
+  expect(await structuredData(page, "/posts/taken-down-post")).toEqual([]);
+});
+
+test("the signature at the end of a Post links the Owner's name to the About Page", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+
+  await expect(page.locator("article footer").getByRole("link", { name: "Duncan Wen" })).toHaveAttribute(
+    "href",
+    "/about",
+  );
+});
+
 test("every page sets a canonical URL on the configured base URL", async ({ page }) => {
   for (const path of ["/", "/posts", "/posts/smoke-post", "/tags", "/tags/smoke", "/about"]) {
     await page.goto(path);
