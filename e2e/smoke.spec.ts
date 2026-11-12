@@ -1009,6 +1009,19 @@ test("the sitemap answers as XML and lists every Published Post, Page and Tag pa
   expect(locs).not.toContain("/posts/old-smoke-post");
 });
 
+test("robots.txt allows every crawler and names the sitemap on the base URL", async ({ request }) => {
+  const response = await request.get("/robots.txt");
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("text/plain");
+  const lines = (await response.text()).split("\n").map((line) => line.trim());
+  expect(lines.filter((line) => line.startsWith("User-Agent:"))).toEqual(["User-Agent: *"]);
+  expect(lines).toContain("Allow: /");
+  expect(lines.some((line) => line.startsWith("Disallow:"))).toBe(false);
+  // `pnpm smoke` builds with SITE_URL=https://dwen.example.
+  expect(lines).toContain("Sitemap: https://dwen.example/sitemap.xml");
+});
+
 test("every page sets a canonical URL on the configured base URL", async ({ page }) => {
   for (const path of ["/", "/posts", "/posts/smoke-post", "/tags", "/tags/smoke", "/about"]) {
     await page.goto(path);
