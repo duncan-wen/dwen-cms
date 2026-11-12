@@ -5,7 +5,7 @@ import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { SITE_NAME } from "@/site-name";
+import { SITE_LANGUAGE, SITE_NAME } from "@/site-name";
 import { siteUrl } from "@/site-url";
 import "./globals.css";
 
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // next-themes' inline script sets data-theme before React hydrates.
-    <html lang="zh-Hant" className={`${serif.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang={SITE_LANGUAGE} className={`${serif.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="flex min-h-dvh flex-col bg-paper text-ink antialiased">
         {/* data-theme on <html> picks the colour tokens in globals.css; with no stored choice it follows the system. */}
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>

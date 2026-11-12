@@ -3,8 +3,10 @@ import type { ReactNode } from "react";
 
 type Props = { href: string; children: ReactNode };
 
-const className =
-  "font-medium text-accent underline decoration-rule decoration-1 underline-offset-[5px] hover:decoration-accent";
+/** The quiet underline every text link wears, darkening to the accent on hover. */
+export const linkUnderline = "underline decoration-rule decoration-1 underline-offset-[5px] hover:decoration-accent";
+
+const className = `font-medium text-accent ${linkUnderline}`;
 
 /**
  * Whether `href` is one of this site's pages, which next/link prefetches and opens without a

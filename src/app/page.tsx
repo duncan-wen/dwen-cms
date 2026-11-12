@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AgentAnimation } from "@/components/agent-animation/agent-animation";
+import { JsonLd } from "@/components/json-ld";
 import { LinkRow } from "@/components/link-row";
 import { PostGrid } from "@/components/post-grid";
 import { Seal } from "@/components/seal";
@@ -7,6 +8,7 @@ import { TextLink } from "@/components/text-link";
 import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { pageAlternates } from "@/page-alternates";
+import { webSite } from "@/structured-data";
 
 export const metadata: Metadata = { alternates: pageAlternates("/") };
 
@@ -17,6 +19,7 @@ export default async function HomePage() {
   const latest = (await getContent()).listPublishedPosts().slice(0, LATEST_COUNT);
   return (
     <>
+      <JsonLd data={webSite()} />
       {/*
         The headline ends in the seal like a signature: set vertically on the right from 640px, horizontally on phones.
         The agent animation fills the space above the introduction from 640px, and follows its links on phones.

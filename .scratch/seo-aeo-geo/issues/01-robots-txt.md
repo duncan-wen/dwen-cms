@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `/robots.txt` answers 200 as text
-- [ ] One rule allows all user agents; no per-bot groups
-- [ ] It names the sitemap on the configured base URL
-- [ ] Smoke covers the three points above
+- [x] `/robots.txt` answers 200 as text
+- [x] One rule allows all user agents; no per-bot groups
+- [x] It names the sitemap on the configured base URL
+- [x] Smoke covers the three points above
