@@ -33,6 +33,14 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # next build fetches its Google Fonts on every fresh runner, and fails when
+      # Google doesn't answer. Turbopack's cache holds them, so restoring it lets
+      # the build run without reaching Google (an offline build with it passes).
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('src/**', 'content/**', 'e2e/content/**') }}
+          restore-keys: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
       - run: pnpm check
       - name: Build real content (fails on warnings)
         run: pnpm build:check
