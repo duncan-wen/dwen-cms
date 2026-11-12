@@ -27,6 +27,9 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: siteUrl(),
   title: { default: SITE_NAME, template: `%s｜${SITE_NAME}` },
+  // Proves ownership to Google Search Console (URL-prefix property). The code is public by design.
+  // DNS verification can't be used: the subdomain is a CNAME, which can't share its name with a TXT record.
+  verification: { google: "vLLljyZQzfxK_tS6sYrs1vl-gOP4oGD7MYCf77xN1MU" },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
