@@ -4,9 +4,9 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The About Page has a `ProfilePage` whose `mainEntity` is a `Person` "Duncan Wen" with the About Page URL and `sameAs` exactly the GitHub and LinkedIn URLs, read from the site's contact links
-- [ ] No `image` on the `Person`
-- [ ] The home page has a `WebSite` with `name` from the site-name constant and the home page URL; no `alternateName`, no `SearchAction`
-- [ ] Smoke covers both
+- [x] The About Page has a `ProfilePage` whose `mainEntity` is a `Person` "Duncan Wen" with the About Page URL and `sameAs` exactly the GitHub and LinkedIn URLs, read from the site's contact links
+- [x] No `image` on the `Person`
+- [x] The home page has a `WebSite` with `name` from the site-name constant and the home page URL; no `alternateName`, no `SearchAction`
+- [x] Smoke covers both
