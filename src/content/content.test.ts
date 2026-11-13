@@ -699,6 +699,50 @@ describe("validating promo frontmatter", () => {
   });
 });
 
+describe("a Post's Threads share", () => {
+  it("reads the text in threads.txt and takes its last line as the topic tag", async () => {
+    const content = await loadContent(fixture("threads"));
+
+    expect(post(content, "shared").threadsShare).toEqual({ text: "一段介紹。", topicTag: "Python", postedUrl: undefined });
+  });
+
+  it("reads the link a posted share was recorded with, apart from its text", async () => {
+    const content = await loadContent(fixture("threads"));
+
+    expect(post(content, "posted").threadsShare).toEqual({
+      text: "已經發過的介紹。",
+      topicTag: "AI",
+      postedUrl: "https://www.threads.com/@someone/post/ABC123",
+    });
+  });
+
+  it("has none for a Post without threads.txt", async () => {
+    const content = await loadContent(fixture("threads"));
+
+    expect(post(content, "not-shared").threadsShare).toBeUndefined();
+  });
+
+  it.each([
+    ["threads-too-long", "posts/long/threads.txt", "text", "threads-length", /502 characters, more than Threads' 500/],
+    ["threads-no-tag", "posts/untagged/threads.txt", "text", "threads-topic-tag", /needs one topic tag as its last line/],
+    ["threads-other-tags", "posts/extra/threads.txt", "text", "threads-topic-tag", /other tags \(#Go\)/],
+    ["threads-bad-tag", "posts/dotted/threads.txt", "text", "threads-topic-tag", /"#Next\.js" must be 1–50 characters with no "\." or "&"/],
+    ["threads-url", "posts/linked/threads.txt", "text", "threads-url", /has a URL/],
+    ["threads-posted-url", "posts/bad-posted/threads.txt", "posted", "threads-posted-url", /"https:\/\/example.com\/x"/],
+  ])("rejects fixture %s: %s %s breaks %s", async (fixtureName, file, field, rule, message) => {
+    const error = await loadContent(fixture(fixtureName)).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file, field, rule }] });
+    expect((error as Error).message).toMatch(message);
+  });
+
+  function post(content: Awaited<ReturnType<typeof loadContent>>, slug: string) {
+    const result = content.resolveSlug(slug);
+    if (result.kind !== "post") throw new Error(`${slug} is ${result.kind}`);
+    return result.post;
+  }
+});
+
 describe("a Post's LinkedIn share", () => {
   it("reads the text in linkedin.txt next to the Post, not yet posted", async () => {
     const content = await loadContent(fixture("linkedin"));
