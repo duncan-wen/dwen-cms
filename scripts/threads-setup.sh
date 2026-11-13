@@ -220,7 +220,9 @@ TOTAL_STAGES=7
 banner "Threads posting setup"
 
 stage "Create the Meta app"
-open_url "https://developers.facebook.com/apps/creation/"
+open_url "https://developers.facebook.com/apps/"
+step "First time here? Finish Meta's developer registration (Get Started) first."
+step "On My Apps, click Create App (建立應用程式)."
 step "App name: anything, e.g. dwen-cms threads. Contact email: yours. Next."
 step "Use cases: tick 'Access the Threads API'. Next."
 step "Business: 'I don't want to connect a business portfolio yet'. Next, Next."
