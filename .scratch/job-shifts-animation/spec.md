@@ -1,6 +1,6 @@
 # Spec: Job shifts animation in a Post
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
@@ -27,8 +27,12 @@ Its main job is to help the Reader see the pattern; showing the Owner's technica
 - **Motion per row:** the row's era and old work appear; the old work greys out and is struck through; an arrow grows to the right; the new work lights up in the accent colour. Rows play top to bottom, each 5–6 seconds, about 15–20 seconds in all at 30fps.
 - **Playback:** starts once, when half the animation is on screen; stops on the finished frame, which is the whole table; a 「重播」 button at its bottom right plays it again from the start. No other controls, no loop, no sound (no voice-over: browsers block autoplaying sound, Readers read with sound off, and the content is already on screen).
 - **Reduced motion:** Readers who ask for it see the finished frame, still, and no 「重播」 button. `pnpm shots` asks for reduced motion, so its screenshots show that frame.
-- **Theme and size:** colours and fonts are the site's tokens, so it follows the light and dark themes. It fills the reading column; text stays readable at 375px.
+- **Theme and size:** colours and fonts are the site's tokens, so it follows the light and dark themes. It is at most 500px wide, so on desktop its text sits near the body's size instead of scaling up to the 640px column; text stays readable at 375px.
 - **Accessibility:** the animation is hidden from screen readers, and a visually hidden list carries the same table: each era with what was pushed out and what rose, plus the example line. A visible caption under it: 「示意動畫：三次技術轉變中消失與崛起的工作。」
-- **Glossary:** a new term **Animation**: an animated figure on the home page or in a Post that is neither interactive nor running any AI, so it is not a Demo; shown to readers as 「示意動畫」. **Agent animation** is reworded as the home page's Animation.
+- **Glossary:** a new term **Animation**: an animated figure on the home page or in a Post, with nothing interactive beyond replaying it and no AI running, so it is not a Demo; shown to readers as 「示意動畫」. **Agent animation** is reworded as the home page's Animation.
 - **Review:** the Owner reviews the finished frame from `pnpm shots` screenshots. The agent checks playback itself (start on scroll, row order, stop on the last frame, 重播), with the smoke test and, if needed, on the Vercel preview. The Owner may watch it on the preview but doesn't have to.
 - **Out of scope:** the Post itself (written afterwards with `write-post`, once this has merged), a general timeline component, sound, a video export, screenshots taken mid-play (`.scratch/shots-mid-animation/`).
+
+## Comments
+
+- Built in ticket 01. Two changes from the first wording, found in the screenshots and the review: the Animation is capped at 500px wide (filling the 640px column scaled its text to about 30px), and the glossary entry allows replaying, since 「重播」 is the one thing a Reader can press.
