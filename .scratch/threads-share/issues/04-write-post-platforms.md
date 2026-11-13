@@ -4,10 +4,10 @@
 
 **Blocked by:** 01, 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `write-post` has a **Threads share** section next to **LinkedIn share**, written per `writing-for-agents`
-- [ ] Its steps draft and present `threads.txt` with the Post
-- [ ] The final step asks which platforms, previews each, and posts only on a yes
-- [ ] Sharing an older Post on request is covered
-- [ ] `docs/owner-guide.md` tells the Owner how to ask for a share on each platform
+- [x] `write-post` has a **Threads share** section next to **LinkedIn share**, written per `writing-for-agents`
+- [x] Its steps draft and present `threads.txt` with the Post
+- [x] The final step asks which platforms, previews each, and posts only on a yes
+- [x] Sharing an older Post on request is covered
+- [x] `docs/owner-guide.md` tells the Owner how to ask for a share on each platform
