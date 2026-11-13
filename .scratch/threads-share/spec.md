@@ -1,6 +1,6 @@
 # Spec: Sharing Posts on Threads
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
