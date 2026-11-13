@@ -40,11 +40,11 @@ _clear() {
 banner() {
   _clear
   printf '\n%s%s  %s%s\n' "$BOLD" "$BLUE" "$1" "$RESET"
-  printf '%s  %s stages%s\n\n' "$DIM" "$TOTAL_STAGES" "$RESET"
-  printf '%s  You drive the browser; this wizard tells you exactly what to do and\n' "$DIM"
-  printf '  captures the values you copy back. Stop any time with Ctrl-C and re-run\n'
-  printf '  later, since it remembers values already saved.%s\n' "$RESET"
-  pause "Ready to start?"
+  printf '%s  共 %s 個步驟%s\n\n' "$DIM" "$TOTAL_STAGES" "$RESET"
+  printf '%s  瀏覽器由你操作；這個精靈會告訴你每一步要點哪裡，\n' "$DIM"
+  printf '  並收下你複製回來的值。隨時可以按 Ctrl-C 中斷，之後重跑，\n'
+  printf '  已經存好的值會記得。%s\n' "$RESET"
+  pause "準備好了按 Enter 開始"
 }
 
 # stage "Name" clears the screen, then announces a stage and shows progress.
@@ -52,7 +52,7 @@ banner() {
 stage() {
   _clear
   _STAGE_INDEX=$((_STAGE_INDEX + 1))
-  printf '\n%s%s▸ Stage %s/%s · %s%s\n' \
+  printf '\n%s%s▸ 第 %s/%s 步 · %s%s\n' \
     "$BOLD" "$BLUE" "$_STAGE_INDEX" "$TOTAL_STAGES" "$1" "$RESET"
 }
 
@@ -66,18 +66,18 @@ warn() { printf '  %s⚠ %s%s\n' "$YELLOW" "$1" "$RESET"; }
 # open_url URL opens it in the human's browser, cross-platform incl. WSL.
 open_url() {
   local url="$1"
-  printf '  %s↗ opening%s %s\n' "$GREEN" "$RESET" "$url"
+  printf '  %s↗ 開啟%s %s\n' "$GREEN" "$RESET" "$url"
   { if   command -v wslview     >/dev/null 2>&1; then wslview "$url"
     elif command -v explorer.exe >/dev/null 2>&1; then explorer.exe "$url"
     elif command -v xdg-open    >/dev/null 2>&1; then xdg-open "$url"
     elif command -v open        >/dev/null 2>&1; then open "$url"
     else false; fi
-  } >/dev/null 2>&1 || warn "couldn't open a browser, so visit it manually: $url"
+  } >/dev/null 2>&1 || warn "無法自動開啟瀏覽器，請手動打開：$url"
 }
 
 # pause "msg" waits for the human to confirm they've done the manual part.
 pause() {
-  printf '  %s%s%s ' "$DIM" "${1:-Press Enter to continue}" "$RESET"
+  printf '  %s%s%s ' "$DIM" "${1:-按 Enter 繼續}" "$RESET"
   read -r _ || true
 }
 
@@ -111,7 +111,7 @@ ask() {
   current=$(_existing "$key" || true)
   # Readline needs the colour codes wrapped in \001..\002 to place the cursor.
   p="  $s$BOLD$e$prompt$s$RESET$e "
-  [[ -n "$current" ]] && p+="$s$DIM$e[Enter keeps current]$s$RESET$e "
+  [[ -n "$current" ]] && p+="$s$DIM$e[直接按 Enter 沿用目前的值]$s$RESET$e "
   read -e -r -p "$p" input || rc=1
   if (( rc )) && [[ -z "$input" ]]; then return 1; fi
   [[ -z "$input" && -n "$current" ]] && input="$current"
@@ -123,7 +123,7 @@ ask_secret() {
   local key="$1" prompt="$2" current input rc=0
   current=$(_existing "$key" || true)
   if [[ -n "$current" ]]; then
-    printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
+    printf '  %s%s%s %s[直接按 Enter 沿用目前的值]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
   else
     printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
   fi
@@ -147,7 +147,7 @@ write_env() {
   rm -f "$tmp"
   printf -v "$key" '%s' "$value"
   WRITTEN_ENV+=("$key")
-  printf '  %s✓ wrote%s %s → %s\n' "$GREEN" "$RESET" "$key" "$ENV_FILE"
+  printf '  %s✓ 已寫入%s %s → %s\n' "$GREEN" "$RESET" "$key" "$ENV_FILE"
 }
 
 # set_secret NAME VALUE sets a GitHub Actions repo secret via gh. Falls back
@@ -181,11 +181,11 @@ set_var() {
 # finish clears, then shows a closing summary of everything configured.
 finish() {
   _clear
-  printf '\n%s%s  ✓ Setup complete%s\n' "$BOLD" "$GREEN" "$RESET"
-  (( ${#WRITTEN_ENV[@]} ))    && note "wrote ${#WRITTEN_ENV[@]} value(s) to $ENV_FILE: ${WRITTEN_ENV[*]}"
+  printf '\n%s%s  ✓ 設定完成%s\n' "$BOLD" "$GREEN" "$RESET"
+  (( ${#WRITTEN_ENV[@]} ))    && note "已寫入 ${#WRITTEN_ENV[@]} 個值到 $ENV_FILE：${WRITTEN_ENV[*]}"
   (( ${#WRITTEN_SECRET[@]} )) && note "set ${#WRITTEN_SECRET[@]} GitHub secret(s): ${WRITTEN_SECRET[*]}"
   if (( ${#SKIPPED[@]} )); then
-    printf '\n'; warn "still to do by hand:"
+    printf '\n'; warn "還要手動完成："
     for s in "${SKIPPED[@]}"; do note "  - $s"; done
   fi
   printf '\n'
@@ -217,70 +217,70 @@ run_wizard() {
 
 TOTAL_STAGES=7
 
-banner "Threads posting setup"
+banner "Threads 發文設定"
 
-stage "Create the Meta app"
+stage "建立 Meta app"
 open_url "https://developers.facebook.com/apps/"
-step "First time here? Finish Meta's developer registration (Get Started) first."
-step "On My Apps, click Create App (建立應用程式)."
-step "App name: anything, e.g. dwen-cms threads. Contact email: yours. Next."
-step "Use cases: tick 'Access the Threads API'. Next."
-step "Business: 'I don't want to connect a business portfolio yet'. Next, Next."
-step "Overview: 'Go to dashboard'."
-pause "Press Enter once you're on the app's dashboard."
+step "第一次來？先完成 Meta 開發者註冊（開始使用／Get Started）。"
+step "在「我的應用程式」頁，點右上角「建立應用程式」（Create App）。"
+step "應用程式名稱隨意，例如 dwen-cms threads；聯絡 email 填你的。按「下一步」。"
+step "使用案例：勾選「存取 Threads API」（Access the Threads API）。下一步。"
+step "商家：選「我還不想連結商家資產管理組合」。之後一路按下一步。"
+step "總覽頁：點「前往主控板」（Go to dashboard）。"
+pause "到了 app 的主控板後按 Enter。"
 
-stage "Add the publishing permission"
-step "Dashboard → Use cases → the Threads use case (Customize)."
-step "In the permissions list, click Add next to threads_content_publish."
-note "threads_basic is already there and can't be removed."
-pause "Press Enter once threads_content_publish shows as added."
+stage "加上發文權限"
+step "主控板 → 使用案例 → Threads 那一項（自訂／Customize）。"
+step "在權限清單裡，點 threads_content_publish 旁邊的「新增」（Add）。"
+note "threads_basic 本來就在，而且不能移除。"
+pause "threads_content_publish 顯示已新增後按 Enter。"
 
-stage "Redirect URI and app credentials"
-step "Same use case → Settings (left)."
-step "Client OAuth Settings → Valid OAuth Redirect URIs: paste exactly"
+stage "轉址網址與 app 憑證"
+step "同一個使用案例 → 左側「設定」（Settings）。"
+step "用戶端 OAuth 設定 → 有效的 OAuth 重新導向 URI，一字不差貼上："
 say "    $REDIRECT_URI"
-step "Click Save."
-step "On the same page, copy the Threads app ID and the Threads app secret."
-ask THREADS_APP_ID "Threads app ID:"
-ask_secret APP_SECRET "Threads app secret (hidden, not saved):"
+step "按「儲存」。"
+step "同一頁複製「Threads 應用程式編號」和「Threads 應用程式密鑰」（Threads app ID／secret）。"
+ask THREADS_APP_ID "Threads app ID："
+ask_secret APP_SECRET "Threads app secret（輸入時不顯示，也不會存起來）："
 write_env THREADS_APP_ID "$THREADS_APP_ID"
 
-stage "Add yourself as a Threads Tester"
-step "Same Settings page → 'Add or Remove Threads Test Users'."
-step "App roles → Roles → Add People → choose 'Threads Tester'."
-step "Type your Threads username and send the invite."
-pause "Press Enter once the invite is sent."
+stage "把自己加成 Threads 測試人員"
+step "同一個設定頁 →「新增或移除 Threads 測試用戶」。"
+step "應用程式角色 → 角色 → 新增人員 → 選「Threads 測試人員」（Threads Tester）。"
+step "輸入你的 Threads 帳號名稱，送出邀請。"
+pause "邀請送出後按 Enter。"
 
-stage "Accept the invite in Threads"
+stage "在 Threads 接受邀請"
 open_url "https://www.threads.com/settings/account"
-step "Signed in to Threads as yourself: Account settings → Website permissions."
-step "Under Invites, accept the app's invite."
-pause "Press Enter once it's accepted."
+step "用你自己的帳號登入 Threads：帳號設定 → 網站權限（Website permissions）。"
+step "在「邀請」裡接受這個 app 的邀請。"
+pause "接受後按 Enter。"
 
-stage "Authorise the app"
+stage "授權 app"
 open_url "https://threads.com/oauth/authorize?client_id=${THREADS_APP_ID}&redirect_uri=$(node -p 'encodeURIComponent(process.argv[1])' "$REDIRECT_URI")&scope=threads_basic,threads_content_publish&response_type=code"
-step "Allow the app. The browser lands on the site's home page."
-step "Copy the whole address from the address bar (it contains ?code=...)."
-ask RETURNED_URL "Paste the address:"
+step "按「允許」。瀏覽器會跳回你網站的首頁。"
+step "複製網址列的完整網址（裡面有 ?code=...）。"
+ask RETURNED_URL "貼上網址："
 CODE=$(node -p 'new URL(process.argv[1]).searchParams.get("code") || ""' "$RETURNED_URL")
 CODE="${CODE%#_}"
-if [[ -z "$CODE" ]]; then warn "No code in that address. Run the wizard again from the start."; exit 1; fi
+if [[ -z "$CODE" ]]; then warn "網址裡沒有授權碼。請從頭再跑一次。"; exit 1; fi
 
-stage "Get a long-lived token"
-say "Exchanging the code; the token isn't shown."
+stage "取得長效權杖"
+say "正在用授權碼換權杖，權杖不會顯示在畫面上。"
 SHORT=$(curl -sS -X POST "$GRAPH/oauth/access_token" \
   -d "client_id=$THREADS_APP_ID" -d "client_secret=$APP_SECRET" -d "code=$CODE" \
   -d "grant_type=authorization_code" --data-urlencode "redirect_uri=$REDIRECT_URI")
 SHORT_TOKEN=$(printf '%s' "$SHORT" | json_field access_token)
-if [[ -z "$SHORT_TOKEN" ]]; then warn "Exchange failed: $(printf '%s' "$SHORT" | json_field error)"; exit 1; fi
+if [[ -z "$SHORT_TOKEN" ]]; then warn "換權杖失敗：$(printf '%s' "$SHORT" | json_field error)"; exit 1; fi
 LONG=$(curl -sS -G "$GRAPH/access_token" -d grant_type=th_exchange_token \
   --data-urlencode "client_secret=$APP_SECRET" --data-urlencode "access_token=$SHORT_TOKEN")
 LONG_TOKEN=$(printf '%s' "$LONG" | json_field access_token)
-if [[ -z "$LONG_TOKEN" ]]; then warn "Long-lived exchange failed: $(printf '%s' "$LONG" | json_field error)"; exit 1; fi
+if [[ -z "$LONG_TOKEN" ]]; then warn "換長效權杖失敗：$(printf '%s' "$LONG" | json_field error)"; exit 1; fi
 ME=$(curl -sS -G "$GRAPH/v1.0/me" -d fields=id,username --data-urlencode "access_token=$LONG_TOKEN")
 USER_ID=$(printf '%s' "$ME" | json_field id)
-if [[ -z "$USER_ID" ]]; then warn "The token didn't read your account: $(printf '%s' "$ME" | json_field error)"; exit 1; fi
-say "Token works for @$(printf '%s' "$ME" | json_field username)."
+if [[ -z "$USER_ID" ]]; then warn "權杖讀不到你的帳號：$(printf '%s' "$ME" | json_field error)"; exit 1; fi
+say "權杖可用，帳號 @$(printf '%s' "$ME" | json_field username)。"
 write_env THREADS_ACCESS_TOKEN "$LONG_TOKEN"
 write_env THREADS_TOKEN_DATE "$(date +%F)"
 write_env THREADS_USER_ID "$USER_ID"
