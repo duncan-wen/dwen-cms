@@ -6,60 +6,24 @@
 // Reads LINKEDIN_ACCESS_TOKEN (and LINKEDIN_TOKEN_DATE, when it was made) from .env.local:
 // a token from https://www.linkedin.com/developers/tools/oauth/token-generator with the
 // openid, profile and w_member_social scopes. Tokens last 60 days.
-import { readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
-import { ContentValidationError } from "../src/content/content";
-import { contentDir, getContent } from "../src/content/site-content";
 import { littleText } from "../src/linkedin";
+import { checkTokenAge, fail, livePage, loadEnv, postToShare, recordPosted, shareArgs } from "./share";
 
-/**
- * The production site, as Vercel Production's SITE_URL names it. The card shows what Readers
- * see there, so the Post must already be live.
- */
-const SITE = "https://duncan-wen.aibbm.org";
 /** LinkedIn's API version, YYYYMM. Each lasts about a year; a 426 NONEXISTENT_VERSION means bump it. */
 const LINKEDIN_VERSION = "202610";
 const TOKEN_DAYS = 60;
 
-const args = process.argv.slice(2);
-const post = args.includes("--post");
-const slug = args.find((arg) => !arg.startsWith("--"));
-if (!slug) fail("Usage: pnpm linkedin <slug> [--post]");
-
-try {
-  process.loadEnvFile(".env.local");
-} catch {
-  // No .env.local: the token may come from the environment instead.
-}
+const { slug, post } = shareArgs("linkedin");
+loadEnv();
 const token = process.env.LINKEDIN_ACCESS_TOKEN;
 if (!token)
   fail(
     "No LINKEDIN_ACCESS_TOKEN in .env.local; make one with the token generator (see the top of scripts/linkedin.ts).",
   );
-warnIfTokenIsOld(process.env.LINKEDIN_TOKEN_DATE);
+checkTokenAge("LinkedIn", process.env.LINKEDIN_TOKEN_DATE, TOKEN_DAYS, "make a new one with the token generator.");
 
-const content = await getContent().catch((error: unknown) => {
-  if (!(error instanceof ContentValidationError)) throw error;
-  fail(error.message);
-});
-const resolved = content.resolveSlug(slug);
-if (resolved.kind !== "post") fail(`No Published Post has the Slug "${slug}" (${resolved.kind}).`);
-const share = resolved.post.linkedInShare;
-const shareFile = path.join(contentDir, "posts", slug, "linkedin.txt");
-if (!share) fail(`Write the share's text in ${path.relative(process.cwd(), shareFile)} first.`);
-if (share.postedUrl) fail(`Already shared: ${share.postedUrl}`);
-
-const pageUrl = `${SITE}/posts/${slug}`;
-const page = await fetch(pageUrl);
-if (!page.ok) fail(`${pageUrl} answered ${page.status}: merge and deploy the Post before sharing it.`);
-const html = await page.text();
-// The page names its own canonical URL from SITE_URL; a card pointing anywhere else would
-// send Readers to a second address of the same site.
-const canonical = html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
-if (canonical !== pageUrl)
-  fail(
-    `${pageUrl} names ${canonical} as its canonical URL: set SITE_URL on Vercel Production to ${SITE} and redeploy.`,
-  );
+const { share, shareFile } = await postToShare(slug, "linkedin.txt", (found) => found.linkedInShare);
+const { pageUrl, html } = await livePage(slug);
 const card = {
   url: pageUrl,
   title: meta(html, "og:title"),
@@ -104,9 +68,7 @@ const created = await linkedinResponse("POST", "/rest/posts", {
   lifecycleState: "PUBLISHED",
   isReshareDisabledByAuthor: false,
 });
-const postedUrl = `https://www.linkedin.com/feed/update/${created.headers.get("x-restli-id")}/`;
-writeFileSync(shareFile, `posted: ${postedUrl}\n\n${readFileSync(shareFile, "utf8")}`);
-console.log(`\nPosted: ${postedUrl}\nRecorded in ${path.relative(process.cwd(), shareFile)}: commit it.`);
+recordPosted(shareFile, `https://www.linkedin.com/feed/update/${created.headers.get("x-restli-id")}/`);
 
 async function linkedin<T>(method: string, path: string, body?: unknown): Promise<T> {
   return (await linkedinResponse(method, path, body)).json() as Promise<T>;
@@ -140,17 +102,4 @@ function meta(source: string, property: string): string | undefined {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&");
-}
-
-function warnIfTokenIsOld(date: string | undefined) {
-  if (!date) return;
-  const days = Math.floor((Date.now() - Date.parse(date)) / 86_400_000);
-  if (days >= TOKEN_DAYS) fail(`The LinkedIn token is ${days} days old and has expired: make a new one.`);
-  if (days >= TOKEN_DAYS - 10)
-    console.warn(`⚠ The LinkedIn token expires in ${TOKEN_DAYS - days} days: make a new one soon.`);
-}
-
-function fail(message: string): never {
-  console.error(message);
-  process.exit(1);
 }
