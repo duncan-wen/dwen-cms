@@ -37,8 +37,7 @@
   .end .big { font-size: 12vmin; font-weight: 800; }
 
   /* back to the Post, only when opened on its own */
-  #back { position: fixed; z-index: 99; left: max(8px, env(safe-area-inset-left)); top: max(8px, env(safe-area-inset-top));
-    padding: 6px 12px; border-radius: 999px; background: #111d; color: #fff; font-size: 14px; text-decoration: none; }
+  #back { color: #fff; text-decoration: none; padding: 0 6px; }
   .embedded #back { display: none; }
 
   /* variant switcher */
@@ -124,8 +123,7 @@
 <body>
 <div id="app"></div>
 <audio id="narr" preload="auto" playsinline></audio>
-<a id="back" href="/posts/voice-clone-bedtime-story" target="_top">← 回到文章</a>
-<div id="bar"><button id="bp" title="上一種玩法">‹</button><span id="bl"></span><button id="bn" title="下一種玩法">›</button><button id="bh" title="收合">–</button></div>
+<div id="bar"><a id="back" href="/posts/voice-clone-bedtime-story" target="_top">← 回到文章</a><button id="bp" title="上一種玩法">‹</button><span id="bl"></span><button id="bn" title="下一種玩法">›</button><button id="bh" title="收合">–</button></div>
 <script src="story.js"></script>
 <script>
 "use strict";
