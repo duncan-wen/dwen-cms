@@ -1,6 +1,6 @@
 # Spec: Demos embedded in a Post
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 

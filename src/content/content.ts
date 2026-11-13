@@ -16,7 +16,17 @@ import {
 } from "../deck/deck-names";
 import { linkedInHashtags } from "../linkedin";
 import { isValidThreadsTag, THREADS_TAG_MAX, threadsTopicTag } from "../threads";
-import { isInlineSlideDeck, isSlideDeck, type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
+import { demoPagePath } from "../demo";
+import {
+  isDemo,
+  isInlineDemo,
+  isInlineSlideDeck,
+  isSlideDeck,
+  mdAttribute,
+  type MdNode,
+  mdNodes,
+  mermaidBlocks,
+} from "../mdx/md-tree";
 import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
 import { checkIllustration, type IllustrationShape } from "../mdx/illustration-svg";
@@ -301,6 +311,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
     const threadsShare = await loadThreadsShare(contentDir, slug, problems);
     const deck = tree ? await loadSlideDeck(tree, contentDir, slug, problems, report) : undefined;
+    if (tree) await checkDemos(tree, report);
 
     posts.push({
       slug,
@@ -410,6 +421,27 @@ function deckImages(deck: SlideDeck | undefined): PostImage[] {
     { file: slide.image, width, height },
     { file: slide.thumb, ...thumb },
   ]);
+}
+
+/**
+ * Each `<Demo slug="…" title="…" />` in a body: on its own line, titled, and naming a Demo
+ * stored in `public/demos/<slug>/index.html`. Each problem names its Demo by slug, or by position.
+ */
+async function checkDemos(tree: MdNode, report: Report) {
+  const demos = mdNodes(tree).filter((node) => isDemo(node) || isInlineDemo(node));
+  for (const [index, node] of demos.entries()) {
+    const slug = mdAttribute(node, "slug");
+    const named = slug ? `<Demo slug="${slug}" />` : `Demo ${index + 1}`;
+    if (isInlineDemo(node)) {
+      report("body", "demo-own-line", `puts ${named} inside a line of text; give it its own line, with a blank line before and after`);
+    }
+    if (!mdAttribute(node, "title")) {
+      report("body", "demo-needs-title", `${named} needs a title="…" saying what the Demo is, shown after 「互動展示：」`);
+    }
+    const page = demoPagePath(slug || "<slug>");
+    const found = slug !== "" && (await stat(page).catch(() => undefined))?.isFile();
+    if (!found) report("body", "demo-needs-files", `${named} names no Demo: store the Demo's page at ${page}`);
+  }
 }
 
 /** The download PDF's media type. */

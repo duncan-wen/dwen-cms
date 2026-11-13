@@ -83,7 +83,7 @@ The Share for Threads, `threads.txt`: short and casual, up to 500 characters, no
 _Avoid_: Thread, Threads article
 
 **Demo**:
-An interactive AI showcase that stands on its own and can also be embedded in a Post; a Post containing a Demo is still a Post.
+An interactive AI showcase that stands on its own and can also be embedded in a Post; a Post containing a Demo is still a Post. A self-contained page stored in `public/demos/<slug>/` and served as-is; a body embeds it with `<Demo slug title />`. Shown to readers as 「互動展示」.
 _Avoid_: Playground, lab, project
 
 **Animation**:

@@ -10,3 +10,5 @@ pnpm-lock.yaml
 src/content/fixtures/
 # A local code-map cache.
 .repomap.tags.cache.v1/
+# A Demo is a self-contained page shipped as-is.
+public/demos/

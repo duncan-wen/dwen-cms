@@ -230,6 +230,48 @@ test.describe("an Animation in a Post", () => {
   });
 });
 
+test.describe("a Demo", () => {
+  const post = "/posts/demo-smoke-post";
+  const demo = "/demos/listener-player/index.html";
+  const embed = (page: Page) => page.getByRole("figure", { name: "互動展示：小熊阿布播放器原型" });
+
+  test("plays in the Post, framed and headed 互動展示", async ({ page }) => {
+    await page.goto(post);
+
+    await expect(embed(page)).toContainText("互動展示：小熊阿布播放器原型");
+    const frame = embed(page).locator("iframe[title='小熊阿布播放器原型']");
+    await expect(frame).toHaveAttribute("src", demo);
+    await expect(page.frameLocator("iframe[title='小熊阿布播放器原型']").getByText("點一下開始聽故事")).toBeVisible();
+    await expect(
+      page.frameLocator("iframe[title='小熊阿布播放器原型']").getByRole("link", { name: "← 回到文章" }),
+    ).toBeHidden();
+  });
+
+  test("links to the Demo on its own, full screen", async ({ page }) => {
+    await page.goto(post);
+
+    await expect(embed(page).getByRole("link", { name: "全螢幕開啟" })).toHaveAttribute("href", demo);
+  });
+
+  test("on its own, the Demo links back to its Post and keeps out of search results", async ({ page }) => {
+    await page.goto(demo);
+
+    await expect(page.getByRole("link", { name: "← 回到文章" })).toHaveAttribute(
+      "href",
+      "/posts/voice-clone-bedtime-story",
+    );
+    await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", "noindex");
+  });
+
+  test("serves its narration as audio", async ({ request }) => {
+    for (const n of [1, 2, 3]) {
+      const response = await request.get(`/demos/listener-player/audio/page-${n}.mp3`);
+      expect(response.status()).toBe(200);
+      expect(response.headers()["content-type"]).toBe("audio/mpeg");
+    }
+  });
+});
+
 test.describe("a Slide deck", () => {
   const post = "/posts/slide-deck-smoke-post";
   const slides = [
@@ -1022,6 +1064,7 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
     "/posts/revised-smoke-post",
     "/posts/typography-sample",
     "/posts/animation-smoke-post",
+    "/posts/demo-smoke-post",
     "/posts/slide-deck-smoke-post",
     "/posts/last-year-smoke-post",
   ]);

@@ -66,5 +66,12 @@ export default defineConfig([
     files: ["scripts/**/*.ts"],
     rules: { "no-restricted-syntax": ["error", ...noLiteralIdentity] },
   },
-  globalIgnores([".next/**", "next-env.d.ts", "test-results/**", "playwright-report/**", ".claude/**"]),
+  globalIgnores([
+    ".next/**",
+    "next-env.d.ts",
+    "test-results/**",
+    "playwright-report/**",
+    ".claude/**",
+    "public/demos/**",
+  ]),
 ]);
