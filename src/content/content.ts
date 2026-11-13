@@ -16,12 +16,13 @@ import {
 } from "../deck/deck-names";
 import { linkedInHashtags } from "../linkedin";
 import { isValidThreadsTag, THREADS_TAG_MAX, threadsTopicTag } from "../threads";
-import { DEMOS_DIR } from "../demo";
+import { demoPagePath } from "../demo";
 import {
   isDemo,
   isInlineDemo,
   isInlineSlideDeck,
   isSlideDeck,
+  mdAttribute,
   type MdNode,
   mdNodes,
   mermaidBlocks,
@@ -424,28 +425,22 @@ function deckImages(deck: SlideDeck | undefined): PostImage[] {
 
 /**
  * Each `<Demo slug="…" title="…" />` in a body: on its own line, titled, and naming a Demo
- * stored in `public/demos/<slug>/index.html`.
+ * stored in `public/demos/<slug>/index.html`. Each problem names its Demo by slug, or by position.
  */
 async function checkDemos(tree: MdNode, report: Report) {
-  if (mdNodes(tree).some(isInlineDemo)) {
-    report("body", "demo-own-line", "puts <Demo /> inside a line of text; give it its own line, with a blank line before and after");
-  }
-  for (const node of mdNodes(tree).filter(isDemo)) {
-    const attribute = (name: string) => {
-      const value = node.attributes?.find((a) => a.name === name)?.value;
-      return typeof value === "string" ? value.trim() : "";
-    };
-    const slug = attribute("slug");
-    const title = attribute("title");
-    const named = slug ? `<Demo slug="${slug}" />` : "<Demo />";
-    if (!title) {
+  const demos = mdNodes(tree).filter((node) => isDemo(node) || isInlineDemo(node));
+  for (const [index, node] of demos.entries()) {
+    const slug = mdAttribute(node, "slug");
+    const named = slug ? `<Demo slug="${slug}" />` : `Demo ${index + 1}`;
+    if (isInlineDemo(node)) {
+      report("body", "demo-own-line", `puts ${named} inside a line of text; give it its own line, with a blank line before and after`);
+    }
+    if (!mdAttribute(node, "title")) {
       report("body", "demo-needs-title", `${named} needs a title="…" saying what the Demo is, shown after 「互動展示：」`);
     }
-    const page = path.join(DEMOS_DIR, slug, "index.html");
+    const page = demoPagePath(slug || "<slug>");
     const found = slug !== "" && (await stat(path.join(process.cwd(), page)).catch(() => undefined))?.isFile();
-    if (!found) {
-      report("body", "demo-needs-files", `${named} names no Demo: store the Demo's page at ${path.join(DEMOS_DIR, slug || "<slug>", "index.html")}`);
-    }
+    if (!found) report("body", "demo-needs-files", `${named} names no Demo: store the Demo's page at ${page}`);
   }
 }
 

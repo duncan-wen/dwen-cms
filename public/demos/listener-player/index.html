@@ -45,8 +45,7 @@
     display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 999px; background: #111d; color: #fff;
     font: 12px/1.2 ui-monospace, Menlo, monospace; box-shadow: 0 2px 10px #0006; white-space: nowrap; }
   #bar button { background: #fff2; color: #fff; border-radius: 999px; width: 28px; height: 28px; font-size: 16px; }
-  #bar #bs { opacity: .7; }
-  #bar.min > :not(#bh) { display: none; }
+  #bar.min > :not(#bh, #back, #bl) { display: none; }
 
   /* ───────── A 繪本跨頁 ───────── */
   .A { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #6b4f3a; }
@@ -191,7 +190,7 @@ function scene(i) {
 
 /* ── narration engine: ONE <audio> element (iOS keeps the first tap's permission), unlocked by the first tap ── */
 const audio = document.getElementById("narr");
-const E = { page: 0, want: false, clip: null, onEnded: null, onTick: null, log: "" };
+const E = { page: 0, want: false, clip: null, onEnded: null, onTick: null };
 function loadPage(i) { E.page = i; E.clip = null; audio.src = STORY.pages[i].audio; }
 function doPlay() { E.want = true; const pr = audio.play(); if (pr) pr.catch(() => { E.want = false; showResume(); bar(); }); bar(); }
 function doPause() { E.want = false; audio.pause(); bar(); }
