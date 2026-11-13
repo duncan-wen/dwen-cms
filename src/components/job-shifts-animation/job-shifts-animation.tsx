@@ -4,14 +4,14 @@ import { Player, type PlayerRef } from "@remotion/player";
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "../use-reduced-motion";
 import { JOB_SHIFTS, JOB_SHIFTS_CAPTION, JOB_SHIFTS_EXAMPLE, JOB_SHIFTS_HEADERS } from "./job-shifts";
-import {
-  FINISHED_FRAME,
-  JobShiftsScene,
-  SCENE_DURATION_IN_FRAMES,
-  SCENE_FPS,
-  SCENE_HEIGHT,
-  SCENE_WIDTH,
-} from "./job-shifts-scene";
+import { INDUSTRIAL_SECONDS, IndustrialScene } from "./industrial-scene";
+
+// Prototype: the 工業革命 scene alone.
+const SCENE_WIDTH = 500;
+const SCENE_HEIGHT = 320;
+const SCENE_FPS = 30;
+const SCENE_DURATION_IN_FRAMES = INDUSTRIAL_SECONDS * SCENE_FPS;
+const FINISHED_FRAME = SCENE_DURATION_IN_FRAMES - 1;
 
 /** Waiting for the Reader to scroll to it, playing, finished on the full table, or still for reduced motion. */
 type Playback = "waiting" | "playing" | "finished" | "still";
@@ -71,7 +71,7 @@ export function JobShiftsAnimation() {
             <Player
               key={String(reducedMotion)}
               ref={player}
-              component={JobShiftsScene}
+              component={IndustrialScene}
               durationInFrames={SCENE_DURATION_IN_FRAMES}
               fps={SCENE_FPS}
               compositionWidth={SCENE_WIDTH}
