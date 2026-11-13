@@ -1,6 +1,6 @@
 # Spec: Job shifts Animation as illustrated scenes
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
