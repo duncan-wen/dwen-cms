@@ -439,7 +439,7 @@ async function checkDemos(tree: MdNode, report: Report) {
       report("body", "demo-needs-title", `${named} needs a title="…" saying what the Demo is, shown after 「互動展示：」`);
     }
     const page = demoPagePath(slug || "<slug>");
-    const found = slug !== "" && (await stat(path.join(process.cwd(), page)).catch(() => undefined))?.isFile();
+    const found = slug !== "" && (await stat(page).catch(() => undefined))?.isFile();
     if (!found) report("body", "demo-needs-files", `${named} names no Demo: store the Demo's page at ${page}`);
   }
 }
