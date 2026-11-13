@@ -1,6 +1,6 @@
 # Spec: Job shifts Animation as illustrated scenes
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
@@ -27,3 +27,13 @@ Its main job is still to help the Reader see the pattern; showing the Owner's te
 - **Size:** at most 500px wide, as before.
 - **Prototype first:** the 工業革命 scene alone is built on the branch `prototype/job-shifts-scenes` and shown to the Owner as captures taken mid-play. The other scenes and the summary follow its look once the Owner approves it.
 - **Out of scope:** changes to the Post's text, sound, a video export, a general scene component.
+
+## Comments
+
+- Built in ticket 01. Changes from the first wording, from the review:
+  - Shades of wood, iron, cloth and skin are `--scene-*` tokens in `globals.css`, mixed from the site's tokens: lint keeps colour functions out of TypeScript, and the tokens follow both themes.
+  - The old way greys out with a greyscale filter and lower opacity rather than repainting each shape in `--ink-soft`; it reads the same.
+  - The weaver wears short hair, not a headscarf, so no figure carries a gender cue.
+  - Each scene shows its era as a small chip and the shift as one line; the AI scene adds the example line.
+  - The 電腦普及 scene shows one typist with a typewriter and an adding machine rather than a row of typewriters: a row did not fit the half-width room.
+  - The canvas is 500×340, to fit the AI scene's example line.

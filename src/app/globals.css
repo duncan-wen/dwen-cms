@@ -80,6 +80,39 @@
   --series-4: var(--code-string);
 }
 
+/*
+ * An Animation's scene colours: the tokens mixed for wood, iron, cloth and skin,
+ * so a scene follows both themes like everything else.
+ */
+:root {
+  --scene-sky: color-mix(in oklab, var(--code-function) 22%, var(--paper));
+  --scene-sun: color-mix(in oklab, var(--code-type) 30%, var(--paper));
+  --scene-floorboards: color-mix(in oklab, var(--code-type) 35%, var(--paper));
+  --scene-wood-light: color-mix(in oklab, var(--code-type) 55%, var(--paper));
+  --scene-wood-dark: color-mix(in oklab, var(--code-type) 70%, var(--ink));
+  --scene-belt: color-mix(in oklab, var(--code-type) 80%, var(--ink));
+  --scene-cloth: color-mix(in oklab, var(--code-function) 45%, var(--paper));
+  --scene-cloth-roll: color-mix(in oklab, var(--code-function) 55%, var(--paper));
+  --scene-stripe: color-mix(in oklab, var(--code-keyword) 60%, var(--paper));
+  --scene-thread: color-mix(in oklab, var(--ink) 45%, var(--paper));
+  --scene-iron: color-mix(in oklab, var(--ink) 82%, var(--paper));
+  --scene-iron-light: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  --scene-shoe: color-mix(in oklab, var(--ink) 85%, var(--paper));
+  --scene-floor-modern: color-mix(in oklab, var(--ink) 25%, var(--paper));
+  --scene-skin: color-mix(in oklab, var(--ink-soft) 38%, var(--paper));
+  --scene-skin-shade: color-mix(in oklab, var(--ink-soft) 55%, var(--paper));
+  --scene-shirt-berry: color-mix(in oklab, var(--code-keyword) 70%, var(--paper));
+  --scene-trousers: color-mix(in oklab, var(--ink) 70%, var(--paper));
+  --scene-apron: color-mix(in oklab, var(--paper) 80%, var(--code-type));
+  --scene-shirt-blue: color-mix(in oklab, var(--code-function) 70%, var(--paper));
+  --scene-cap: color-mix(in oklab, var(--accent) 85%, var(--ink));
+  --scene-gear-light: color-mix(in oklab, var(--accent) 75%, var(--paper));
+  --scene-city: color-mix(in oklab, var(--code-function) 45%, var(--paper));
+  --scene-city-far: color-mix(in oklab, var(--code-function) 30%, var(--paper));
+  --scene-leaf: color-mix(in oklab, var(--code-string) 75%, var(--paper));
+  --scene-book: color-mix(in oklab, var(--code-string) 55%, var(--paper));
+}
+
 /* dark: follows the same rule as the tokens, not just the system preference. */
 @custom-variant dark {
   &:where([data-theme="dark"], [data-theme="dark"] *) {
