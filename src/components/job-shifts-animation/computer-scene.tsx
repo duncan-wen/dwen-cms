@@ -9,13 +9,18 @@ import {
   Hair,
   Headphones,
   INK,
+  IRON,
+  IRON_LIGHT,
   PAPER,
   Person,
   SOFT,
+  SceneCanvas,
   ShiftLabel,
   TwoWorlds,
   WALL,
   WOOD,
+  WOOD_DARK,
+  WOOD_LIGHT,
   scene,
   useProgress,
   useSince,
@@ -34,11 +39,9 @@ const BEAT = { typing: 0.5, programmer: TURN + 0.6, screen: TURN + 0.9, code: TU
 /** One typed line every 0.6 seconds: the carriage slides left, then returns. */
 const LINE_SECONDS = 0.6;
 
-const IRON = scene("iron");
-const IRON_LIGHT = scene("iron-light");
-const WOOD_DARK = scene("wood-dark");
+type OfficeProps = { since: number };
 
-function Office({ since }: { since: number }) {
+function Office({ since }: OfficeProps) {
   return (
     <g>
       <rect x={8} y={40} width={236} height={GROUND - 40} rx={10} fill={WALL} />
@@ -53,16 +56,7 @@ function Office({ since }: { since: number }) {
       <rect x={206} y={146} width={32} height={GROUND - 146} rx={2} fill={IRON_LIGHT} />
       {[146, 184, 222].map((y) => (
         <g key={y}>
-          <rect
-            x={209}
-            y={y + 4}
-            width={26}
-            height={32}
-            rx={1.5}
-            fill={scene("iron-light")}
-            stroke={IRON}
-            strokeWidth={1}
-          />
+          <rect x={209} y={y + 4} width={26} height={32} rx={1.5} fill={IRON_LIGHT} stroke={IRON} strokeWidth={1} />
           <rect x={216} y={y + 16} width={12} height={3} rx={1} fill={IRON} />
         </g>
       ))}
@@ -72,7 +66,9 @@ function Office({ since }: { since: number }) {
 }
 
 /** The typewriter on the desk, typing `typed` seconds' worth of lines. */
-function Typewriter({ typed }: { typed: number }) {
+type TypewriterProps = { typed: number };
+
+function Typewriter({ typed }: TypewriterProps) {
   const lines = Math.floor(typed / LINE_SECONDS);
   const carriage = typed > 0 ? -18 * ((typed % LINE_SECONDS) / LINE_SECONDS) : 0;
   const page = 16 + Math.min(lines, 5) * 5;
@@ -107,7 +103,9 @@ function Typewriter({ typed }: { typed: number }) {
 }
 
 /** An adding machine with its paper tape curling up as the crank turns. */
-function AddingMachine({ typed }: { typed: number }) {
+type AddingMachineProps = { typed: number };
+
+function AddingMachine({ typed }: AddingMachineProps) {
   const tape = Math.min(30, typed * 9);
   const crank = Math.sin(typed * 7) * 30;
   return (
@@ -144,7 +142,9 @@ function AddingMachine({ typed }: { typed: number }) {
   );
 }
 
-function Typist({ typed }: { typed: number }) {
+type TypistProps = { typed: number };
+
+function Typist({ typed }: TypistProps) {
   const tap = typed > 0 ? Math.sin(typed * 22) * 6 : 0;
   return (
     <g>
@@ -157,8 +157,8 @@ function Typist({ typed }: { typed: number }) {
         x={76}
         facing={1}
         seated
-        shirt={scene("weaver-shirt")}
-        trousers={scene("weaver-trousers")}
+        shirt={scene("shirt-berry")}
+        trousers={scene("trousers")}
         near={{ shoulder: 76, elbow: 14 + tap }}
         far={{ shoulder: 72, elbow: 18 - tap }}
         headwear={<Hair />}
@@ -190,9 +190,9 @@ function ModernRoom() {
       {[340, 374].map((x) => (
         <line key={x} x1={x + 34} y1={50} x2={x + 34} y2={138} stroke={IRON} strokeWidth={2} />
       ))}
-      <rect x={256} y={GROUND} width={236} height={10} fill={scene("factory-floor")} />
+      <rect x={256} y={GROUND} width={236} height={10} fill={scene("floor-modern")} />
       {/* plant */}
-      <path d="M470,262 L466,234 L488,234 L484,262 Z" fill={scene("wood-light")} />
+      <path d="M470,262 L466,234 L488,234 L484,262 Z" fill={WOOD_LIGHT} />
       {[
         [477, 222, -30],
         [470, 214, -60],
@@ -216,7 +216,9 @@ const CODE = [
   { indent: 0, width: 12, colour: BERRY },
 ];
 
-function Workstation({ since }: { since: number }) {
+type WorkstationProps = { since: number };
+
+function Workstation({ since }: WorkstationProps) {
   const on = useProgress(BEAT.screen, 0.4);
   const codeSince = useSince(BEAT.code);
   const shown = Math.min(CODE.length, Math.floor(codeSince / 0.25));
@@ -293,7 +295,7 @@ function Programmer() {
         facing={1}
         seated
         shirt={ACCENT}
-        trousers={scene("weaver-trousers")}
+        trousers={scene("trousers")}
         near={{ shoulder: 78, elbow: 12 + tap }}
         far={{ shoulder: 74, elbow: 16 - tap }}
         headwear={<Headphones />}
@@ -307,7 +309,7 @@ export function ComputerScene() {
   const typed = Math.min(useSince(BEAT.typing), TURN - BEAT.typing);
   const since = useSince(BEAT.screen);
   return (
-    <svg viewBox="0 0 500 340" width="100%" height="100%" style={{ fontFamily: "var(--font-sans)", color: INK }}>
+    <SceneCanvas>
       <EraChip era={SHIFT.era} />
       <TwoWorlds
         id="computer"
@@ -326,6 +328,6 @@ export function ComputerScene() {
         <Workstation since={since} />
       </TwoWorlds>
       <ShiftLabel at={BEAT.label} old={SHIFT.old} new={SHIFT.new} />
-    </svg>
+    </SceneCanvas>
   );
 }

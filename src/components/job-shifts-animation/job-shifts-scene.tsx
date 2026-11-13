@@ -3,7 +3,7 @@ import { AbsoluteFill, Sequence, interpolate, useCurrentFrame, useVideoConfig } 
 import { AI_SECONDS, AiScene } from "./ai-scene";
 import { COMPUTER_SECONDS, ComputerScene } from "./computer-scene";
 import { INDUSTRIAL_SECONDS, IndustrialScene } from "./industrial-scene";
-import { SCENE_HEIGHT, SCENE_WIDTH } from "./scene-kit";
+import { CLAMPED, SCENE_HEIGHT, SCENE_WIDTH } from "./scene-kit";
 import { SUMMARY_SECONDS, SummaryScene } from "./summary-scene";
 
 export { SCENE_HEIGHT, SCENE_WIDTH };
@@ -24,12 +24,11 @@ export const FINISHED_FRAME = SCENE_DURATION_IN_FRAMES - 1;
 
 /** How long a scene takes to turn in or out, in seconds. */
 const TURN_SECONDS = 0.35;
-const CLAMPED = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
-type PageProps = { seconds: number; last: boolean; children: ReactNode };
+type SceneTurnProps = { seconds: number; last: boolean; children: ReactNode };
 
-/** One scene as a page: it slides in, and slides out unless it is the last. */
-function Page({ seconds, last, children }: PageProps) {
+/** One scene turning like a page: it slides in, and slides out unless it is the last. */
+function SceneTurn({ seconds, last, children }: SceneTurnProps) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const turn = TURN_SECONDS * fps;
@@ -58,9 +57,9 @@ export function JobShiftsScene() {
             from={Math.round(STARTS[i] * SCENE_FPS)}
             durationInFrames={last ? Infinity : Math.round(seconds * SCENE_FPS)}
           >
-            <Page seconds={seconds} last={last}>
+            <SceneTurn seconds={seconds} last={last}>
               <Scene />
-            </Page>
+            </SceneTurn>
           </Sequence>
         );
       })}

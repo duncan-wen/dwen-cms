@@ -21,10 +21,10 @@ const START_WHEN_VISIBLE = 0.5;
 
 /**
  * The job shifts Animation, placed in a Post body as `<JobShiftsAnimation />`:
- * three eras of work pushed out and work that rose, drawn live by Remotion's
+ * three illustrated scenes of work pushed out and work that rose, drawn live by Remotion's
  * Player so it follows the theme. It plays once, silently, when half of it is
- * on screen, holds the finished table and offers 「重播」. Readers who ask for
- * reduced motion get the finished table, still. Screen readers get the same
+ * on screen, holds the summary and offers 「重播」. Readers who ask for
+ * reduced motion get the summary, still. Screen readers get the same
  * table as a list.
  */
 export function JobShiftsAnimation() {
@@ -64,8 +64,8 @@ export function JobShiftsAnimation() {
   }
 
   return (
-    <figure className="not-prose my-8 grid max-w-[500px] gap-2" data-playback={playback}>
-      <div className="relative">
+    <figure className="not-prose relative my-8 grid max-w-[500px] gap-2" data-playback={playback}>
+      <div>
         <div ref={viewport} aria-hidden="true" style={{ aspectRatio: `${SCENE_WIDTH} / ${SCENE_HEIGHT}` }}>
           {reducedMotion !== null && (
             <Player
@@ -93,7 +93,7 @@ export function JobShiftsAnimation() {
           <button
             type="button"
             onClick={replay}
-            className="absolute right-0 bottom-0 rounded-md border border-rule px-3 py-1 text-[13px] text-ink-soft hover:text-ink"
+            className="absolute right-0 -bottom-1 rounded-md border border-rule px-3 py-1 text-[13px] text-ink-soft hover:text-ink"
           >
             重播
           </button>
@@ -107,7 +107,7 @@ export function JobShiftsAnimation() {
         ))}
         <li>{JOB_SHIFTS_EXAMPLE}</li>
       </ul>
-      <figcaption className="text-[13px] text-ink-soft">{JOB_SHIFTS_CAPTION}</figcaption>
+      <figcaption className="pr-16 text-[13px] text-ink-soft">{JOB_SHIFTS_CAPTION}</figcaption>
     </figure>
   );
 }

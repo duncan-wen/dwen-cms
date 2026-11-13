@@ -8,18 +8,22 @@ import {
   EASE_IN_OUT,
   EraChip,
   GROUND,
-  Headscarf,
-  INK,
+  Hair,
+  IRON,
+  IRON_LIGHT,
   Overalls,
   PAPER,
   Person,
   RULE,
   SOFT,
+  SceneCanvas,
   ShiftLabel,
   Shuttle,
   TwoWorlds,
   WALL,
   WOOD,
+  WOOD_DARK,
+  WOOD_LIGHT,
   Wrench,
   gearPath,
   rad,
@@ -39,11 +43,6 @@ const SHIFT = JOB_SHIFTS[0];
 const TURN = 3.0;
 const BEAT = { weave: 0.5, machine: TURN + 0.8, steam: TURN + 1.2, walk: TURN + 1.6, tighten: TURN + 2.8, label: 6 };
 const WALK_SECONDS = 1.1;
-
-const WOOD_DARK = scene("wood-dark");
-const WOOD_LIGHT = scene("wood-light");
-const IRON = scene("iron");
-const IRON_LIGHT = scene("iron-light");
 
 function Cottage() {
   return (
@@ -89,7 +88,9 @@ function YarnBasket() {
 const weavePhase = (weaving: number) => weaving * (Math.PI / 0.7);
 
 /** The hand loom: heddles lifting in turn, the beater swinging, the shuttle crossing. */
-function HandLoom({ weaving }: { weaving: number }) {
+type HandLoomProps = { weaving: number };
+
+function HandLoom({ weaving }: HandLoomProps) {
   const phase = weavePhase(weaving);
   const shuttleX = 68 + ((1 - Math.cos(phase)) / 2) * 70;
   const lift = Math.sin(phase) * 3.5;
@@ -137,7 +138,9 @@ function HandLoom({ weaving }: { weaving: number }) {
   );
 }
 
-function Weaver({ weaving }: { weaving: number }) {
+type WeaverProps = { weaving: number };
+
+function Weaver({ weaving }: WeaverProps) {
   const reach = weaving > 0 ? Math.max(0, Math.cos(weavePhase(weaving) * 2)) * 8 : 0;
   return (
     <g>
@@ -148,11 +151,11 @@ function Weaver({ weaving }: { weaving: number }) {
         x={192}
         facing={-1}
         seated
-        shirt={scene("weaver-shirt")}
-        trousers={scene("weaver-trousers")}
+        shirt={scene("shirt-berry")}
+        trousers={scene("trousers")}
         near={{ shoulder: 70 + reach, elbow: 20 }}
         far={{ shoulder: 66 + reach, elbow: 24 }}
-        headwear={<Headscarf />}
+        headwear={<Hair />}
         outfit={<Apron />}
       />
     </g>
@@ -178,13 +181,15 @@ function Factory() {
         <line key={x} x1={x} y1={52} x2={x} y2={110} stroke={IRON} strokeWidth={2} />
       ))}
       <line x1={396} y1={81} x2={466} y2={81} stroke={IRON} strokeWidth={2} />
-      <rect x={256} y={GROUND} width={236} height={10} fill={scene("factory-floor")} />
+      <rect x={256} y={GROUND} width={236} height={10} fill={scene("floor-modern")} />
     </g>
   );
 }
 
 /** The power loom: a flywheel turned by a belt from the line shaft, a crank rod, meshing gears and cloth rolling out. */
-function PowerLoom({ running }: { running: number }) {
+type PowerLoomProps = { running: number };
+
+function PowerLoom({ running }: PowerLoomProps) {
   const turn = running * 160;
   const crank = { x: 352 + Math.cos(rad(turn)) * 16, y: 205 + Math.sin(rad(turn)) * 16 };
   const belt = running * 40;
@@ -257,7 +262,9 @@ function PowerLoom({ running }: { running: number }) {
   );
 }
 
-function Steam({ since }: { since: number }) {
+type SteamProps = { since: number };
+
+function Steam({ since }: SteamProps) {
   return (
     <g>
       <path d="M484,262 L484,150 Q484,140 474,140 L474,132" fill="none" stroke={IRON} strokeWidth={6} />
@@ -291,7 +298,7 @@ function Mechanic() {
       <Person
         x={268 + walked * 34}
         facing={1}
-        shirt={scene("mechanic-shirt")}
+        shirt={scene("shirt-blue")}
         trousers={ACCENT}
         stride={stride}
         near={walking ? { shoulder: -stride, elbow: 20 } : { shoulder: 62 + tighten * 0.3, elbow: 40 }}
@@ -310,7 +317,7 @@ export function IndustrialScene() {
   const machine = useProgress(BEAT.machine, 0.5);
   const steam = useSince(BEAT.steam);
   return (
-    <svg viewBox="0 0 500 340" width="100%" height="100%" style={{ fontFamily: "var(--font-sans)", color: INK }}>
+    <SceneCanvas>
       <EraChip era={SHIFT.era} />
       <TwoWorlds
         id="industrial"
@@ -332,6 +339,6 @@ export function IndustrialScene() {
         <Mechanic />
       </TwoWorlds>
       <ShiftLabel at={BEAT.label} old={SHIFT.old} new={SHIFT.new} />
-    </svg>
+    </SceneCanvas>
   );
 }

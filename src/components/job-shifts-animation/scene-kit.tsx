@@ -23,9 +23,37 @@ export const WOOD = "var(--code-type)";
 export const BLUE = "var(--code-function)";
 export const BERRY = "var(--code-keyword)";
 export const GREEN = "var(--code-string)";
-export const scene = (name: string) => `var(--scene-${name})`;
+/** A `--scene-*` colour from globals.css. */
+export type SceneColour =
+  | "sky"
+  | "sun"
+  | "floorboards"
+  | "wood-light"
+  | "wood-dark"
+  | "belt"
+  | "cloth"
+  | "cloth-roll"
+  | "stripe"
+  | "thread"
+  | "iron"
+  | "iron-light"
+  | "shoe"
+  | "floor-modern"
+  | "skin"
+  | "skin-shade"
+  | "shirt-berry"
+  | "trousers"
+  | "apron"
+  | "shirt-blue"
+  | "cap"
+  | "gear-light"
+  | "city"
+  | "city-far"
+  | "leaf"
+  | "book";
+export const scene = (name: SceneColour) => `var(--scene-${name})`;
 
-const CLAMPED = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+export const CLAMPED = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 export const EASE_OUT = Easing.bezier(0.16, 1, 0.3, 1);
 export const EASE_IN_OUT = Easing.bezier(0.45, 0, 0.55, 1);
 
@@ -202,13 +230,6 @@ export function Person({
 
 /* Clothes, in a Person's own coordinates. */
 
-export const Headscarf = () => (
-  <path
-    d="M-14,-114 Q-14,-131 0,-131 Q14,-131 14,-114 Q8,-120 0,-120 Q-8,-120 -14,-114 Z M-14,-114 L-20,-104 L-11,-108 Z"
-    fill={BERRY}
-  />
-);
-
 export const Apron = () => <path d="M-9,-80 L9,-80 L11,-44 Q0,-41 -11,-44 Z" fill={scene("apron")} opacity={0.9} />;
 
 export const Cap = () => (
@@ -228,7 +249,7 @@ export const Overalls = () => (
 );
 
 /** Short hair, swept back. */
-export const Hair = ({ colour = scene("weaver-trousers") }: { colour?: string }) => (
+export const Hair = ({ colour = scene("trousers") }: { colour?: string }) => (
   <path d="M-13,-113 Q-14,-130 0,-130 Q12,-130 14,-118 Q6,-123 -2,-121 Q-9,-119 -13,-113 Z" fill={colour} />
 );
 
@@ -250,22 +271,26 @@ export const CrossPin = () => (
 
 /* Tools, drawn at a hand. */
 
-export function Wrench({ hand, turn = 0 }: { hand: Point; turn?: number }) {
+type WrenchProps = { hand: Point; turn?: number };
+
+export function Wrench({ hand, turn = 0 }: WrenchProps) {
   return (
     <g transform={`translate(${hand.x} ${hand.y}) rotate(${-20 + turn})`}>
-      <rect x={-2} y={-2.5} width={22} height={5} rx={2} fill={scene("iron-light")} />
-      <path d="M20,-7 A7,7 0 1 1 20,7 L24,3 L24,-3 Z" fill={scene("iron-light")} />
+      <rect x={-2} y={-2.5} width={22} height={5} rx={2} fill={IRON_LIGHT} />
+      <path d="M20,-7 A7,7 0 1 1 20,7 L24,3 L24,-3 Z" fill={IRON_LIGHT} />
     </g>
   );
 }
 
-export function Shuttle({ x, y }: Point) {
+type ShuttleProps = Point;
+
+export function Shuttle({ x, y }: ShuttleProps) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <path
         d="M-12,0 Q-6,-4 0,-4 Q6,-4 12,0 Q6,4 0,4 Q-6,4 -12,0 Z"
-        fill={scene("wood-light")}
-        stroke={scene("wood-dark")}
+        fill={WOOD_LIGHT}
+        stroke={WOOD_DARK}
         strokeWidth={1}
       />
       <ellipse cx={0} cy={0} rx={4} ry={2} fill={BERRY} />
@@ -274,7 +299,9 @@ export function Shuttle({ x, y }: Point) {
 }
 
 /** A sheet of paper with a few typed lines. */
-export function Sheet({ x, y, lines = 4, angle = 0 }: Point & { lines?: number; angle?: number }) {
+type SheetProps = Point & { lines?: number; angle?: number };
+
+export function Sheet({ x, y, lines = 4, angle = 0 }: SheetProps) {
   return (
     <g transform={`translate(${x} ${y}) rotate(${angle})`}>
       <rect x={-11} y={-14} width={22} height={28} rx={1.5} fill={PAPER} stroke={scene("thread")} strokeWidth={1} />
@@ -294,7 +321,9 @@ export function Sheet({ x, y, lines = 4, angle = 0 }: Point & { lines?: number; 
 }
 
 /** An open book. */
-export function Book({ x, y, colour = BLUE }: Point & { colour?: string }) {
+type BookProps = Point & { colour?: string };
+
+export function Book({ x, y, colour = BLUE }: BookProps) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <path d="M0,-2 L-20,-6 L-20,10 L0,14 L20,10 L20,-6 Z" fill={colour} />
@@ -305,29 +334,35 @@ export function Book({ x, y, colour = BLUE }: Point & { colour?: string }) {
 }
 
 /** A clipboard with a medical cross. */
-export function Clipboard({ hand }: { hand: Point }) {
+type ClipboardProps = { hand: Point };
+
+export function Clipboard({ hand }: ClipboardProps) {
   return (
     <g transform={`translate(${hand.x - 4} ${hand.y - 6}) rotate(-8)`}>
-      <rect x={-10} y={-12} width={20} height={26} rx={2} fill={scene("wood-light")} />
+      <rect x={-10} y={-12} width={20} height={26} rx={2} fill={WOOD_LIGHT} />
       <rect x={-7} y={-8} width={14} height={19} fill={PAPER} />
       <path d="M-1.5,-4 h3 v3 h3 v3 h-3 v3 h-3 v-3 h-3 v-3 h3 Z" fill={BERRY} />
-      <rect x={-4} y={-14} width={8} height={4} rx={1} fill={scene("iron-light")} />
+      <rect x={-4} y={-14} width={8} height={4} rx={1} fill={IRON_LIGHT} />
     </g>
   );
 }
 
 /** A laptop, open, seen from the side. */
-export function Laptop({ hand }: { hand: Point }) {
+type LaptopProps = { hand: Point };
+
+export function Laptop({ hand }: LaptopProps) {
   return (
     <g transform={`translate(${hand.x} ${hand.y})`}>
-      <rect x={-2} y={-2} width={26} height={4} rx={1} fill={scene("iron")} />
-      <rect x={-2} y={-22} width={4} height={21} rx={1} fill={scene("iron")} transform="rotate(-12 0 -2)" />
+      <rect x={-2} y={-2} width={26} height={4} rx={1} fill={IRON} />
+      <rect x={-2} y={-22} width={4} height={21} rx={1} fill={IRON} transform="rotate(-12 0 -2)" />
     </g>
   );
 }
 
 /** The scene's era, as a chip at the top left. */
-export function EraChip({ era }: { era: string }) {
+type EraChipProps = { era: string };
+
+export function EraChip({ era }: EraChipProps) {
   const width = 22 + era.length * 16;
   return (
     <g>
@@ -339,7 +374,7 @@ export function EraChip({ era }: { era: string }) {
   );
 }
 
-type TurnProps = {
+type TwoWorldsProps = {
   /** The id of the scene, for its clip path. */
   id: string;
   /** When the old world greys out and the new one opens, in seconds. */
@@ -357,7 +392,7 @@ type TurnProps = {
  * `turnAt` greys out while the new room wipes open beside it and a badge with
  * an arrow pops up between them.
  */
-export function TwoWorlds({ id, turnAt, old, room, children }: TurnProps) {
+export function TwoWorlds({ id, turnAt, old, room, children }: TwoWorldsProps) {
   const shown = useProgress(0, 0.5);
   const grey = useProgress(turnAt, 0.7);
   const wipe = useProgress(turnAt + 0.2, 0.7);
@@ -389,7 +424,7 @@ export function TwoWorlds({ id, turnAt, old, room, children }: TurnProps) {
   );
 }
 
-type LabelProps = {
+type ShiftLabelProps = {
   at: number;
   old: string;
   new: string;
@@ -398,7 +433,7 @@ type LabelProps = {
 };
 
 /** The scene's one line of text: the old job, an arrow, the new one. */
-export function ShiftLabel({ at, old, new: rose, example }: LabelProps) {
+export function ShiftLabel({ at, old, new: risen, example }: ShiftLabelProps) {
   const shown = useProgress(at, 0.5);
   return (
     <g opacity={shown}>
@@ -406,7 +441,7 @@ export function ShiftLabel({ at, old, new: rose, example }: LabelProps) {
         <tspan fill={SOFT}>{old}</tspan>
         <tspan fill={INK}>　→　</tspan>
         <tspan fill={ACCENT} fontWeight={700}>
-          {rose}
+          {risen}
         </tspan>
       </text>
       {example && (
@@ -414,6 +449,48 @@ export function ShiftLabel({ at, old, new: rose, example }: LabelProps) {
           {example}
         </text>
       )}
+    </g>
+  );
+}
+
+export const IRON = scene("iron");
+export const IRON_LIGHT = scene("iron-light");
+export const WOOD_DARK = scene("wood-dark");
+export const WOOD_LIGHT = scene("wood-light");
+
+type SceneCanvasProps = { children: ReactNode; name?: string };
+
+/** The SVG every scene draws on, at the scene's size, in the site's font. */
+export function SceneCanvas({ children, name }: SceneCanvasProps) {
+  return (
+    <svg
+      viewBox={`0 0 ${SCENE_WIDTH} ${SCENE_HEIGHT}`}
+      width="100%"
+      height="100%"
+      data-scene={name}
+      style={{ fontFamily: "var(--font-sans)", color: INK }}
+    >
+      {children}
+    </svg>
+  );
+}
+
+/** The AI: a glowing orb with a pulse ring and a sparkle. */
+type OrbProps = { x: number; y: number; since: number; size?: number };
+
+export function Orb({ x, y, since, size = 1 }: OrbProps) {
+  const ring = (since % 1.4) / 1.4;
+  return (
+    <g transform={`translate(${x} ${y}) scale(${size})`}>
+      <circle
+        r={10 + ring * 10}
+        fill="none"
+        stroke={ACCENT}
+        strokeWidth={1.5}
+        opacity={since > 0 ? (1 - ring) * 0.6 : 0}
+      />
+      <circle r={10} fill={ACCENT} />
+      <path d="M0,-6 Q1,-1 6,0 Q1,1 0,6 Q-1,1 -6,0 Q-1,-1 0,-6 Z" fill="var(--on-accent)" />
     </g>
   );
 }
