@@ -70,9 +70,17 @@ _Avoid_: Modal, popup, zoom
 A ready-to-post image of a Post for social media (文宣圖), written by `pnpm promo <slug>` at 1200×630, 1080×1080 and 1080×1350 from one of three brand templates: `contour` (the default, the Post's Cover beside the text: its cover image, else its generated cover), `flow` for a Post whose subject is a process, `terminal` for one teaching commands the Reader will type. The Post's optional `promo` frontmatter picks the `template` and gives its `titleLines` (where the title breaks; each stays on one line, and the title shrinks until the longest fits), its key `points` (at least one; leave the field out to show the description), flow's `steps` (`name`, optional `command`) or terminal's `lines` (`command`, optional `comment`). Unlike the OG image it carries no seal; the OG image breaks its title at the same `titleLines`.
 _Avoid_: Banner, social card, thumbnail
 
+**Share**:
+The text the Owner posts a Post to one platform with, stored next to the Post in a file named for the platform. A Writing Agent drafts it with the Post; it goes out only when the Owner says so, once per platform, and records the post's URL as a first `posted:` line when it does. A Revision doesn't reshare. Each platform's kind names only what differs.
+_Avoid_: Social post, cross-post
+
 **LinkedIn share**:
-The text the Owner posts a Post to LinkedIn with, stored next to it as `linkedin.txt`, above a link card LinkedIn draws from the Post's OG image, title and description. A Writing Agent drafts it with the Post; it goes out only when the Owner says so, once, and records the LinkedIn post's URL when it does.
-_Avoid_: Social post, cross-post, LinkedIn article
+The Share for LinkedIn, `linkedin.txt`: up to 3,000 characters and three hashtags, above a link card LinkedIn draws from the Post's OG image, title and description. Posted with `pnpm linkedin`.
+_Avoid_: LinkedIn article
+
+**Threads share**:
+The Share for Threads, `threads.txt`: short and casual, up to 500 characters, no URL, ending in one topic tag as its own last line. Posted with `pnpm threads` as a text post whose link card Threads draws for the Post.
+_Avoid_: Thread, Threads article
 
 **Demo**:
 An interactive AI showcase that stands on its own and can also be embedded in a Post; a Post containing a Demo is still a Post.
