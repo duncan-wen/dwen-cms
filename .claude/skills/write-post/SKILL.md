@@ -1,15 +1,15 @@
 ---
 name: write-post
-description: Write, revise or re-slug a Post in the Owner's voice and open it as a Draft PR. Use when given a Topic for a new Post, or asked to change a Published Post.
+description: Write, revise or re-slug a Post in the Owner's voice and open it as a Draft PR, and share it on LinkedIn or Threads. Use when given a Topic for a new Post, asked to change a Published Post, or asked to share one.
 ---
 
 # write-post
 
 You are a Writing Agent. You turn a Topic into a Draft: one Post on its own branch, opened as a draft PR that passes CI. The Owner's merge is what publishes it, so the PR is the whole deliverable. When the Owner asks for a new Post without a Topic, run `pick-post-topic` first.
 
-Terms (Post, Topic, Slug, Tag, Draft, Correction, Revision, Takedown, Cover, Promo image, LinkedIn share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
+Terms (Post, Topic, Slug, Tag, Draft, Correction, Revision, Takedown, Cover, Promo image, Share, LinkedIn share, Threads share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
 
-Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5.
+Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5. Sharing an already Published Post on a platform it hasn't been shared on, when the Owner asks by name, is **Shares** alone, one Post at a time: write that platform's Share on the `share-<slug>` branch of its step 3, before posting.
 
 ## Steps
 
@@ -25,18 +25,18 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
 7. **Make the promo images.** `pnpm promo <slug>` (run `pnpm exec playwright install chromium` once if it can't launch a browser). Read every PNG it writes to `promo/` and the contact sheet `promo/index.html`. Done when the title breaks where you meant, nothing overflows, and the points read as the Post's hook.
    Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the light and dark shots at both widths. It also crops each Illustration and Diagram on its own (`…-illustration-<n>-…png`, `…-diagram-<n>-…png`), shown under the page on the contact sheet: read those for labels and colours. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram, Illustration and image reads well in both themes.
-8. **Write the LinkedIn share** at `content/posts/<slug>/linkedin.txt` (**LinkedIn share**). Done when `pnpm content:check` passes and the text leads with the same hook as the title.
+8. **Write the Shares**: `content/posts/<slug>/linkedin.txt` and `threads.txt` (**Shares**). Done when `pnpm content:check` passes and both lead with the same hook as the title.
 9. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
    - one paragraph on what the Post says and who it's for;
    - the voice mode you chose;
    - the cover: the candidate you chose and why its style and scene fit the Post, with every candidate's style, seed and prompt (the Owner can say 「換第 2 張」); or 「Fooocus 沒開，封面待補」 under 「請 Owner 確認」;
-   - the LinkedIn share's text, quoted, so the Owner reviews it with the Post;
+   - the LinkedIn share's and the Threads share's texts, each quoted, so the Owner reviews them with the Post;
    - any new Tag and the reason it's needed;
    - every personal detail you couldn't verify, under 「請 Owner 確認」;
    - a Slide deck's place in the Post and every slide's title and text, under 「請 Owner 確認」 ([SLIDE-DECKS.md](SLIDE-DECKS.md) step 6);
    - the cover candidates, promo images and page shots: `covers/`, `promo/` and `test-results/` are gitignored and `gh` can't upload images, so list the files and give the Owner `explorer.exe covers/<slug>.html`, `explorer.exe promo/index.html` and `explorer.exe test-results/shots/index.html` to open the contact sheets.
 
-10. **Offer to share it.** Once the Owner has merged the Post and it's live, ask them once: 「要發 LinkedIn 嗎？」. Only on a yes, follow **LinkedIn share** to post it.
+10. **Offer to share it.** Once the Owner has merged the Post and it's live, ask them once: 「要發哪些平台？LinkedIn、Threads、兩個都發，或都不發」, with nothing preselected. Post each platform they name by **Shares**.
 
 **One concern per PR.** A Post's PR holds only that Post. A Post that needs a new MDX component waits for the component's own PR (code only, added to `src/mdx/components.tsx`) to merge first. The components a body can use today are the ones in that map.
 
@@ -139,17 +139,23 @@ Draw processes and architecture in a ```` ```mermaid ```` block; the site draws 
 
 The two flowcharts in the typography sample are working models.
 
-## LinkedIn share
+## Shares
 
-`linkedin.txt` next to `index.mdx` is the text the Owner shares the Post with on LinkedIn, above a link card that LinkedIn draws from the live page's OG image, title and description. Write it in the Owner's voice, like the opening: the hook in the first line (LinkedIn folds the rest behind 「…更多」), then two to five lines or a short `・` list of what the Reader gets, then a closing reframe. No URL: the card carries it. End with two or three hashtags, from the Post's Tags (`#Python`) plus at most one topic word (`#asyncio`); the content check fails a fourth, and anything past LinkedIn's 3,000 characters. Write the hashtags in plain `#tag` form: `pnpm linkedin` converts the text to LinkedIn's format.
+A Share is a text next to `index.mdx`, one per platform, posted with a link card the platform draws for the live Post. Both open on the Post's hook in the Owner's voice and carry no URL: the card carries it.
 
-To share, once the Owner has said yes:
+**`linkedin.txt`** is the more formal one: the hook in the first line (LinkedIn folds the rest behind 「…更多」), then two to five lines or a short `・` list of what the Reader gets, then a closing reframe. End with two or three hashtags, from the Post's Tags (`#Python`) plus at most one topic word (`#asyncio`); the content check fails a fourth, and anything past LinkedIn's 3,000 characters. Write the hashtags in plain `#tag` form: `pnpm linkedin` converts the text to LinkedIn's format.
 
-1. `pnpm linkedin <slug>` shows what would be posted, from the live page. Check the card is the live one.
-2. `pnpm linkedin <slug> --post` posts it publicly and writes the post's URL into `linkedin.txt` as a first `posted:` line. The script refuses a file that already has one, so a share goes out once. A Revision doesn't reshare the Post; only the Owner asking does, with a new text.
-3. Commit the `posted:` line on a branch `share-<slug>` off `origin/main`, open a PR, and merge it yourself once its checks pass: it only records the share. Send the Owner the post's URL.
+**`threads.txt`** is casual and short, aiming for 300 characters (the content check stops at 500): the hook, a line or two of what happened, what the Post covers in one sentence, then the closing reframe, each its own short paragraph. Its last line is one topic tag alone, `#AI` or the Post's main Tag, with no `.` or `&` (`#Nextjs`, not `#Next.js`); the content check fails a second tag anywhere in the text.
 
-The script reads `LINKEDIN_ACCESS_TOKEN` and `LINKEDIN_TOKEN_DATE` from `.env.local`. A token lasts 60 days; the script warns ten days ahead and fails with a 401 once it's expired. Then have the Owner open https://www.linkedin.com/developers/tools/oauth/token-generator, pick the app, tick `openid`, `profile` and `w_member_social`, and paste the new token into `.env.local` themselves (never into the chat), with today's date as `LINKEDIN_TOKEN_DATE`.
+To share, for each platform the Owner said yes to (`linkedin` or `threads` as `<platform>`):
+
+1. `pnpm <platform> <slug>` shows what would be posted, from the live page. Show the Owner the text and the link before posting.
+2. `pnpm <platform> <slug> --post` posts it publicly and writes the post's URL into the Share as a first `posted:` line. The script refuses a Share that already has one, so each platform gets a Post once. A Revision doesn't reshare the Post; only the Owner asking does, with a new text.
+3. Commit the `posted:` lines on a branch `share-<slug>` off `origin/main`, open a PR, and merge it yourself once its checks pass: it only records the shares. Send the Owner each post's URL.
+
+**Threads token**: `pnpm threads` refreshes its own token on each run after the first day and warns ten days before it expires. It expires only after 60 days without a run; then ask the Owner to run `bash scripts/threads-setup.sh` in their own terminal, which writes a new one into `.env.local`.
+
+**LinkedIn token**: the script reads `LINKEDIN_ACCESS_TOKEN` and `LINKEDIN_TOKEN_DATE` from `.env.local`. A token lasts 60 days; the script warns ten days ahead and fails with a 401 once it's expired. Then have the Owner open https://www.linkedin.com/developers/tools/oauth/token-generator, pick the app, tick `openid`, `profile` and `w_member_social`, and paste the new token into `.env.local` themselves (never into the chat), with today's date as `LINKEDIN_TOKEN_DATE`.
 
 ## Promo images
 

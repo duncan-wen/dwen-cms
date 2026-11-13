@@ -4,10 +4,10 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A valid `threads.txt` is read into the Post: text, its topic tag, and the `posted:` URL when present
-- [ ] The content check rejects, each with its own fixture: over 500 characters; no topic tag or more than one; a tag outside 1–50 characters or containing `.` or `&`; a URL in the text; a malformed `posted:` line
-- [ ] Errors name the file, the field and the rule, as the LinkedIn share's do
-- [ ] GLOSSARY: **Share**, **LinkedIn share** and **Threads share** entries
-- [ ] vitest covers the reading and each rule through the content module's interface
+- [x] A valid `threads.txt` is read into the Post: text, its topic tag, and the `posted:` URL when present
+- [x] The content check rejects, each with its own fixture: over 500 characters; no topic tag or more than one; a tag outside 1–50 characters or containing `.` or `&`; a URL in the text; a malformed `posted:` line
+- [x] Errors name the file, the field and the rule, as the LinkedIn share's do
+- [x] GLOSSARY: **Share**, **LinkedIn share** and **Threads share** entries
+- [x] vitest covers the reading and each rule through the content module's interface

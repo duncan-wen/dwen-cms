@@ -1,6 +1,6 @@
 # Spec: Sharing Posts on Threads
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
@@ -59,4 +59,4 @@ Research against Meta's documentation is in `research.md`, next to this spec.
 
 ## Further Notes
 
-- Meta's docs don't say whether the link card uses the page's OG tags, or how Chinese characters count toward 500; the first real post answers both.
+- The first real post showed the link card draws the page's OG image and title. How Chinese characters count toward 500 is still untested near the limit.

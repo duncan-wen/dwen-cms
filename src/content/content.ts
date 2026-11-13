@@ -15,6 +15,7 @@ import {
   thumbHeight,
 } from "../deck/deck-names";
 import { linkedInHashtags } from "../linkedin";
+import { isValidThreadsTag, THREADS_TAG_MAX, threadsTopicTag } from "../threads";
 import { isInlineSlideDeck, isSlideDeck, type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
 import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
@@ -46,6 +47,8 @@ export type Post = {
   body: string;
   /** What the Owner shares the Post on LinkedIn with, from `linkedin.txt` next to it; optional. */
   linkedInShare: LinkedInShare | undefined;
+  /** What the Owner shares the Post on Threads with, from `threads.txt` next to it; optional. */
+  threadsShare: ThreadsShare | undefined;
   /** The Slide deck its body places with `<SlideDeck />`, from the `deck/` folder next to it; optional. */
   deck: SlideDeck | undefined;
 };
@@ -72,6 +75,12 @@ export type Slide = { image: string; thumb: string; title: string; text: string 
  * post's URL, recorded as a `posted: <url>` first line so it's never posted twice.
  */
 export type LinkedInShare = { text: string; postedUrl: string | undefined };
+
+/**
+ * A Threads share: the post's text, its one topic tag (without `#`), and once it's posted, the
+ * Threads post's URL, recorded as a `posted: <url>` first line so it's never posted twice.
+ */
+export type ThreadsShare = { text: string; topicTag: string; postedUrl: string | undefined };
 
 /**
  * What a Post's promo images show. Every template shows the title and the key
@@ -290,6 +299,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     if (tree) await checkDiagrams(tree, bodyLine, report);
     const promo = checkPromo(data.promo, title, description, report);
     const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
+    const threadsShare = await loadThreadsShare(contentDir, slug, problems);
     const deck = tree ? await loadSlideDeck(tree, contentDir, slug, problems, report) : undefined;
 
     posts.push({
@@ -305,6 +315,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
       promo,
       body,
       linkedInShare,
+      threadsShare,
       deck,
     });
   }
@@ -534,24 +545,33 @@ async function loadDeckText(file: string, slideCount: number, report: Report) {
 const LINKEDIN_TEXT_LIMIT = 3000;
 const LINKEDIN_HASHTAG_LIMIT = 3;
 
+/**
+ * A Share file next to a Post (`linkedin.txt`, `threads.txt`), split into its text and the URL
+ * of its `posted:` first line; undefined when the Post has no such file.
+ */
+async function readShare(contentDir: string, slug: string, name: string, problems: ContentProblem[]) {
+  const file = `posts/${slug}/${name}`;
+  const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
+  if (source === undefined) return undefined;
+  const report: Report = (field, rule, message) => problems.push({ file, field, rule, message });
+  const posted = source.match(/^posted:[ \t]*(.*)\n?/);
+  const text = source.slice(posted?.[0].length ?? 0).trim();
+  if (text === "") report("text", "required", "the file has no text to share");
+  return { text, postedUrl: posted?.[1].trim(), report };
+}
+
 /** A Post's LinkedIn share from its optional `linkedin.txt`, checked against what LinkedIn accepts. */
 async function loadLinkedInShare(
   contentDir: string,
   slug: string,
   problems: ContentProblem[],
 ): Promise<LinkedInShare | undefined> {
-  const file = `posts/${slug}/linkedin.txt`;
-  const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
-  if (source === undefined) return undefined;
-  const report: Report = (field, rule, message) => problems.push({ file, field, rule, message });
-
-  const posted = source.match(/^posted:[ \t]*(.*)\n?/);
-  const postedUrl = posted?.[1].trim();
+  const share = await readShare(contentDir, slug, "linkedin.txt", problems);
+  if (!share) return undefined;
+  const { text, postedUrl, report } = share;
   if (postedUrl !== undefined && !/^https:\/\/www\.linkedin\.com\/\S+$/.test(postedUrl)) {
     report("posted", "linkedin-posted-url", `"${postedUrl}" isn't a LinkedIn post's URL (https://www.linkedin.com/feed/update/…)`);
   }
-  const text = source.slice(posted?.[0].length ?? 0).trim();
-  if (text === "") report("text", "required", "the file has no text to share");
   const length = [...text].length;
   if (length > LINKEDIN_TEXT_LIMIT) {
     report("text", "linkedin-length", `the text is ${length} characters, more than LinkedIn's ${LINKEDIN_TEXT_LIMIT}; shorten it`);
@@ -565,6 +585,50 @@ async function loadLinkedInShare(
     );
   }
   return { text, postedUrl };
+}
+
+/** Threads' limit on a post's text, in characters. */
+const THREADS_TEXT_LIMIT = 500;
+
+/** A Post's Threads share from its optional `threads.txt`, checked against what Threads accepts. */
+async function loadThreadsShare(
+  contentDir: string,
+  slug: string,
+  problems: ContentProblem[],
+): Promise<ThreadsShare | undefined> {
+  const share = await readShare(contentDir, slug, "threads.txt", problems);
+  if (!share) return undefined;
+  const { postedUrl, report } = share;
+  if (postedUrl !== undefined && !/^https:\/\/www\.threads\.(com|net)\/\S+$/.test(postedUrl)) {
+    report("posted", "threads-posted-url", `"${postedUrl}" isn't a Threads post's URL (https://www.threads.com/@…/post/…)`);
+  }
+  const { text, topicTag, otherTags } = threadsTopicTag(share.text);
+  // The topic tag goes out as its own parameter, so only the text counts toward the limit.
+  const length = [...text].length;
+  if (length > THREADS_TEXT_LIMIT) {
+    report("text", "threads-length", `the text is ${length} characters, more than Threads' ${THREADS_TEXT_LIMIT}; shorten it`);
+  }
+  if (/https?:\/\//.test(share.text)) {
+    report("text", "threads-url", "the text has a URL; leave it out, since the link card carries the Post's");
+  }
+  if (share.text !== "" && topicTag === undefined) {
+    report("text", "threads-topic-tag", "the text needs one topic tag as its last line, e.g. #AI, picked from the Post's Tags");
+  }
+  if (otherTags.length > 0) {
+    report(
+      "text",
+      "threads-topic-tag",
+      `the text has other tags (${otherTags.join(", ")}); Threads takes one topic tag, as the last line`,
+    );
+  }
+  if (topicTag !== undefined && !isValidThreadsTag(topicTag)) {
+    report(
+      "text",
+      "threads-topic-tag",
+      `the topic tag "#${topicTag}" must be 1–${THREADS_TAG_MAX} characters with no "." or "&"`,
+    );
+  }
+  return { text, topicTag: topicTag ?? "", postedUrl };
 }
 
 /**

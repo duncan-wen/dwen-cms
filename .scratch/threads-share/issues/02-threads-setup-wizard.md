@@ -4,10 +4,14 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The wizard opens each Meta and Threads page in turn and says what to click
-- [ ] It exchanges the code for a long-lived token and checks it by reading the account's user ID
-- [ ] It writes the token, today's date and the user ID into `.env.local` without printing the token
-- [ ] Running it again replaces the old values
-- [ ] The Owner has run it and the token works (ticked when the Owner says it finished)
+- [x] The wizard opens each Meta and Threads page in turn and says what to click
+- [x] It exchanges the code for a long-lived token and checks it by reading the account's user ID
+- [x] It writes the token, today's date and the user ID into `.env.local` without printing the token
+- [x] Running it again replaces the old values
+- [x] The Owner has run it and the token works (ticked when the Owner says it finished)
+
+## Comments
+
+- 2026-11-13: The Owner ran the wizard. The token reads @lumpa7223 and matches `THREADS_USER_ID`. Meta's `/apps/creation/` URL 404'd, so the first stage now starts from My Apps; the wizard's text is in Traditional Chinese, at the Owner's request.
