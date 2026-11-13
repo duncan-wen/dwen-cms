@@ -215,9 +215,8 @@ test.describe("an Animation in a Post", () => {
     await expect(animation(page).getByRole("button", { name: "重播" })).toBeHidden();
 
     await expect(animation(page)).toHaveAttribute("data-playback", "finished", { timeout: 30_000 });
-    // It holds the finished table rather than going back to the empty first frame.
-    const lastWork = animation(page).locator("[aria-hidden] span", { hasText: "駕馭 AI 的人" });
-    await expect(lastWork).toHaveCSS("opacity", "1");
+    // It holds the summary rather than going back to the first scene.
+    await expect(animation(page).locator('[data-scene="summary"]')).toBeVisible();
     await animation(page).getByRole("button", { name: "重播" }).click();
     await expect(animation(page)).toHaveAttribute("data-playback", "playing");
   });

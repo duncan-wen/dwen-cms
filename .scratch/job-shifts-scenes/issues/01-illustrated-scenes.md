@@ -4,10 +4,10 @@
 
 **Blocked by:** None (the Owner approves the prototype before this starts)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The 工業革命, 電腦普及 and AI scenes each show the old way, the turn and the new role with the spec's objects and motion; people are faceless geometric figures; the AI scene's new role has a medical cross
-- [ ] Each scene has one short label; the Animation runs 20–25 seconds at 30fps; no sound
-- [ ] The finished frame is the summary, three rows top to bottom; it reads at 375px and in both themes
-- [ ] Playback, 「重播」, reduced motion, caption and hidden list behave as before; the existing smoke tests pass, and the one that checks the finished frame checks the summary
+- [x] The 工業革命, 電腦普及 and AI scenes each show the old way, the turn and the new role with the spec's objects and motion; people are faceless geometric figures; the AI scene's new role has a medical cross
+- [x] Each scene has one short label; the Animation runs 20–25 seconds at 30fps; no sound
+- [x] The finished frame is the summary, three rows top to bottom; it reads at 375px and in both themes
+- [x] Playback, 「重播」, reduced motion, caption and hidden list behave as before; the existing smoke tests pass, and the one that checks the finished frame checks the summary
 - [ ] Captures taken mid-play of each scene, read by the agent; `pnpm shots` of the smoke Post and of `/posts/ai-transition-era` (`--content content`) in light and dark at 1280px and 375px, run last (Owner checks)
