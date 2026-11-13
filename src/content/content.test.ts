@@ -723,10 +723,11 @@ describe("a Post's Threads share", () => {
   });
 
   it.each([
-    ["threads-too-long", "posts/long/threads.txt", "text", "threads-length", /502 characters, more than Threads' 500/],
+    ["threads-too-long", "posts/long/threads.txt", "text", "threads-length", /501 characters, more than Threads' 500/],
     ["threads-no-tag", "posts/untagged/threads.txt", "text", "threads-topic-tag", /needs one topic tag as its last line/],
     ["threads-other-tags", "posts/extra/threads.txt", "text", "threads-topic-tag", /other tags \(#Go\)/],
     ["threads-bad-tag", "posts/dotted/threads.txt", "text", "threads-topic-tag", /"#Next\.js" must be 1–50 characters with no "\." or "&"/],
+    ["threads-long-tag", "posts/long-tag/threads.txt", "text", "threads-topic-tag", /must be 1–50 characters/],
     ["threads-url", "posts/linked/threads.txt", "text", "threads-url", /has a URL/],
     ["threads-posted-url", "posts/bad-posted/threads.txt", "posted", "threads-posted-url", /"https:\/\/example.com\/x"/],
   ])("rejects fixture %s: %s %s breaks %s", async (fixtureName, file, field, rule, message) => {

@@ -1,6 +1,12 @@
 /** Threads' limit on a topic tag's length, in characters. */
 export const THREADS_TAG_MAX = 50;
 
+/** Whether Threads accepts a topic tag: 1–50 characters with no `.` or `&`. */
+export function isValidThreadsTag(tag: string): boolean {
+  const length = [...tag].length;
+  return length >= 1 && length <= THREADS_TAG_MAX && !/[.&]/.test(tag);
+}
+
 /** A hashtag in running text: `#` and a letter, then anything up to whitespace. */
 const HASHTAG = /#\p{L}\S*/gu;
 

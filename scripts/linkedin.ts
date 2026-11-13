@@ -7,7 +7,7 @@
 // a token from https://www.linkedin.com/developers/tools/oauth/token-generator with the
 // openid, profile and w_member_social scopes. Tokens last 60 days.
 import { littleText } from "../src/linkedin";
-import { checkTokenAge, fail, livePage, loadEnv, postToShare, recordPosted, shareArgs } from "./share";
+import { checkTokenAge, fail, livePage, loadEnv, unpostedShare, recordPosted, shareArgs } from "./share";
 
 /** LinkedIn's API version, YYYYMM. Each lasts about a year; a 426 NONEXISTENT_VERSION means bump it. */
 const LINKEDIN_VERSION = "202610";
@@ -22,7 +22,7 @@ if (!token)
   );
 checkTokenAge("LinkedIn", process.env.LINKEDIN_TOKEN_DATE, TOKEN_DAYS, "make a new one with the token generator.");
 
-const { share, shareFile } = await postToShare(slug, "linkedin.txt", (found) => found.linkedInShare);
+const { share, shareFile } = await unpostedShare(slug, "linkedin.txt", (found) => found.linkedInShare);
 const { pageUrl, html } = await livePage(slug);
 const card = {
   url: pageUrl,

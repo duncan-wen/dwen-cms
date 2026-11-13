@@ -15,7 +15,7 @@ import {
   thumbHeight,
 } from "../deck/deck-names";
 import { linkedInHashtags } from "../linkedin";
-import { threadsTopicTag, THREADS_TAG_MAX } from "../threads";
+import { isValidThreadsTag, THREADS_TAG_MAX, threadsTopicTag } from "../threads";
 import { isInlineSlideDeck, isSlideDeck, type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
 import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
@@ -602,14 +602,15 @@ async function loadThreadsShare(
   if (postedUrl !== undefined && !/^https:\/\/www\.threads\.(com|net)\/\S+$/.test(postedUrl)) {
     report("posted", "threads-posted-url", `"${postedUrl}" isn't a Threads post's URL (https://www.threads.com/@…/post/…)`);
   }
-  const length = [...share.text].length;
+  const { text, topicTag, otherTags } = threadsTopicTag(share.text);
+  // The topic tag goes out as its own parameter, so only the text counts toward the limit.
+  const length = [...text].length;
   if (length > THREADS_TEXT_LIMIT) {
     report("text", "threads-length", `the text is ${length} characters, more than Threads' ${THREADS_TEXT_LIMIT}; shorten it`);
   }
   if (/https?:\/\//.test(share.text)) {
     report("text", "threads-url", "the text has a URL; leave it out, since the link card carries the Post's");
   }
-  const { text, topicTag, otherTags } = threadsTopicTag(share.text);
   if (share.text !== "" && topicTag === undefined) {
     report("text", "threads-topic-tag", "the text needs one topic tag as its last line, e.g. #AI, picked from the Post's Tags");
   }
@@ -620,7 +621,7 @@ async function loadThreadsShare(
       `the text has other tags (${otherTags.join(", ")}); Threads takes one topic tag, as the last line`,
     );
   }
-  if (topicTag !== undefined && (topicTag.length > THREADS_TAG_MAX || /[.&]/.test(topicTag))) {
+  if (topicTag !== undefined && !isValidThreadsTag(topicTag)) {
     report(
       "text",
       "threads-topic-tag",

@@ -6,8 +6,8 @@
 // Reads THREADS_ACCESS_TOKEN, THREADS_TOKEN_DATE and THREADS_USER_ID from .env.local, written by
 // `bash scripts/threads-setup.sh`. Tokens last 60 days; each run past the first day refreshes
 // the token and writes it back, so only 60 days without a run means running the wizard again.
-import { canRefreshThreadsToken } from "../src/share-token";
-import { checkTokenAge, fail, livePage, loadEnv, postToShare, recordPosted, shareArgs, writeEnv } from "./share";
+import { canRefreshToken } from "../src/share-token";
+import { checkTokenAge, fail, livePage, loadEnv, unpostedShare, recordPosted, shareArgs, writeEnv } from "./share";
 
 const GRAPH = "https://graph.threads.com";
 const API = `${GRAPH}/v1.0`;
@@ -19,11 +19,12 @@ loadEnv();
 let token = process.env.THREADS_ACCESS_TOKEN;
 const userId = process.env.THREADS_USER_ID;
 if (!token || !userId) fail(`No THREADS_ACCESS_TOKEN or THREADS_USER_ID in .env.local: ${RERUN_WIZARD}`);
-const tokenDate = process.env.THREADS_TOKEN_DATE;
-checkTokenAge("Threads", tokenDate, TOKEN_DAYS, RERUN_WIZARD);
-if (tokenDate && canRefreshThreadsToken(tokenDate, new Date(), TOKEN_DAYS)) token = await refreshToken(token);
+// Refresh first, so the age warning speaks for the token this run actually uses.
+const madeOn = process.env.THREADS_TOKEN_DATE;
+if (madeOn && canRefreshToken(madeOn, new Date(), TOKEN_DAYS)) token = await refreshToken(token);
+checkTokenAge("Threads", process.env.THREADS_TOKEN_DATE, TOKEN_DAYS, RERUN_WIZARD);
 
-const { share, shareFile } = await postToShare(slug, "threads.txt", (found) => found.threadsShare);
+const { share, shareFile } = await unpostedShare(slug, "threads.txt", (found) => found.threadsShare);
 const { pageUrl } = await livePage(slug);
 
 console.log(`── Threads post (${post ? "posting" : "preview only; add --post to post"}) ──`);
@@ -40,9 +41,13 @@ const container = await threads<{ id: string }>("POST", `/${userId}/threads`, {
 await waitUntilFinished(container.id);
 const published = await threads<{ id: string }>("POST", `/${userId}/threads_publish`, { creation_id: container.id });
 const { permalink } = await threads<{ permalink?: string }>("GET", `/${published.id}`, { fields: "permalink" });
-if (!permalink)
-  fail(`Posted as ${published.id}, but Threads gave no permalink: record its URL in ${shareFile} by hand.`);
-recordPosted(shareFile, permalink);
+if (permalink) recordPosted(shareFile, permalink);
+else {
+  // It went out, so the Share is marked posted even without the post's own link: never post it twice.
+  const { username } = await threads<{ username: string }>("GET", "/me", { fields: "username" });
+  console.warn(`⚠ Posted as ${published.id}, but Threads gave no permalink; recording the profile instead.`);
+  recordPosted(shareFile, `https://www.threads.com/@${username}`);
+}
 
 /** Swaps a token at least a day old for a fresh 60-day one, and saves it with today's date. */
 async function refreshToken(current: string): Promise<string> {
@@ -55,7 +60,9 @@ async function refreshToken(current: string): Promise<string> {
     return current;
   }
   writeEnv("THREADS_ACCESS_TOKEN", body.access_token);
-  writeEnv("THREADS_TOKEN_DATE", new Date().toISOString().slice(0, 10));
+  const today = new Date().toISOString().slice(0, 10);
+  writeEnv("THREADS_TOKEN_DATE", today);
+  process.env.THREADS_TOKEN_DATE = today;
   return body.access_token;
 }
 

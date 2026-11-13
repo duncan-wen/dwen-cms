@@ -20,7 +20,7 @@ export function tokenStatus(
   return { state: daysLeft <= 0 ? "expired" : daysLeft <= 10 ? "warn" : "ok", daysLeft };
 }
 
-/** Whether a Threads token can be refreshed now: at least a day old and not yet expired. */
-export function canRefreshThreadsToken(date: string, now: Date, lifetimeDays: number): boolean {
+/** Whether a token can be refreshed now, as Threads allows: at least a day old and not yet expired. */
+export function canRefreshToken(date: string, now: Date, lifetimeDays: number): boolean {
   return tokenAgeDays(date, now) >= 1 && tokenStatus(date, now, lifetimeDays).state !== "expired";
 }

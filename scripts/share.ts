@@ -35,13 +35,19 @@ export function loadEnv() {
   }
 }
 
-/** Replaces or adds `key` in `.env.local`, as the setup wizards write it. */
+/** Replaces or adds `key` in `.env.local` (creating it), as the setup wizards write it. */
 export function writeEnv(key: string, value: string) {
-  const lines = readFileSync(ENV_FILE, "utf8")
-    .trimEnd()
-    .split("\n")
-    .filter((line) => !line.startsWith(`${key}=`));
-  writeFileSync(ENV_FILE, `${[...lines, `${key}='${value}'`].join("\n")}\n`);
+  if (value.includes("'")) fail(`Can't write ${key}: its value has a quote.`);
+  const existing = (() => {
+    try {
+      return readFileSync(ENV_FILE, "utf8");
+    } catch {
+      return "";
+    }
+  })();
+  const lines = existing === "" ? [] : existing.trimEnd().split("\n");
+  const kept = lines.filter((line) => !line.startsWith(`${key}=`));
+  writeFileSync(ENV_FILE, `${[...kept, `${key}='${value}'`].join("\n")}\n`);
 }
 
 /** Fails once a token made on `date` has expired, and warns from ten days before. */
@@ -53,14 +59,14 @@ export function checkTokenAge(platform: string, date: string | undefined, lifeti
 }
 
 /**
- * The Published Post at `slug` and its Share for one platform, read through the content
+ * The unposted Share of the Published Post at `slug` for one platform, read through the content
  * module so the content check has passed; fails when there is none or it's already posted.
  */
-export async function postToShare<S extends { postedUrl: string | undefined }>(
+export async function unpostedShare<S extends { postedUrl: string | undefined }>(
   slug: string,
   fileName: string,
   pick: (post: Post) => S | undefined,
-): Promise<{ post: Post; share: S; shareFile: string }> {
+): Promise<{ share: S; shareFile: string }> {
   const content = await getContent().catch((error: unknown) => {
     if (!(error instanceof ContentValidationError)) throw error;
     fail(error.message);
@@ -71,7 +77,7 @@ export async function postToShare<S extends { postedUrl: string | undefined }>(
   const share = pick(resolved.post);
   if (!share) fail(`Write the share's text in ${path.relative(process.cwd(), shareFile)} first.`);
   if (share.postedUrl) fail(`Already shared: ${share.postedUrl}`);
-  return { post: resolved.post, share, shareFile };
+  return { share, shareFile };
 }
 
 /** The Post's live page and its HTML; fails unless it answers and names itself as canonical. */

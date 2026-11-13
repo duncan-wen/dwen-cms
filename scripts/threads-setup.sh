@@ -269,7 +269,7 @@ if [[ -z "$CODE" ]]; then warn "網址裡沒有授權碼。請從頭再跑一次
 stage "取得長效權杖"
 say "正在用授權碼換權杖，權杖不會顯示在畫面上。"
 SHORT=$(curl -sS -X POST "$GRAPH/oauth/access_token" \
-  -d "client_id=$THREADS_APP_ID" -d "client_secret=$APP_SECRET" -d "code=$CODE" \
+  --data-urlencode "client_id=$THREADS_APP_ID" --data-urlencode "client_secret=$APP_SECRET" --data-urlencode "code=$CODE" \
   -d "grant_type=authorization_code" --data-urlencode "redirect_uri=$REDIRECT_URI")
 SHORT_TOKEN=$(printf '%s' "$SHORT" | json_field access_token)
 if [[ -z "$SHORT_TOKEN" ]]; then warn "換權杖失敗：$(printf '%s' "$SHORT" | json_field error)"; exit 1; fi

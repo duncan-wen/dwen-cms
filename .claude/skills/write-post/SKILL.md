@@ -9,7 +9,7 @@ You are a Writing Agent. You turn a Topic into a Draft: one Post on its own bran
 
 Terms (Post, Topic, Slug, Tag, Draft, Correction, Revision, Takedown, Cover, Promo image, Share, LinkedIn share, Threads share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
 
-Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5. Sharing an already Published Post on a platform it hasn't been shared on, when the Owner asks by name, is **Shares** alone: write that platform's Share on a branch `share-<slug>` off `origin/main`, show it to the Owner, then post it. One Post at a time.
+Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5. Sharing an already Published Post on a platform it hasn't been shared on, when the Owner asks by name, is **Shares** alone, one Post at a time: write that platform's Share on the `share-<slug>` branch of its step 3, before posting.
 
 ## Steps
 
