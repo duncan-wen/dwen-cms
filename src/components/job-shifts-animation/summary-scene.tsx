@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Orb } from "./ai-scene";
 import { JOB_SHIFTS, JOB_SHIFTS_EXAMPLE } from "./job-shifts";
 import {
   ACCENT,
@@ -10,12 +9,12 @@ import {
   CrossPin,
   Hair,
   Headphones,
-  Headscarf,
-  INK,
   Laptop,
+  Orb,
   Overalls,
   Person,
   SOFT,
+  SceneCanvas,
   Sheet,
   Shuttle,
   Wrench,
@@ -37,28 +36,29 @@ const STANDING = { near: { shoulder: 20, elbow: 30 }, far: { shoulder: 8, elbow:
 
 type Figures = { old: ReactNode; new: ReactNode };
 
-function figures(ground: number): Figures[] {
+/** Each shift's two figures, in JOB_SHIFTS order, standing on a row's floor line. */
+function figures(index: number, ground: number): Figures {
   const at = (x: number) => ({ x, ground, size: SIZE });
-  return [
+  const rows: Figures[] = [
     {
       old: (
         <Person
-          {...at(108)}
+          {...at(34)}
           {...STANDING}
           facing={-1}
-          shirt={scene("weaver-shirt")}
-          trousers={scene("weaver-trousers")}
-          headwear={<Headscarf />}
+          shirt={scene("shirt-berry")}
+          trousers={scene("trousers")}
+          headwear={<Hair />}
           outfit={<Apron />}
           holding={(hand) => <Shuttle x={hand.x + 6} y={hand.y} />}
         />
       ),
       new: (
         <Person
-          {...at(280)}
+          {...at(250)}
           {...STANDING}
           facing={1}
-          shirt={scene("mechanic-shirt")}
+          shirt={scene("shirt-blue")}
           trousers={ACCENT}
           headwear={<Cap />}
           outfit={<Overalls />}
@@ -69,23 +69,23 @@ function figures(ground: number): Figures[] {
     {
       old: (
         <Person
-          {...at(108)}
+          {...at(34)}
           {...STANDING}
           facing={-1}
-          shirt={scene("weaver-shirt")}
-          trousers={scene("weaver-trousers")}
+          shirt={scene("shirt-berry")}
+          trousers={scene("trousers")}
           headwear={<Hair />}
           holding={(hand) => <Sheet x={hand.x + 8} y={hand.y - 6} angle={8} />}
         />
       ),
       new: (
         <Person
-          {...at(280)}
+          {...at(250)}
           {...STANDING}
           near={{ shoulder: 35, elbow: 45 }}
           facing={1}
           shirt={ACCENT}
-          trousers={scene("weaver-trousers")}
+          trousers={scene("trousers")}
           headwear={<Headphones />}
           holding={(hand) => <Laptop hand={hand} />}
         />
@@ -94,24 +94,24 @@ function figures(ground: number): Figures[] {
     {
       old: (
         <Person
-          {...at(108)}
+          {...at(34)}
           {...STANDING}
           facing={-1}
-          shirt={scene("mechanic-shirt")}
-          trousers={scene("weaver-trousers")}
+          shirt={scene("shirt-blue")}
+          trousers={scene("trousers")}
           headwear={<Hair />}
           holding={(hand) => <Book x={hand.x + 14} y={hand.y - 4} />}
         />
       ),
       new: (
         <Person
-          {...at(280)}
+          {...at(250)}
           {...STANDING}
           near={{ shoulder: 110, elbow: -20 }}
           far={{ shoulder: 30, elbow: 70 }}
           facing={1}
           shirt={ACCENT}
-          trousers={scene("weaver-trousers")}
+          trousers={scene("trousers")}
           headwear={<Hair colour={scene("belt")} />}
           outfit={<CrossPin />}
           farHolding={(hand) => <Clipboard hand={hand} />}
@@ -119,27 +119,30 @@ function figures(ground: number): Figures[] {
       ),
     },
   ];
+  return rows[index];
 }
 
-function Row({ index }: { index: number }) {
+type RowProps = { index: number };
+
+function Row({ index }: RowProps) {
   const ground = ROW_GROUND[index];
   const shift = JOB_SHIFTS[index];
   const shown = useProgress(index * 0.35, 0.5);
-  const drawn = figures(ground)[index];
+  const drawn = figures(index, ground);
   const last = index === JOB_SHIFTS.length - 1;
   return (
     <g opacity={shown} transform={`translate(0 ${(1 - shown) * 8})`}>
-      <text x={12} y={ground - 34} fontSize={16} fontWeight={700} fill={ACCENT}>
+      <text x={54} y={ground - 60} fontSize={15} fontWeight={700} fill={ACCENT}>
         {shift.era}
       </text>
       <g style={{ filter: "grayscale(1)" }} opacity={0.55}>
         {drawn.old}
       </g>
-      <text x={122} y={ground - 34} fontSize={16} fill={SOFT} textDecoration="line-through">
+      <text x={54} y={ground - 32} fontSize={19} fill={SOFT} textDecoration="line-through">
         {shift.old}
       </text>
       <path
-        d={`M240,${ground - 39} L262,${ground - 39} M256,${ground - 45} L262,${ground - 39} L256,${ground - 33}`}
+        d={`M198,${ground - 38} L222,${ground - 38} M216,${ground - 44} L222,${ground - 38} L216,${ground - 32}`}
         fill="none"
         stroke={ACCENT}
         strokeWidth={2.5}
@@ -147,12 +150,12 @@ function Row({ index }: { index: number }) {
         strokeLinejoin="round"
       />
       {drawn.new}
-      {last && <Orb x={306} y={ground - 76} since={0} size={0.55} />}
-      <text x={316} y={ground - 34} fontSize={17} fontWeight={700} fill={ACCENT}>
+      {last && <Orb x={276} y={ground - 78} since={0} size={0.55} />}
+      <text x={290} y={ground - 32} fontSize={20} fontWeight={700} fill={ACCENT}>
         {shift.new}
       </text>
       {last && (
-        <text x={316} y={ground - 13} fontSize={13} fill={SOFT}>
+        <text x={290} y={ground - 10} fontSize={14} fill={SOFT}>
           {JOB_SHIFTS_EXAMPLE}
         </text>
       )}
@@ -163,16 +166,10 @@ function Row({ index }: { index: number }) {
 
 export function SummaryScene() {
   return (
-    <svg
-      viewBox="0 0 500 340"
-      width="100%"
-      height="100%"
-      data-scene="summary"
-      style={{ fontFamily: "var(--font-sans)", color: INK }}
-    >
+    <SceneCanvas name="summary">
       {JOB_SHIFTS.map((shift, i) => (
         <Row key={shift.era} index={i} />
       ))}
-    </svg>
+    </SceneCanvas>
   );
 }

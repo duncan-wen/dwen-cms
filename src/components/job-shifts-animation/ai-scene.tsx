@@ -10,15 +10,19 @@ import {
   GREEN,
   GROUND,
   Hair,
-  INK,
+  IRON,
+  Orb,
   PAPER,
   Person,
   SOFT,
+  SceneCanvas,
   Sheet,
   ShiftLabel,
   TwoWorlds,
   WALL,
   WOOD,
+  WOOD_DARK,
+  WOOD_LIGHT,
   scene,
   useProgress,
   useSince,
@@ -42,9 +46,6 @@ const BEAT = {
   answer: TURN + 2.1,
   label: 6,
 };
-
-const IRON = scene("iron");
-const WOOD_DARK = scene("wood-dark");
 
 const BOOKS = [
   [scene("stripe"), scene("cloth"), scene("wood-light"), scene("book"), BERRY],
@@ -88,7 +89,9 @@ function Study() {
 }
 
 /** The desk: a laptop scrolling through documentation, an open book flipping its pages, a pile of printouts. */
-function Desk({ searching }: { searching: number }) {
+type DeskProps = { searching: number };
+
+function Desk({ searching }: DeskProps) {
   const flip = searching > 0 ? (searching % 0.8) / 0.8 : 0;
   const scroll = (searching * 10) % 7;
   return (
@@ -144,7 +147,9 @@ function Desk({ searching }: { searching: number }) {
 }
 
 /** Sheets lifting off the pile and drifting away, over and over while searching. */
-function FlyingSheets({ searching }: { searching: number }) {
+type FlyingSheetsProps = { searching: number };
+
+function FlyingSheets({ searching }: FlyingSheetsProps) {
   return (
     <g>
       {[0, 0.9].map((offset) => {
@@ -159,7 +164,9 @@ function FlyingSheets({ searching }: { searching: number }) {
   );
 }
 
-function Searcher({ searching }: { searching: number }) {
+type SearcherProps = { searching: number };
+
+function Searcher({ searching }: SearcherProps) {
   const scratch = searching > 0 ? Math.sin(searching * 9) * 10 : 0;
   const reach = searching > 0 ? Math.sin(searching * 4) * 6 : 0;
   return (
@@ -172,8 +179,8 @@ function Searcher({ searching }: { searching: number }) {
         x={210}
         facing={-1}
         seated
-        shirt={scene("mechanic-shirt")}
-        trousers={scene("weaver-trousers")}
+        shirt={scene("shirt-blue")}
+        trousers={scene("trousers")}
         near={{ shoulder: 62 + reach, elbow: 30 }}
         far={{ shoulder: 170, elbow: 100 + scratch }}
         headwear={<Hair />}
@@ -187,9 +194,9 @@ function BrightRoom() {
     <g>
       <rect x={256} y={40} width={236} height={GROUND - 40} rx={10} fill={WALL} />
       <circle cx={400} cy={120} r={100} fill="var(--accent-wash)" />
-      <rect x={256} y={GROUND} width={236} height={10} fill={scene("factory-floor")} />
+      <rect x={256} y={GROUND} width={236} height={10} fill={scene("floor-modern")} />
       {/* low cabinet */}
-      <rect x={340} y={220} width={130} height={42} rx={3} fill={scene("wood-light")} />
+      <rect x={340} y={220} width={130} height={42} rx={3} fill={WOOD_LIGHT} />
       <line x1={405} y1={222} x2={405} y2={260} stroke={WOOD_DARK} strokeWidth={1} />
       <rect x={380} y={238} width={14} height={3} rx={1} fill={WOOD_DARK} />
       <rect x={416} y={238} width={14} height={3} rx={1} fill={WOOD_DARK} />
@@ -201,23 +208,6 @@ function BrightRoom() {
 }
 
 /** The AI: a glowing orb with a pulse ring and a sparkle. */
-export function Orb({ x, y, since, size = 1 }: { x: number; y: number; since: number; size?: number }) {
-  const ring = (since % 1.4) / 1.4;
-  return (
-    <g transform={`translate(${x} ${y}) scale(${size})`}>
-      <circle
-        r={10 + ring * 10}
-        fill="none"
-        stroke={ACCENT}
-        strokeWidth={1.5}
-        opacity={since > 0 ? (1 - ring) * 0.6 : 0}
-      />
-      <circle r={10} fill={ACCENT} />
-      <path d="M0,-6 Q1,-1 6,0 Q1,1 0,6 Q-1,1 -6,0 Q-1,-1 0,-6 Z" fill="var(--on-accent)" />
-    </g>
-  );
-}
-
 const ANSWER = [
   { width: 92, colour: BLUE },
   { width: 70, colour: GREEN },
@@ -285,7 +275,7 @@ function Director() {
         x={282}
         facing={1}
         shirt={ACCENT}
-        trousers={scene("weaver-trousers")}
+        trousers={scene("trousers")}
         near={{ shoulder: 40 + point * 70 + nod * 0.5, elbow: -10 - point * 10 }}
         far={{ shoulder: 30, elbow: 70 }}
         headwear={<Hair colour={scene("belt")} />}
@@ -299,7 +289,7 @@ function Director() {
 export function AiScene() {
   const searching = Math.min(useSince(BEAT.search), TURN - BEAT.search);
   return (
-    <svg viewBox="0 0 500 340" width="100%" height="100%" style={{ fontFamily: "var(--font-sans)", color: INK }}>
+    <SceneCanvas>
       <EraChip era={SHIFT.era} />
       <TwoWorlds
         id="ai"
@@ -318,6 +308,6 @@ export function AiScene() {
         <Director />
       </TwoWorlds>
       <ShiftLabel at={BEAT.label} old={SHIFT.old} new={SHIFT.new} example={JOB_SHIFTS_EXAMPLE} />
-    </svg>
+    </SceneCanvas>
   );
 }

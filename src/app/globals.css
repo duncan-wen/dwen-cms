@@ -98,13 +98,13 @@
   --scene-iron: color-mix(in oklab, var(--ink) 82%, var(--paper));
   --scene-iron-light: color-mix(in oklab, var(--ink) 55%, var(--paper));
   --scene-shoe: color-mix(in oklab, var(--ink) 85%, var(--paper));
-  --scene-factory-floor: color-mix(in oklab, var(--ink) 25%, var(--paper));
+  --scene-floor-modern: color-mix(in oklab, var(--ink) 25%, var(--paper));
   --scene-skin: color-mix(in oklab, var(--ink-soft) 38%, var(--paper));
   --scene-skin-shade: color-mix(in oklab, var(--ink-soft) 55%, var(--paper));
-  --scene-weaver-shirt: color-mix(in oklab, var(--code-keyword) 70%, var(--paper));
-  --scene-weaver-trousers: color-mix(in oklab, var(--ink) 70%, var(--paper));
+  --scene-shirt-berry: color-mix(in oklab, var(--code-keyword) 70%, var(--paper));
+  --scene-trousers: color-mix(in oklab, var(--ink) 70%, var(--paper));
   --scene-apron: color-mix(in oklab, var(--paper) 80%, var(--code-type));
-  --scene-mechanic-shirt: color-mix(in oklab, var(--code-function) 70%, var(--paper));
+  --scene-shirt-blue: color-mix(in oklab, var(--code-function) 70%, var(--paper));
   --scene-cap: color-mix(in oklab, var(--accent) 85%, var(--ink));
   --scene-gear-light: color-mix(in oklab, var(--accent) 75%, var(--paper));
   --scene-city: color-mix(in oklab, var(--code-function) 45%, var(--paper));
