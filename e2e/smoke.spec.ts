@@ -186,6 +186,51 @@ test("a Post with a cover image opens with it instead of the generated cover", a
   await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 });
 
+test.describe("an Animation in a Post", () => {
+  const post = "/posts/animation-smoke-post";
+  const animation = (page: Page) => page.getByRole("figure").filter({ hasText: "示意動畫：三次技術轉變" });
+
+  test("carries its caption and, for screen readers, the table as a list", async ({ page }) => {
+    await page.goto(post);
+
+    await expect(animation(page)).toContainText("示意動畫：三次技術轉變中消失與崛起的工作。");
+    const items = animation(page).getByRole("listitem");
+    await expect(items).toHaveText([
+      "工業革命：被淘汰的是手工織布工，新崛起的是機械師、工廠技師。",
+      "電腦普及：被淘汰的是打字員、計算員，新崛起的是程式設計師。",
+      "AI：被淘汰的是翻文件寫程式，新崛起的是駕馭 AI 的人。",
+      "例：護理師轉職 AI 應用工程師",
+    ]);
+  });
+
+  test("waits until scrolled to, plays once, then offers 重播", async ({ page }) => {
+    test.slow();
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 1280, height: 300 });
+    await page.goto(post);
+
+    await expect(animation(page)).toHaveAttribute("data-playback", "waiting");
+    await animation(page).scrollIntoViewIfNeeded();
+    await expect(animation(page)).toHaveAttribute("data-playback", "playing");
+    await expect(animation(page).getByRole("button", { name: "重播" })).toBeHidden();
+
+    await expect(animation(page)).toHaveAttribute("data-playback", "finished", { timeout: 30_000 });
+    // It holds the finished table rather than going back to the empty first frame.
+    const lastWork = animation(page).locator("[aria-hidden] span", { hasText: "駕馭 AI 的人" });
+    await expect(lastWork).toHaveCSS("opacity", "1");
+    await animation(page).getByRole("button", { name: "重播" }).click();
+    await expect(animation(page)).toHaveAttribute("data-playback", "playing");
+  });
+
+  test("with reduced motion, shows the finished table still, with no 重播", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(post);
+
+    await expect(animation(page)).toHaveAttribute("data-playback", "still");
+    await expect(animation(page).getByRole("button", { name: "重播" })).toHaveCount(0);
+  });
+});
+
 test.describe("a Slide deck", () => {
   const post = "/posts/slide-deck-smoke-post";
   const slides = [
@@ -977,6 +1022,7 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
     "/posts/smoke-post",
     "/posts/revised-smoke-post",
     "/posts/typography-sample",
+    "/posts/animation-smoke-post",
     "/posts/slide-deck-smoke-post",
     "/posts/last-year-smoke-post",
   ]);

@@ -4,16 +4,16 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `GLOSSARY.md` has **Animation** (shown to readers as 「示意動畫」), and **Agent animation** reworded as the home page's Animation, as the spec words them
-- [ ] `<JobShiftsAnimation />` is in the MDX component map and takes no props
-- [ ] The scene holds exactly the spec's table, headers and example line; each cell fits on one line at 375px
-- [ ] Rows play top to bottom with the spec's motion; the whole scene runs 15–20 seconds at 30fps; no sound
-- [ ] Playback starts when half the animation is visible, plays once, stops on the finished frame, and 「重播」 plays it again from the start
-- [ ] With reduced motion, the finished frame shows still and there is no 「重播」 button
-- [ ] The animation is hidden from screen readers; a visually hidden list carries each era's old and new work and the example line; the caption reads 「示意動畫：三次技術轉變中消失與崛起的工作。」
-- [ ] Smoke uses a Post in `e2e/content` with `<JobShiftsAnimation />`, and checks:
+- [x] `GLOSSARY.md` has **Animation** (shown to readers as 「示意動畫」), and **Agent animation** reworded as the home page's Animation, as the spec words them
+- [x] `<JobShiftsAnimation />` is in the MDX component map and takes no props
+- [x] The scene holds exactly the spec's table, headers and example line; each cell fits on one line at 375px
+- [x] Rows play top to bottom with the spec's motion; the whole scene runs 15–20 seconds at 30fps; no sound
+- [x] Playback starts when half the animation is visible, plays once, stops on the finished frame, and 「重播」 plays it again from the start
+- [x] With reduced motion, the finished frame shows still and there is no 「重播」 button
+- [x] The animation is hidden from screen readers; a visually hidden list carries each era's old and new work and the example line; the caption reads 「示意動畫：三次技術轉變中消失與崛起的工作。」
+- [x] Smoke uses a Post in `e2e/content` with `<JobShiftsAnimation />`, and checks:
   - the caption and the hidden list's three eras are on the page;
   - scrolled into view without reduced motion, it starts playing and 「重播」 appears once it has finished;
   - with reduced motion there is no 「重播」 button

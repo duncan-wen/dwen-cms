@@ -114,7 +114,8 @@ for (const path of paths) {
             ? [document.querySelector("dialog[open]")!, ...document.querySelectorAll("dialog[open] *")]
             : [...document.body.querySelectorAll("*")]
           )
-            .filter((el) => !el.closest("pre"))
+            // Code blocks may scroll; text kept for screen readers alone (`sr-only`) is clipped to nothing on purpose.
+            .filter((el) => !el.closest("pre") && !el.closest(".sr-only"))
             .filter((el) => {
               const style = getComputedStyle(el);
               const sideways = el.scrollWidth > el.clientWidth + 1 && style.overflowX !== "visible";

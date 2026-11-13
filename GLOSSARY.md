@@ -78,8 +78,12 @@ _Avoid_: Social post, cross-post, LinkedIn article
 An interactive AI showcase that stands on its own and can also be embedded in a Post; a Post containing a Demo is still a Post.
 _Avoid_: Playground, lab, project
 
+**Animation**:
+An animated figure on the home page or in a Post, drawn live in the page. Nothing in it is interactive beyond replaying it and no AI runs, so it is not a Demo. Shown to readers as 「示意動畫」.
+_Avoid_: Demo, video
+
 **Agent animation**:
-The looping animation beside the home page's headline of an AI agent answering a question by calling a tool, with made-up data. Nothing in it is interactive and no AI runs, so it is not a Demo. Shown to readers as 「示意動畫」.
+The home page's Animation: a loop beside the headline of an AI agent answering a question by calling a tool, with made-up data.
 _Avoid_: Demo, video
 
 ## Lifecycle
