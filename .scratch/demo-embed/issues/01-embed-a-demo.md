@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] `GLOSSARY.md`'s **Demo** says it is shown to readers as 「互動展示」 and lives in `public/demos/<slug>/`
 - [x] `public/demos/listener-player/` holds the prototype with its debug readouts removed, the variant switcher kept, a prototype label, `noindex` and 「← 回到文章」
@@ -13,4 +13,8 @@
 - [x] `CODING_STANDARDS.md` lists `<Demo />` among the shared pieces
 - [x] Smoke: an `e2e/content` Post embeds the Demo; the iframe, heading and link show; the Demo page answers 200 with `noindex` and the back link; its MP3s answer 200 as `audio/mpeg`
 - [x] `pnpm shots` of that Post in light and dark at 1280px and 375px, read before ticking; nothing scrolls sideways
-- [ ] The Owner has seen the screenshots and said OK
+- [x] The Owner has seen the screenshots and said OK
+
+## Comments
+
+- 2026-11-14: Owner reviewed the screenshots and said OK.
