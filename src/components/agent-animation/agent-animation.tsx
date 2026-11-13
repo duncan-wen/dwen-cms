@@ -1,7 +1,7 @@
 "use client";
 
 import { Player } from "@remotion/player";
-import { useSyncExternalStore } from "react";
+import { useReducedMotion } from "../use-reduced-motion";
 import {
   AgentScene,
   FINISHED_FRAME,
@@ -10,23 +10,6 @@ import {
   SCENE_HEIGHT,
   SCENE_WIDTH,
 } from "./agent-scene";
-
-const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
-
-function subscribe(onChange: () => void) {
-  const query = window.matchMedia(REDUCED_MOTION);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-
-/** Whether the reader asked for reduced motion; null on the server, where it isn't known yet. */
-function useReducedMotion() {
-  return useSyncExternalStore(
-    subscribe,
-    () => window.matchMedia(REDUCED_MOTION).matches,
-    () => null,
-  );
-}
 
 /**
  * The home page's animation of an AI agent calling a tool, drawn live by
