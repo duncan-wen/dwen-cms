@@ -10,7 +10,7 @@ function subscribe(onChange: () => void) {
   return () => query.removeEventListener("change", onChange);
 }
 
-/** Whether the reader asked for reduced motion; null on the server, where it isn't known yet. */
+/** Whether the Reader asked for reduced motion; null on the server, where it isn't known yet. */
 export function useReducedMotion() {
   return useSyncExternalStore(
     subscribe,

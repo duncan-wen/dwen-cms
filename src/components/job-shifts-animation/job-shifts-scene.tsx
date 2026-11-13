@@ -4,7 +4,7 @@ import { JOB_SHIFTS, JOB_SHIFTS_EXAMPLE, JOB_SHIFTS_HEADERS } from "./job-shifts
 
 /** The scene's size in its own pixels; the Player scales it to the reading column. */
 export const SCENE_WIDTH = 500;
-export const SCENE_HEIGHT = 312;
+export const SCENE_HEIGHT = 330;
 export const SCENE_FPS = 30;
 
 /** Each era's row takes this long, in seconds, and they play one after another from ROW_LEAD. */
@@ -16,8 +16,11 @@ const BEAT = { shown: 0, struck: 1.4, arrow: 2.1, risen: 2.8, example: 3.6 } as 
 const DURATION = ROW_LEAD + JOB_SHIFTS.length * ROW_SECONDS;
 
 export const SCENE_DURATION_IN_FRAMES = Math.round(DURATION * SCENE_FPS);
-/** The finished table, which is also the last frame: what readers who ask for reduced motion see. */
+/** The finished table, which is also the last frame: what Readers who ask for reduced motion see. */
 export const FINISHED_FRAME = SCENE_DURATION_IN_FRAMES - 1;
+
+/** The headers, era names and example line: the scene's small, soft text. */
+const SMALL: CSSProperties = { fontSize: 20, color: "var(--ink-soft)" };
 
 /** Column widths, in the scene's pixels: the work pushed out, the arrow, the work that rose. */
 const COLUMNS = "190px 50px 1fr";
@@ -33,7 +36,7 @@ function useBeat(start: number, seconds = 0.5) {
 
 function Header() {
   const shown = useBeat(0);
-  const style: CSSProperties = { fontSize: 18, color: "var(--ink-soft)" };
+  const style = SMALL;
   return (
     <div style={{ display: "grid", gridTemplateColumns: COLUMNS, opacity: shown }}>
       <span style={style}>{JOB_SHIFTS_HEADERS.old}</span>
@@ -60,8 +63,8 @@ function Row({ shift, start, example }: Props) {
   const exampleShown = useBeat(start + BEAT.example);
   return (
     <div style={{ opacity: shown, translate: `0 ${(1 - shown) * 8}px` }}>
-      <div style={{ fontSize: 18, color: "var(--ink-soft)", marginBottom: 2 }}>{shift.era}</div>
-      <div style={{ display: "grid", gridTemplateColumns: COLUMNS, alignItems: "center", fontSize: 24 }}>
+      <div style={{ ...SMALL, marginBottom: 2 }}>{shift.era}</div>
+      <div style={{ display: "grid", gridTemplateColumns: COLUMNS, alignItems: "center", fontSize: 25 }}>
         <span style={{ position: "relative", justifySelf: "start", opacity: 1 - struck * 0.5 }}>
           {shift.old}
           <span
@@ -89,11 +92,7 @@ function Row({ shift, start, example }: Props) {
           {shift.new}
         </span>
       </div>
-      {example && (
-        <div style={{ fontSize: 18, color: "var(--ink-soft)", marginTop: 2, opacity: exampleShown }}>
-          {JOB_SHIFTS_EXAMPLE}
-        </div>
-      )}
+      {example && <div style={{ ...SMALL, marginTop: 2, opacity: exampleShown }}>{JOB_SHIFTS_EXAMPLE}</div>}
     </div>
   );
 }

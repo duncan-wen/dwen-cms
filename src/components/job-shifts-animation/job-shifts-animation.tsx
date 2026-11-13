@@ -30,43 +30,43 @@ const START_WHEN_VISIBLE = 0.5;
 export function JobShiftsAnimation() {
   const reducedMotion = useReducedMotion();
   const player = useRef<PlayerRef>(null);
-  const frame = useRef<HTMLDivElement>(null);
-  const [played, setPlayed] = useState<Exclude<Playback, "still">>("waiting");
-  const playback: Playback = reducedMotion ? "still" : played;
+  const viewport = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState<Exclude<Playback, "still">>("waiting");
+  const playback: Playback = reducedMotion ? "still" : progress;
 
   useEffect(() => {
     if (reducedMotion !== false) return;
-    const ref = player.current;
-    const box = frame.current;
-    if (!ref || !box) return;
-    const onEnded = () => setPlayed("finished");
-    ref.addEventListener("ended", onEnded);
+    const instance = player.current;
+    const box = viewport.current;
+    if (!instance || !box) return;
+    const onEnded = () => setProgress("finished");
+    instance.addEventListener("ended", onEnded);
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         observer.disconnect();
-        ref.play();
-        setPlayed("playing");
+        instance.play();
+        setProgress("playing");
       },
       { threshold: START_WHEN_VISIBLE },
     );
     observer.observe(box);
     return () => {
       observer.disconnect();
-      ref.removeEventListener("ended", onEnded);
+      instance.removeEventListener("ended", onEnded);
     };
   }, [reducedMotion]);
 
   function replay() {
     player.current?.seekTo(0);
     player.current?.play();
-    setPlayed("playing");
+    setProgress("playing");
   }
 
   return (
     <figure className="not-prose my-8 grid max-w-[500px] gap-2" data-playback={playback}>
       <div className="relative">
-        <div ref={frame} aria-hidden="true" style={{ aspectRatio: `${SCENE_WIDTH} / ${SCENE_HEIGHT}` }}>
+        <div ref={viewport} aria-hidden="true" style={{ aspectRatio: `${SCENE_WIDTH} / ${SCENE_HEIGHT}` }}>
           {reducedMotion !== null && (
             <Player
               key={String(reducedMotion)}
