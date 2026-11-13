@@ -1,0 +1,432 @@
+<!doctype html>
+<!--
+  Demo 「小熊阿布播放器原型」: three Listener players for a picture book read in a parent's
+  cloned voice (ElevenLabs eleven_v4, per-character timestamps), switchable via ?variant=A|B|C
+  and the floating bar (‹ ›, or ← → keys). Illustrations are emoji placeholders.
+-->
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>小熊阿布播放器原型</title>
+<meta name="robots" content="noindex">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #2b2420; color: #2b2420;
+    font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #app { position: fixed; inset: 0; }
+  button { font: inherit; border: 0; cursor: pointer; }
+
+  /* placeholder illustration */
+  .scene { position: absolute; inset: 0; container-type: size; overflow: hidden; }
+  .sc-i { position: absolute; transform: translate(-50%, -50%); line-height: 1; }
+  .sc-tag { position: absolute; left: 6px; bottom: 6px; font-size: 11px; color: #0008; background: #fff8; padding: 1px 6px; border-radius: 8px; }
+
+  /* highlight base */
+  .ch { transition: color .15s, background-color .15s; border-radius: .15em; }
+
+  /* shared overlays */
+  .start, .resume, .end { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3vmin; background: #2b2420e6; color: #fff8ec; }
+  .st-t { font-size: 6vmin; font-weight: 700; }
+  .st-b, .resume button, .end button { width: 26vmin; height: 26vmin; border-radius: 50%; background: #ffcf5a; color: #2b2420;
+    font-size: 11vmin; box-shadow: 0 1vmin 0 #c9962a; }
+  .end button { width: auto; height: auto; border-radius: 6vmin; font-size: 5vmin; padding: 2.5vmin 6vmin; }
+  .st-s { font-size: 3.4vmin; opacity: .8; }
+  .end .big { font-size: 12vmin; font-weight: 800; }
+
+  /* back to the Post, only when opened on its own */
+  #back { position: fixed; z-index: 99; left: max(8px, env(safe-area-inset-left)); top: max(8px, env(safe-area-inset-top));
+    padding: 6px 12px; border-radius: 999px; background: #111d; color: #fff; font-size: 14px; text-decoration: none; }
+  .embedded #back { display: none; }
+
+  /* variant switcher */
+  #bar { position: fixed; z-index: 99; left: 50%; bottom: max(8px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+    display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 999px; background: #111d; color: #fff;
+    font: 12px/1.2 ui-monospace, Menlo, monospace; box-shadow: 0 2px 10px #0006; white-space: nowrap; }
+  #bar button { background: #fff2; color: #fff; border-radius: 999px; width: 28px; height: 28px; font-size: 16px; }
+  #bar #bs { opacity: .7; }
+  #bar.min > :not(#bh) { display: none; }
+
+  /* ───────── A 繪本跨頁 ───────── */
+  .A { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #6b4f3a; }
+  .A-book { position: relative; width: min(96vw, calc(84dvh * 1.5)); aspect-ratio: 3 / 2; perspective: 2600px; container-type: inline-size;
+    filter: drop-shadow(0 2cqw 2cqw #0006); }
+  .A-half { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; background: #fbf5e8; }
+  .A-L { left: 0; border-radius: 1cqw 0 0 1cqw; }
+  .A-R { right: 0; border-radius: 0 1cqw 1cqw 0; }
+  .A-R::before, .A-L::after { content: ""; position: absolute; top: 0; bottom: 0; width: 4cqw; z-index: 2; pointer-events: none; }
+  .A-R::before { left: 0; background: linear-gradient(90deg, #0003, #0000); }
+  .A-L::after { right: 0; background: linear-gradient(-90deg, #0003, #0000); }
+  .A-tp { position: absolute; inset: 0; background: #fbf5e8; padding: 5cqw 4.5cqw; display: flex; align-items: center; }
+  .A-text { font-size: 2.7cqw; line-height: 1.85; letter-spacing: .05em; }
+  .A-text .ch.said { color: #2b2420; }
+  .A-text .ch { color: #2b2420aa; }
+  .A-text .ch.now { color: #2b2420; background: #ffd95a; }
+  .A-num { position: absolute; bottom: 2cqw; left: 0; right: 0; text-align: center; font-size: 1.4cqw; opacity: .5; }
+  .A-curl { position: absolute; right: 0; bottom: 0; width: 6cqw; height: 6cqw; background: linear-gradient(135deg, #0000 50%, #e6d8bd 50%);
+    box-shadow: -.4cqw -.4cqw .8cqw #0002; border-top-left-radius: 1cqw; }
+  .A-curl.pulse { animation: curl 1s ease-in-out infinite alternate; }
+  @keyframes curl { to { width: 10cqw; height: 10cqw; } }
+  .A-leaf { position: absolute; top: 0; bottom: 0; left: 50%; width: 50%; transform-origin: left center; transform-style: preserve-3d; display: none; z-index: 5; }
+  .A-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; background: #fbf5e8; }
+  .A-back { transform: rotateY(180deg); }
+  .A-play { position: absolute; right: 3vmin; bottom: 3vmin; width: 16vmin; height: 16vmin; border-radius: 50%; background: #ffcf5a; color: #2b2420;
+    font-size: 7vmin; box-shadow: 0 .8vmin 0 #c9962a; z-index: 10; }
+  .A-auto { position: absolute; top: 2vmin; right: 2vmin; z-index: 10; background: #0003; color: #fff8ec; padding: 1vmin 2.5vmin; border-radius: 3vmin; font-size: 2.6vmin; }
+  .A-rot { display: none; position: absolute; top: 2vmin; left: 2vmin; color: #fff8ec; font-size: 3vmin; opacity: .85; }
+  @media (orientation: portrait) { .A-rot { display: block; } }
+
+  /* ───────── B 看圖聽 ───────── */
+  .B { position: absolute; inset: 0; background: #000; touch-action: none; }
+  .B-stage { position: absolute; inset: 0; overflow: hidden; }
+  .B-layer { position: absolute; inset: 0; }
+  .B-kb { animation: kb 22s ease-out forwards; }
+  @keyframes kb { from { transform: scale(1); } to { transform: scale(1.14) translate(-2%, -1%); } }
+  .B-dots { position: absolute; top: max(2.5vmin, env(safe-area-inset-top)); left: 0; right: 0; display: flex; justify-content: center; gap: 1.6vmin; z-index: 3; }
+  .B-dots i { width: 2vmin; height: 2vmin; border-radius: 50%; background: #fff6; }
+  .B-dots i.on { background: #fff; transform: scale(1.3); }
+  .B-sub { position: absolute; left: 0; right: 0; bottom: 0; padding: 8vmin 6vw calc(9vmin + env(safe-area-inset-bottom));
+    background: linear-gradient(#0000, #000b 40%); display: flex; justify-content: center; z-index: 3; pointer-events: none; }
+  .B-line { font-size: 5.4vmin; line-height: 1.5; font-weight: 700; text-align: center; max-width: 30em; letter-spacing: .04em; }
+  .B-line.in { animation: subin .35s ease-out; }
+  @keyframes subin { from { opacity: 0; transform: translateY(1.5vmin); } }
+  .B-line .ch { color: #fff9; text-shadow: 0 .3vmin .6vmin #000a; }
+  .B-line .ch.said { color: #ffe066; }
+  .B-flash { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); font-size: 20vmin; color: #fff; opacity: 0; z-index: 4; pointer-events: none;
+    text-shadow: 0 0 4vmin #0008; }
+  .B-flash.go { animation: flash .8s ease-out; }
+  @keyframes flash { 0% { opacity: .95; transform: translate(-50%, -50%) scale(.8); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); } }
+
+  /* ───────── C 我來翻 ───────── */
+  .C { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #8fb8a8; }
+  .C-book { position: relative; width: min(88vw, calc(86dvh * .75)); aspect-ratio: 3 / 4; perspective: 2200px; container-type: inline-size; touch-action: none; }
+  .C-under, .C-leaf { position: absolute; inset: 0; }
+  .C-leaf { transform-origin: left center; transform-style: preserve-3d; z-index: 2; }
+  .C-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 1.5cqw; overflow: hidden;
+    box-shadow: 0 2cqw 4cqw #0004; }
+  .C-back { transform: rotateY(180deg); background: linear-gradient(90deg, #efe4cc, #fbf5e8); }
+  .C-page { position: absolute; inset: 0; background: #fbf5e8; display: flex; flex-direction: column; }
+  .C-pic { position: relative; flex: 0 0 56%; }
+  .C-text { flex: 1; padding: 4cqw 6cqw; font-size: 5cqw; line-height: 1.75; letter-spacing: .04em; display: flex; align-items: center; }
+  .C-text > div { width: 100%; }
+  .C-text .ph { border-radius: 1cqw; transition: background-color .2s; }
+  .C-text .ph.now { background: #ffe9a3; }
+  .C-text .ch.now { color: #b4410c; }
+  .C-num { position: absolute; bottom: 1.5cqw; right: 3cqw; font-size: 3cqw; opacity: .45; }
+  .C-hint { position: absolute; right: max(3vw, calc(50% - min(44vw, 32dvh) - 12vmin)); top: 50%; font-size: 13vmin; z-index: 5; display: none; background: none; }
+  .C-hint.on { display: block; animation: swipe 1.4s ease-in-out infinite; }
+  @keyframes swipe { 0% { transform: translate(0, -50%); opacity: 0; } 20% { opacity: 1; } 80% { transform: translate(-14vmin, -50%); opacity: 1; } 100% { opacity: 0; transform: translate(-14vmin, -50%); } }
+  .C-replay { position: absolute; left: 3vmin; bottom: 3vmin; width: 13vmin; height: 13vmin; border-radius: 50%; background: #fff8ec; font-size: 6vmin; box-shadow: 0 .7vmin 0 #0003; z-index: 5; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<audio id="narr" preload="auto" playsinline></audio>
+<a id="back" href="/posts/voice-clone-bedtime-story" target="_top">← 回到文章</a>
+<div id="bar"><button id="bp" title="上一種玩法">‹</button><span id="bl"></span><button id="bn" title="下一種玩法">›</button><button id="bh" title="收合">–</button></div>
+<script src="story.js"></script>
+<script>
+"use strict";
+if (window.top !== window.self) document.documentElement.classList.add("embedded");
+const STORY = window.STORY;
+const N = STORY.pages.length;
+const $ = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+
+/* ── text timing: map ElevenLabs per-character segments onto the Page text ── */
+const PUNCT = "，。！？、：；「」…";
+function alignChars(text, segs) {
+  const out = [...text].map(ch => ({ ch, start: null, end: null }));
+  let p = 0;
+  for (const s of segs) for (const ch of [...s.text]) {
+    let k = p; while (k < out.length && k < p + 4 && out[k].ch !== ch) k++;
+    if (k < out.length && out[k].ch === ch) { out[k].start = s.start; out[k].end = s.end; p = k + 1; }
+  }
+  let last = 0; for (const c of out) { if (c.start == null) c.start = c.end = last; last = c.end; }
+  return out;
+}
+function splitBy(p, isBreak) {
+  const r = []; let a = 0;
+  p.chars.forEach((c, i) => { if (isBreak(c, p.chars[i + 1])) { r.push([a, i + 1]); a = i + 1; } });
+  if (a < p.chars.length) r.push([a, p.chars.length]);
+  return r.map(([a, b]) => {
+    const words = p.chars.slice(a, b).filter(c => !PUNCT.includes(c.ch));
+    return { a, b, start: (words[0] || p.chars[a]).start, end: (words.at(-1) || p.chars[b - 1]).end };
+  });
+}
+STORY.pages.forEach(p => {
+  p.chars = alignChars(p.text, p.segments);
+  p.phrases = splitBy(p, (c, n) => PUNCT.includes(c.ch) && !(n && PUNCT.includes(n.ch)));
+  p.sentences = splitBy(p, (c, n) => "。！？」".includes(c.ch) && !(n && "」".includes(n.ch)));
+});
+const lastIdx = (p, t) => { let r = -1; for (let k = 0; k < p.chars.length; k++) { if (p.chars[k].start <= t) r = k; else break; } return r; };
+
+function textView(i, el, mode) {
+  const p = STORY.pages[i]; el.innerHTML = "";
+  const spans = p.chars.map((c, k) => $("span", "ch", c.ch));
+  if (mode === "phrase") p.phrases.forEach((ph, j) => { const w = $("span", "ph"); w.dataset.p = j; for (let k = ph.a; k < ph.b; k++) w.append(spans[k]); el.append(w); });
+  else spans.forEach(s => el.append(s));
+  const phEls = [...el.querySelectorAll(".ph")];
+  return {
+    set(t, range) {
+      const idx = t > 0 ? lastIdx(p, t) : -1;
+      spans.forEach((s, k) => { const inR = !range || (k >= range.a && k < range.b); s.classList.toggle("said", inR && k < idx); s.classList.toggle("now", inR && k === idx); });
+      if (phEls.length) { const pi = idx < 0 ? -1 : p.phrases.findIndex(ph => idx >= ph.a && idx < ph.b); phEls.forEach((e, j) => e.classList.toggle("now", j === pi && (!range || p.phrases[j].a === range.a))); }
+    },
+    full() { spans.forEach(s => { s.classList.add("said"); s.classList.remove("now"); }); phEls.forEach(e => e.classList.remove("now")); },
+  };
+}
+
+/* ── placeholder illustrations ── */
+const SCENES = [
+  { bg: "linear-gradient(#bfe6ff, #fff3c4 68%, #cfe9a8 68%)", items: [["☀️", 80, 14, 14], ["🗑️", 22, 62, 20], ["🐻", 47, 60, 30], ["🐧", 74, 68, 20]] },
+  { bg: "linear-gradient(#d6f0d6, #8fcf8a 64%, #5f9d4c 64%)", items: [["🌳", 18, 34, 40], ["🌲", 82, 32, 36], ["🍎", 44, 26, 8], ["🍎", 54, 20, 8], ["🍎", 61, 30, 8], ["🐻", 37, 68, 26], ["🐧", 64, 72, 18]] },
+  { bg: "linear-gradient(#18204a, #3a3f86 68%, #283850 68%)", items: [["🌙", 76, 16, 18], ["✨", 22, 14, 8], ["✨", 46, 24, 6], ["⭐", 60, 10, 5], ["🐻", 38, 66, 26], ["🐧", 62, 70, 18], ["💤", 74, 52, 9]] },
+];
+function scene(i) {
+  const s = SCENES[i % SCENES.length], d = $("div", "scene"); d.style.background = s.bg;
+  for (const [e, x, y, z] of s.items) { const k = $("span", "sc-i", e); k.style.cssText = `left:${x}%;top:${y}%;font-size:${z}cqmin`; d.append(k); }
+  d.append($("span", "sc-tag", "插圖暫代"));
+  return d;
+}
+
+/* ── narration engine: ONE <audio> element (iOS keeps the first tap's permission), unlocked by the first tap ── */
+const audio = document.getElementById("narr");
+const E = { page: 0, want: false, clip: null, onEnded: null, onTick: null, log: "" };
+function loadPage(i) { E.page = i; E.clip = null; audio.src = STORY.pages[i].audio; }
+function doPlay() { E.want = true; const pr = audio.play(); if (pr) pr.catch(() => { E.want = false; showResume(); bar(); }); bar(); }
+function doPause() { E.want = false; audio.pause(); bar(); }
+function toggle() { audio.paused ? doPlay() : doPause(); }
+function playPage(i) { if (E.page !== i || !audio.src.endsWith(STORY.pages[i].audio)) loadPage(i); else { E.clip = null; audio.currentTime = 0; } doPlay(); }
+function playClip(i, range) {
+  const seek = () => { audio.currentTime = Math.max(0, range.start - 0.05); };
+  if (E.page !== i || !audio.src.endsWith(STORY.pages[i].audio)) { loadPage(i); audio.addEventListener("loadedmetadata", seek, { once: true }); } else seek();
+  E.clip = { end: range.end + 0.08, range };
+  doPlay();
+}
+audio.addEventListener("ended", () => { E.want = false; bar(); E.onEnded && E.onEnded(); });
+audio.addEventListener("play", () => bar());
+audio.addEventListener("pause", () => bar());
+(function loop() {
+  const t = audio.currentTime;
+  if (E.clip && !audio.paused && t >= E.clip.end) { audio.pause(); E.want = false; E.clip = null; }
+  E.onTick && E.onTick(t, E.clip && E.clip.range);
+  if (!audio.paused) tickBar();
+  requestAnimationFrame(loop);
+})();
+
+/* wake lock + "繼續聽" after returning from background (iOS can't be trusted to keep playing) */
+async function wake() {
+  if (!("wakeLock" in navigator)) return;
+  try { await navigator.wakeLock.request("screen"); } catch {}
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") { wake(); if (E.want && audio.paused) showResume(); }
+});
+function showResume() {
+  if (document.querySelector(".resume, .start")) return;
+  const o = $("div", "resume", "<button>▶</button><div class=st-s>繼續聽</div>");
+  o.onclick = () => { o.remove(); doPlay(); };
+  document.body.append(o);
+}
+function startScreen(go) {
+  const o = $("div", "start", `<div class=st-t>${STORY.title}</div><button class=st-b>▶</button><div class=st-s>點一下開始聽故事</div>`);
+  o.onclick = () => { o.remove(); wake(); go(); };
+  document.body.append(o);
+}
+function endScreen(again) {
+  const o = $("div", "end", "<div class=big>完</div><button>🔁 再聽一次</button>");
+  o.querySelector("button").onclick = () => { o.remove(); again(); };
+  document.body.append(o);
+}
+const afterTransition = (el, fn, ms) => { let done = false; const f = () => { if (!done) { done = true; fn(); } }; el.addEventListener("transitionend", f, { once: true }); setTimeout(f, ms); };
+
+/* ───────── A 繪本跨頁・自動翻 ───────── */
+function variantA(app) {
+  app.innerHTML = `<div class=A><button class=A-auto></button><div class=A-rot>把平板橫放，看起來更像一本書 ↻</div>
+    <div class=A-book><div class="A-half A-L"></div><div class="A-half A-R"></div>
+      <div class=A-leaf><div class="A-face A-front"></div><div class="A-face A-back"></div></div></div>
+    <button class=A-play>▶</button></div>`;
+  const q = s => app.querySelector(s);
+  const L = q(".A-L"), R = q(".A-R"), leaf = q(".A-leaf"), front = q(".A-front"), back = q(".A-back"), btn = q(".A-play"), autoB = q(".A-auto");
+  let i = 0, auto = true, busy = false, tv = null, timer = 0;
+  const textPage = k => { const el = $("div", "A-tp"), t = $("div", "A-text"); el.append(t, $("div", "A-num", String(k + 1))); if (k < N - 1) el.append($("div", "A-curl")); return { el, tv: textView(k, t, "char") }; };
+  function show(k) { i = k; L.replaceChildren(scene(k)); const tp = textPage(k); R.replaceChildren(tp.el); tv = tp.tv; }
+  function flip(dir) {
+    const k = i + dir; if (busy || k < 0 || k >= N) return;
+    busy = true; clearTimeout(timer); audio.pause();
+    leaf.style.transition = "none"; leaf.style.display = "block";
+    if (dir > 0) {
+      const cur = textPage(i); cur.tv.full(); front.replaceChildren(cur.el); back.replaceChildren(scene(k));
+      const nx = textPage(k); R.replaceChildren(nx.el); tv = nx.tv;
+      leaf.style.transform = "rotateY(0deg)";
+    } else {
+      const pv = textPage(k); front.replaceChildren(pv.el); back.replaceChildren(scene(i)); L.replaceChildren(scene(k)); tv = pv.tv;
+      leaf.style.transform = "rotateY(-180deg)";
+    }
+    leaf.offsetWidth;
+    leaf.style.transition = "transform .9s cubic-bezier(.45,.05,.3,1)";
+    leaf.style.transform = dir > 0 ? "rotateY(-180deg)" : "rotateY(0deg)";
+    afterTransition(leaf, () => {
+      if (dir > 0) L.replaceChildren(scene(k)); else R.replaceChildren(front.firstChild);
+      leaf.style.display = "none"; i = k; busy = false; playPage(k);
+    }, 1100);
+  }
+  const setAuto = () => { autoB.textContent = "自動翻頁：" + (auto ? "開" : "關"); };
+  autoB.onclick = () => { auto = !auto; setAuto(); };
+  btn.onclick = toggle;
+  R.onclick = () => flip(1);
+  L.onclick = () => flip(-1);
+  const icon = () => { btn.textContent = audio.paused ? "▶" : "⏸"; };
+  audio.addEventListener("play", icon); audio.addEventListener("pause", icon);
+  E.onTick = t => { if (!busy && tv && E.page === i && t > 0) tv.set(t); };
+  E.onEnded = () => {
+    tv.full();
+    if (i === N - 1) { timer = setTimeout(() => endScreen(() => { show(0); playPage(0); }), 1200); return; }
+    if (auto) timer = setTimeout(() => flip(1), 1200);
+    else { const c = R.querySelector(".A-curl"); c && c.classList.add("pulse"); }
+  };
+  setAuto(); show(0);
+  startScreen(() => playPage(0));
+}
+
+/* ───────── B 看圖聽・字幕條 ───────── */
+function variantB(app) {
+  app.innerHTML = `<div class=B><div class=B-stage></div><div class=B-dots></div><div class=B-sub><div class=B-line></div></div><div class=B-flash></div></div>`;
+  const q = s => app.querySelector(s);
+  const root = q(".B"), stage = q(".B-stage"), dots = q(".B-dots"), line = q(".B-line"), flash = q(".B-flash");
+  let i = 0, si = -1, spans = [], busy = false, timer = 0;
+  dots.innerHTML = STORY.pages.map(() => "<i></i>").join("");
+  function setScene(k, dir) {
+    const layer = $("div", "B-layer"), s = scene(k); s.classList.add("B-kb"); layer.append(s);
+    if (!dir) { stage.replaceChildren(layer); return; }
+    const old = stage.lastChild;
+    layer.style.transform = `translateX(${dir * 100}%)`; stage.append(layer); layer.offsetWidth;
+    layer.style.transition = old.style.transition = "transform .8s ease, opacity .8s";
+    layer.style.transform = "translateX(0)"; old.style.transform = `translateX(${-dir * 30}%)`; old.style.opacity = 0;
+    setTimeout(() => old.remove(), 850);
+  }
+  function renderSentence(k) {
+    const p = STORY.pages[i], s = p.sentences[k]; line.innerHTML = ""; spans = [];
+    for (let j = s.a; j < s.b; j++) { const e = $("span", "ch", p.chars[j].ch); e.dataset.i = j; line.append(e); spans.push(e); }
+    line.classList.remove("in"); line.offsetWidth; line.classList.add("in");
+  }
+  function goPage(k, dir) {
+    if (busy || k < 0 || k >= N) return;
+    busy = true; clearTimeout(timer); audio.pause();
+    setScene(k, dir); i = k; si = -1;
+    [...dots.children].forEach((d, j) => d.classList.toggle("on", j === k));
+    timer = setTimeout(() => { busy = false; playPage(k); }, dir ? 750 : 0);
+  }
+  E.onTick = t => {
+    if (busy) return;
+    const p = STORY.pages[i], idx = t > 0 && E.page === i ? lastIdx(p, t) : -1;
+    const k = Math.max(0, p.sentences.findIndex(s => idx < s.b));
+    if (k !== si) { si = k; renderSentence(k); }
+    spans.forEach(e => e.classList.toggle("said", +e.dataset.i <= idx));
+  };
+  E.onEnded = () => {
+    if (i < N - 1) timer = setTimeout(() => goPage(i + 1, 1), 900);
+    else timer = setTimeout(() => endScreen(() => goPage(0, -1)), 1200);
+  };
+  let down = null;
+  root.addEventListener("pointerdown", e => { down = { x: e.clientX, y: e.clientY }; });
+  root.addEventListener("pointerup", e => {
+    if (!down) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; down = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) { goPage(i + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); return; }
+    if (Math.abs(dx) < 15 && Math.abs(dy) < 15) {
+      toggle(); flash.textContent = audio.paused ? "⏸" : "▶";
+      flash.classList.remove("go"); flash.offsetWidth; flash.classList.add("go");
+    }
+  });
+  setScene(0, 0); [...dots.children][0].classList.add("on"); renderSentence(0); si = 0;
+  startScreen(() => playPage(0));
+}
+
+/* ───────── C 我來翻・點字重聽 ───────── */
+function variantC(app) {
+  app.innerHTML = `<div class=C><div class=C-book><div class=C-under></div>
+      <div class=C-leaf><div class="C-face C-front"></div><div class="C-face C-back"></div></div></div>
+    <button class=C-hint>👆</button><button class=C-replay>🔁</button></div>`;
+  const q = s => app.querySelector(s);
+  const book = q(".C-book"), under = q(".C-under"), leaf = q(".C-leaf"), front = q(".C-front"), hintB = q(".C-hint");
+  let i = 0, tv = null, drag = null, busy = false;
+  const pageEl = k => { const d = $("div", "C-page"), pic = $("div", "C-pic"), tx = $("div", "C-text"), inner = $("div"); tx.append(inner); pic.append(scene(k)); d.append(pic, tx, $("div", "C-num", String(k + 1))); return { el: d, tv: textView(k, inner, "phrase") }; };
+  const hint = on => hintB.classList.toggle("on", on);
+  function mount(k) { i = k; const pg = pageEl(k); front.replaceChildren(pg.el); tv = pg.tv; under.replaceChildren(); leaf.style.transition = "none"; leaf.style.transform = "rotateY(0deg)"; hint(false); }
+  function prepare(dir) { // set up leaf/under for a turn in `dir`
+    audio.pause(); E.want = false; hint(false);
+    if (dir > 0) { under.replaceChildren(pageEl(i + 1).el); }
+    else { under.replaceChildren(front.firstChild); front.replaceChildren(pageEl(i - 1).el); leaf.style.transition = "none"; leaf.style.transform = "rotateY(-180deg)"; }
+  }
+  function settle(dir, commit) {
+    busy = true;
+    leaf.style.transition = "transform .5s ease-out";
+    leaf.style.transform = `rotateY(${(dir > 0) === commit ? -180 : 0}deg)`;
+    afterTransition(leaf, () => {
+      busy = false;
+      if (commit) { mount(i + dir); playPage(i); }
+      else { mount(i); if (audio.currentTime > 0 && !audio.ended) doPlay(); }
+    }, 700);
+  }
+  book.addEventListener("pointerdown", e => {
+    if (busy) return;
+    drag = { x0: e.clientX, y0: e.clientY, dir: 0, moved: false, w: book.clientWidth, target: e.target, ang: 0 };
+    book.setPointerCapture(e.pointerId);
+  });
+  book.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x0;
+    if (!drag.dir) {
+      if (Math.abs(dx) < 12 && Math.abs(e.clientY - drag.y0) < 12) return;
+      drag.moved = true;
+      if (dx < 0 && i < N - 1) drag.dir = 1; else if (dx > 0 && i > 0) drag.dir = -1; else return;
+      prepare(drag.dir);
+    }
+    const f = Math.min(1, Math.abs(dx) / (drag.w * 0.9));
+    drag.ang = drag.dir > 0 ? -180 * f : -180 + 180 * f;
+    leaf.style.transform = `rotateY(${drag.ang}deg)`;
+  });
+  const up = () => {
+    if (!drag) return; const d = drag; drag = null;
+    if (!d.moved) {
+      const ph = d.target.closest(".ph");
+      if (ph) playClip(i, STORY.pages[i].phrases[+ph.dataset.p]);
+      else if (d.target.closest(".C-pic")) toggle();
+      return;
+    }
+    if (d.dir) settle(d.dir, d.dir > 0 ? d.ang < -50 : d.ang > -130);
+  };
+  book.addEventListener("pointerup", up);
+  book.addEventListener("pointercancel", up);
+  hintB.onclick = () => { if (busy || i >= N - 1) return; prepare(1); leaf.offsetWidth; settle(1, true); };
+  q(".C-replay").onclick = () => playPage(i);
+  E.onTick = (t, range) => { if (!busy && !drag?.dir && tv && E.page === i && t > 0) tv.set(t, range); };
+  E.onEnded = () => { tv.full(); if (i < N - 1) hint(true); else setTimeout(() => endScreen(() => { mount(0); playPage(0); }), 1200); };
+  mount(0);
+  startScreen(() => playPage(0));
+}
+
+/* ── variant switcher ── */
+const VARIANTS = { A: ["繪本跨頁・自動翻", variantA], B: ["看圖聽・字幕條", variantB], C: ["我來翻・點字重聽", variantC] };
+const KEYS = Object.keys(VARIANTS);
+const params = new URLSearchParams(location.search);
+const cur = VARIANTS[params.get("variant")] ? params.get("variant") : "A";
+const go = d => { params.set("variant", KEYS[(KEYS.indexOf(cur) + d + KEYS.length) % KEYS.length]); location.search = params; };
+const barEl = document.getElementById("bar");
+document.getElementById("bp").onclick = () => go(-1);
+document.getElementById("bn").onclick = () => go(1);
+document.getElementById("bh").onclick = () => barEl.classList.toggle("min");
+document.addEventListener("keydown", e => {
+  if (e.target.closest("input,textarea,[contenteditable]")) return;
+  if (e.key === "ArrowLeft") go(-1); if (e.key === "ArrowRight") go(1);
+});
+["pointerdown", "pointerup"].forEach(t => barEl.addEventListener(t, e => e.stopPropagation()));
+document.getElementById("bl").textContent = `原型 ${cur}・${VARIANTS[cur][0]}`;
+function bar() {}
+const tickBar = bar;
+VARIANTS[cur][1](document.getElementById("app")); bar();
+</script>
+</body>
+</html>

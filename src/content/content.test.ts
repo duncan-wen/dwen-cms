@@ -244,6 +244,25 @@ describe("images", () => {
   });
 });
 
+describe("Demos", () => {
+  it("accepts a Post embedding a stored Demo with a title", async () => {
+    const content = await loadContent(fixture("demo"));
+
+    expect(content.resolveSlug("with-demo")).toMatchObject({ kind: "post", post: { body: expect.stringContaining("<Demo slug=\"listener-player\"") } });
+  });
+
+  it.each([
+    ["demo-own-line", "own line"],
+    ["demo-needs-title", "title"],
+    ["demo-needs-files", "public/demos/no-such-demo/index.html"],
+  ])("rejects a Post breaking %s, naming %s", async (rule, named) => {
+    const error = await loadContent(fixture(rule)).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ problems: [{ file: "posts/with-demo/index.mdx", field: "body", rule }] });
+    expect((error as Error).message).toContain(named);
+  });
+});
+
 describe("Slide decks", () => {
   it("gives a Post its Slide deck: the slide size, and each slide's image, thumbnail, title and text in order", async () => {
     const content = await loadContent(fixture("slide-deck"));

@@ -2,6 +2,7 @@ import type { MDXComponents } from "mdx/types";
 import { JobShiftsAnimation } from "@/components/job-shifts-animation/job-shifts-animation";
 import { BodyImage } from "./body-image";
 import { Callout } from "./callout";
+import { Demo } from "./demo";
 import { Mermaid } from "./mermaid";
 import { SlideDeck } from "./slide-deck";
 
@@ -14,6 +15,7 @@ import { SlideDeck } from "./slide-deck";
 export const mdxComponents: MDXComponents = {
   img: BodyImage,
   Callout,
+  Demo,
   JobShiftsAnimation,
   Mermaid,
   SlideDeck,

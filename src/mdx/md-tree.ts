@@ -37,3 +37,13 @@ export function isInlineSlideDeck({ type, name }: MdNode): boolean {
 export function mermaidBlocks(tree: MdNode): MdNode[] {
   return mdNodes(tree).filter((node) => node.type === "code" && node.lang === "mermaid");
 }
+
+/** Whether a node is a `<Demo />` on a line of its own: the content check checks each one, and the body draws it. */
+export function isDemo({ type, name }: MdNode): boolean {
+  return type === "mdxJsxFlowElement" && name === "Demo";
+}
+
+/** Whether a node is a `<Demo />` inside a line of text, which the content check refuses. */
+export function isInlineDemo({ type, name }: MdNode): boolean {
+  return type === "mdxJsxTextElement" && name === "Demo";
+}

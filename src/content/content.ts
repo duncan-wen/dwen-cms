@@ -16,7 +16,16 @@ import {
 } from "../deck/deck-names";
 import { linkedInHashtags } from "../linkedin";
 import { isValidThreadsTag, THREADS_TAG_MAX, threadsTopicTag } from "../threads";
-import { isInlineSlideDeck, isSlideDeck, type MdNode, mdNodes, mermaidBlocks } from "../mdx/md-tree";
+import { DEMOS_DIR } from "../demo";
+import {
+  isDemo,
+  isInlineDemo,
+  isInlineSlideDeck,
+  isSlideDeck,
+  type MdNode,
+  mdNodes,
+  mermaidBlocks,
+} from "../mdx/md-tree";
 import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
 import { checkIllustration, type IllustrationShape } from "../mdx/illustration-svg";
@@ -301,6 +310,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
     const threadsShare = await loadThreadsShare(contentDir, slug, problems);
     const deck = tree ? await loadSlideDeck(tree, contentDir, slug, problems, report) : undefined;
+    if (tree) await checkDemos(tree, report);
 
     posts.push({
       slug,
@@ -410,6 +420,33 @@ function deckImages(deck: SlideDeck | undefined): PostImage[] {
     { file: slide.image, width, height },
     { file: slide.thumb, ...thumb },
   ]);
+}
+
+/**
+ * Each `<Demo slug="…" title="…" />` in a body: on its own line, titled, and naming a Demo
+ * stored in `public/demos/<slug>/index.html`.
+ */
+async function checkDemos(tree: MdNode, report: Report) {
+  if (mdNodes(tree).some(isInlineDemo)) {
+    report("body", "demo-own-line", "puts <Demo /> inside a line of text; give it its own line, with a blank line before and after");
+  }
+  for (const node of mdNodes(tree).filter(isDemo)) {
+    const attribute = (name: string) => {
+      const value = node.attributes?.find((a) => a.name === name)?.value;
+      return typeof value === "string" ? value.trim() : "";
+    };
+    const slug = attribute("slug");
+    const title = attribute("title");
+    const named = slug ? `<Demo slug="${slug}" />` : "<Demo />";
+    if (!title) {
+      report("body", "demo-needs-title", `${named} needs a title="…" saying what the Demo is, shown after 「互動展示：」`);
+    }
+    const page = path.join(DEMOS_DIR, slug, "index.html");
+    const found = slug !== "" && (await stat(path.join(process.cwd(), page)).catch(() => undefined))?.isFile();
+    if (!found) {
+      report("body", "demo-needs-files", `${named} names no Demo: store the Demo's page at ${path.join(DEMOS_DIR, slug || "<slug>", "index.html")}`);
+    }
+  }
 }
 
 /** The download PDF's media type. */
