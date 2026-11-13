@@ -17,4 +17,8 @@
   - the caption and the hidden list's three eras are on the page;
   - scrolled into view without reduced motion, it starts playing and 「重播」 appears once it has finished;
   - with reduced motion there is no 「重播」 button
-- [ ] `pnpm shots` of that Post in light and dark at 1280px and 375px, read before ticking; nothing scrolls sideways or clips (Owner checks the finished frame)
+- [x] `pnpm shots` of that Post in light and dark at 1280px and 375px, read before ticking; nothing scrolls sideways or clips (Owner checks the finished frame)
+
+## Comments
+
+- 2026-11-13: the Owner approved the finished frame from the `pnpm shots` contact sheet.
