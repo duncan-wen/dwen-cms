@@ -1,4 +1,12 @@
-# Cover styles
+# Cover image
+
+Every new Post gets a cover image (`GLOSSARY.md`'s Cover), drawn by Fooocus on the Owner's machine (`docs/adr/0004`):
+
+1. Read **Styles** below, then choose a style for this Post and one scene that carries its feeling.
+2. Draw three candidates, varying the style or the scene between them: `pnpm cover <slug> --prompt "<scene>" --style "<style>"`. Each takes about 20 seconds and adds `covers/<slug>-<n>.jpg` to the sheet `covers/<slug>.html`. When it says Fooocus isn't answering, skip to the PR note in [SKILL.md](SKILL.md) step 9.
+3. Read every candidate and pick the one that best fits the Post, has no lettering and reads at card size. Copy it: `cp covers/<slug>-<n>.jpg content/posts/<slug>/cover.jpg`. When the Owner asks for another candidate, copy that one over it; for a new scene, draw again (`--seed` redraws a candidate exactly).
+
+## Styles
 
 The Fooocus styles the Owner approved for cover images, from a side-by-side trial of 12 styles on two Posts (branch `prototype/cover-styles`, sheet `covers-prototype/index.html`). Pass the name exactly as written to `pnpm cover --style`.
 

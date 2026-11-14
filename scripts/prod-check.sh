@@ -2,6 +2,7 @@
 # After a merge: wait for main's production deployment, then check it.
 #   pnpm prod:check                  check the home page
 #   pnpm prod:check /posts/<slug>    check that path too
+#   pnpm prod:check --pr <N> <path>  first wait for PR <N>: its checks, then its merge
 # Prints the live deployment's id, any error the last 55 minutes of production logs
 # record against it (the Hobby plan keeps under an hour), and each path's status.
 # Fails if the deployment fails, an error is logged against it, or a path doesn't answer 200.
@@ -9,6 +10,24 @@ set -uo pipefail
 
 site="https://duncan-wen.aibbm.org"
 scope="team_dUM4e6kZ7gTvxEVRfG8zGjpi"
+if [ "${1:-}" = "--pr" ]; then
+  pr="${2:?--pr needs a PR number}"
+  shift 2
+  # Returns as soon as a check fails, so a failure is seen at once; auto-merge then lands a moment after they pass.
+  gh pr checks "$pr" --watch --fail-fast || exit 1
+  pr_state=""
+  for _ in $(seq 1 40); do
+    # A call that fails leaves this empty: that's a retry, not an answer.
+    pr_state=$(gh pr view "$pr" --json state --jq .state) || pr_state=""
+    [ "$pr_state" = "MERGED" ] || [ "$pr_state" = "CLOSED" ] && break
+    sleep 15
+  done
+  echo "PR #$pr: $pr_state"
+  if [ "$pr_state" != "MERGED" ]; then
+    echo "PR #$pr didn't merge: is auto-merge on? (gh pr merge $pr --auto --merge)"
+    exit 1
+  fi
+fi
 paths=("/" "$@")
 
 state=""

@@ -15,6 +15,8 @@ Ask: does the change alter what a Reader learns from the Post?
       note: 補上效能比較     # short Traditional Chinese, what changed for the Reader
   ```
 
+  A Share with no `posted:` line hasn't gone out: rewrite it to match the Revision, by [SHARES.md](SHARES.md).
+
   Keep earlier entries; the Post's `date` never changes. The entry with the latest date is shown to Readers as 「更新於」 with its note (`checkRevisions` in `src/content/content.ts`).
 
 When unsure, it is a Revision if a Reader who read the old version would want to know.

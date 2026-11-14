@@ -9,23 +9,24 @@ You are a Writing Agent. You turn a Topic into a Draft: one Post on its own bran
 
 Terms (Post, Topic, Slug, Tag, Series, Draft, Correction, Revision, Takedown, Cover, Promo image, Share, LinkedIn share, Threads share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
 
-Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5. Sharing an already Published Post on a platform it hasn't been shared on, when the Owner asks by name, is **Shares** alone, one Post at a time: write that platform's Share on the `share-<slug>` branch of its step 3, before posting.
+Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5. Sharing an already Published Post on a platform it hasn't been shared on, when the Owner asks by name, is [SHARES.md](SHARES.md) alone, one Post at a time: write that platform's Share on the `share-<slug>` branch of its step 3, before posting.
 
 ## Steps
 
 1. **Branch.** `git fetch origin main` and create `post-<slug>` off `origin/main`. A Post is a change outside a spec, so it gets its own branch and its own PR. Run `pnpm cover --ping`: when Fooocus isn't answering, ask the Owner now to start it, so it is up by step 4.
-2. **Pick the mode and the hook.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1. Done when you can name the mode and the **hook**: the one surprising finding or concrete result the title, the opening and the promo images all lead with, said in one plain sentence a Reader who doesn't code follows. When no such sentence exists, or the Post would rest on an experiment you'd run (an eval, a benchmark, several versions compared), ask the Owner whether to write it before going further.
-3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams (**Mermaid**) wherever a process or architecture is explained, an Illustration (**Illustrations**) wherever a Reader needs to see something Mermaid can't draw, and images (**Images**) only when you have a real file. When the Owner gave a NotebookLM PDF, add it as the Post's Slide deck by [SLIDE-DECKS.md](SLIDE-DECKS.md). Then reread it as a Reader who has never seen the repo. Done when:
+2. **Pick the mode and the hook.** Decide which voice mode fits the topic (see **Voice**). A tech topic is mode 1; a Post about something built for people who don't code is mode 4. Done when you can name the mode and the **hook**: the one surprising finding or concrete result the title, the opening and the promo images all lead with, said in one plain sentence a Reader who doesn't code follows. When no such sentence exists, or the Post would rest on an experiment you'd run (an eval, a benchmark, several versions compared), ask the Owner whether to write it before going further.
+3. **Write the Post** at `content/posts/<slug>/index.mdx`, frontmatter and body, following **Voice** and **Post file**. Add diagrams ([MERMAID.md](MERMAID.md)) wherever a process or architecture is explained, an Illustration (**Illustrations**) wherever a Reader needs to see something Mermaid can't draw, and images (**Images**) only when you have a real file. When the Owner gave a NotebookLM PDF, add it as the Post's Slide deck by [SLIDE-DECKS.md](SLIDE-DECKS.md). Then reread it as a Reader who has never seen the repo. Done when:
    - every PR number, file path, frontmatter field and internal name is said in plain words: this site's (Owner, skill names, ticket) and the glossary terms of any project the Post is about (such as its Item or Checkpoint), unless the Post is teaching that very thing and explains it;
    - each paragraph makes one point, and conditions or steps the Reader must keep apart are a list;
    - every detail serves the hook: a timestamp or rule the Reader takes nothing from is cut, and so is anything about the Owner's writing workflow when the Post is about something else;
-   - the first paragraph leads with step 2's hook.
-4. **Draw the cover** (**Cover image**). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
-5. **Add `promo` frontmatter** (**Promo images**).
+   - the first paragraph leads with step 2's hook;
+   - in mode 4, a person in a moment comes before the first number.
+4. **Draw the cover** ([COVER-STYLES.md](COVER-STYLES.md)). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
+5. **Add `promo` frontmatter** ([PROMO.md](PROMO.md)).
 6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
 7. **Make the promo images.** `pnpm promo <slug>` (run `pnpm exec playwright install chromium` once if it can't launch a browser). Read every PNG it writes to `promo/` and the contact sheet `promo/index.html`. Done when the title breaks where you meant, nothing overflows, and the points read as the Post's hook.
-   Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the light and dark shots at both widths. It also crops each Illustration, Diagram and Demo on its own (`…-illustration-<n>-…png`, `…-diagram-<n>-…png`, `…-demo-<n>-…png`), shown under the page on the contact sheet: read those for labels and colours. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram, Illustration, Demo and image reads well in both themes.
-8. **Write the Shares**: `content/posts/<slug>/linkedin.txt` and `threads.txt` (**Shares**). Done when `pnpm content:check` passes and both lead with the same hook as the title.
+   Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the shots: a page taller than 1,600px is also cut into legible parts (`…-part-<n>.png`), so read every part of the light shots at both widths for the text and layout, and the whole-page dark shots for colour. It also crops each Illustration, Diagram and Demo on its own (`…-illustration-<n>-…png`, `…-diagram-<n>-…png`, `…-demo-<n>-…png`), shown under the page on the contact sheet: read those for labels and colours. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram, Illustration, Demo and image reads well in both themes.
+8. **Write the Shares**: `content/posts/<slug>/linkedin.txt` and `threads.txt` ([SHARES.md](SHARES.md)). Done when `pnpm content:check` passes and both lead with the same hook as the title.
 9. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag, and `content/series.yml` when proposing a Series). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
    - one paragraph on what the Post says and who it's for;
    - the voice mode you chose;
@@ -37,7 +38,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - a Slide deck's place in the Post and every slide's title and text, under 「請 Owner 確認」 ([SLIDE-DECKS.md](SLIDE-DECKS.md) step 6);
    - the cover candidates, promo images and page shots: `covers/`, `promo/` and `test-results/` are gitignored and `gh` can't upload images, so list the files and give the Owner `explorer.exe covers/<slug>.html`, `explorer.exe promo/index.html` and `explorer.exe test-results/shots/index.html` to open the contact sheets.
 
-10. **Offer to share it.** Once the Owner has merged the Post and it's live, ask them once: 「要發哪些平台？LinkedIn、Threads、兩個都發，或都不發」, with nothing preselected. Post each platform they name by **Shares**.
+10. **Offer to share it.** Once the Owner has merged the Post and it's live, ask them once: 「要發哪些平台？LinkedIn、Threads、兩個都發，或都不發」, with nothing preselected. Post each platform they name by [SHARES.md](SHARES.md).
 
 **One concern per PR.** A Post's PR holds only that Post. A Post that needs a new MDX component waits for the component's own PR (code only, added to `src/mdx/components.tsx`) to merge first. The components a body can use today are the ones in that map.
 
@@ -67,8 +68,9 @@ The traits and samples show how the Owner sounds; they are a reference, not a ch
 | 1, hands-on technical | Anything about building, architecture, tools, AI agents, workflows, tutorials: the default for this site | Hook on the finished result, then the design thinking: architecture, decisions and trade-offs, code and diagrams, what broke and how it was fixed. Shows architecture skill. |
 | 2, everyday reflection | Career, mindset, learning, investing, working life | One small daily scene in sensory detail, then an investing or tech metaphor that reframes it, then a forward-looking close. |
 | 3, heartfelt travelogue | Travel and family | Inner dialogue against concrete places and family moments; ends on what the trip gave back. Rare on a tech brand: write it only when the topic is personal life. |
+| 4, product story | A project built for family or for users who don't code, such as the parents' story app; its Readers include the people it is for | Open on a person in a moment, then why the Owner built it, how it was tried, what was decided. Numbers go into sentences, with at most one table; model ids, error codes and API names become plain words or are cut. One problem per Post: the rest waits for the next. Closes on something the Reader can do without coding. |
 
-A tech Post leads with mode 1 from the first line to the last section. Modes 2 and 3 enter a tech Post only as seasoning: a sentence of scene in the opening. In mode 1 the voice lives in the opening, the transitions between sections and the closing; the explanation in between is precise and concrete, with `##` sections, code blocks and diagrams.
+A tech Post leads with mode 1 from the first line to the last section. A mode 4 Post still shows how the decision was made (the test, the trade-off, the choice), told as what happened. Modes 2 and 3 enter a tech Post only as seasoning: a sentence of scene in the opening. In mode 1 the voice lives in the opening, the transitions between sections and the closing; the explanation in between is precise and concrete, with `##` sections, code blocks and diagrams.
 
 ### The samples, verbatim
 
@@ -108,7 +110,7 @@ The body starts with prose (the page shows the title), uses `##` and `###` for s
 
 **Tags.** Pick one to three from `content/tags.yml`, lowercase English kebab-case, none repeated; each entry's comment says what it covers. An approved Tag that means the same thing is the one to use, whatever the spelling you had in mind: singular or plural, synonym, abbreviation, Chinese or English (`ai-agents` covers "AI agent", "agent", 智能體). Only a topic no entry's comment covers earns a new Tag: add it to `content/tags.yml` under the right group with its own comment, in the same PR, and give the reason in the PR body; the Owner approves it by merging. Propose the broadest Tag that fits (`ai-agents`, not `claude-code-skills`), so the list stays small.
 
-**Series.** Read `content/series.yml` while drafting: each entry's title and description say what its Posts share. When the Topic continues a Series (the same experiment in another language, the next part of what its Posts started), add `series: <id>`. When the Topic opens a set of Posts meant to be read in order and no Series fits, propose one: add it to `content/series.yml` in the same PR, with a lowercase English kebab-case id, a Traditional Chinese `title` and a one-line `description`, and give the Post `series: <id>`. The site shows a Series once 2 of its Posts are Published, so until a second Post joins, the new Series shows nowhere and the Post reads as any other.
+**Series.** Read `content/series.yml` while drafting: each entry's title and description say what its Posts share. When the Topic continues a Series (the same experiment in another language, the next part of what its Posts started), add `series: <id>`. When the Topic opens a set of Posts meant to be read in order and no Series fits, propose one: add it to `content/series.yml` in the same PR, with a lowercase English kebab-case id, a Traditional Chinese `title` and a one-line `description`, and give the Post `series: <id>`. The site shows a Series once 2 of its Posts are Published, so until a second Post joins, the new Series shows nowhere and the Post reads as any other. A Series with a brief at `.scratch/post-briefs/<series-id>.md` has its plan, sources and confirmed personal details there: read it before step 2, and after the Post merges, tick its part and add any detail the Owner confirmed.
 
 **Experiments.** A mode 1 Post whose result comes from calling a model (an eval, a model comparison, a prompt test) uses DeepSeek: load `DEEPSEEK_API_KEY` from `~/projects/kai/.env` into the environment without printing it, call the OpenAI-compatible `https://api.deepseek.com/chat/completions` with model `deepseek-v4-flash`, and pass `tool_choice: "auto"` (its thinking mode rejects `"required"`). The shell's `GEMINI_API_KEY` has no quota and answers 402. Keep the script and its data in the scratchpad; every number in the Post is the script's real output, and the PR body says under 「請 Owner 確認」 that the Writing Agent ran it.
 
@@ -121,65 +123,3 @@ Store each image in the Post's folder and reference it by a path relative to tha
 ## Illustrations
 
 When a Reader has to see something Mermaid can't draw (threads interleaving over time, a layout in memory, a before and after), draw an Illustration: an SVG file you write by hand into the Post's folder, in the site's colour tokens, so it follows the theme. Read [ILLUSTRATIONS.md](ILLUSTRATIONS.md) before drawing one, and start from its example. Mermaid comes first: draw an Illustration only for what a Diagram can't show, and only to explain a concept the prose names.
-
-## Cover image
-
-Every new Post gets a cover image (`GLOSSARY.md`'s Cover), drawn by Fooocus on the Owner's machine (`docs/adr/0004`):
-
-1. Read [COVER-STYLES.md](COVER-STYLES.md), then choose a style for this Post and one scene that carries its feeling.
-2. Draw three candidates, varying the style or the scene between them: `pnpm cover <slug> --prompt "<scene>" --style "<style>"`. Each takes about 20 seconds and adds `covers/<slug>-<n>.jpg` to the sheet `covers/<slug>.html`. When it says Fooocus isn't answering, skip to the PR note in step 8.
-3. Read every candidate and pick the one that best fits the Post, has no lettering and reads at card size. Copy it: `cp covers/<slug>-<n>.jpg content/posts/<slug>/cover.jpg`. When the Owner asks for another candidate, copy that one over it; for a new scene, draw again (`--seed` redraws a candidate exactly).
-
-## Mermaid
-
-Draw processes and architecture in a ```` ```mermaid ```` block; the site draws it as an SVG in its own colours, following the theme. The content check parses and draws each block (`checkDiagrams` in `src/content/content.ts`):
-
-- Diagram types the site draws are `DRAWN_DIAGRAM_TYPES` in `src/mdx/parse-mermaid.ts`: flowchart, state, sequence, class, ER and xychart.
-- Flowchart node IDs are ASCII, labels Chinese: `review{審閱}`, `write[撰寫文章]`.
-- An architecture diagram is a flowchart with `subgraph`s (`architecture-beta` isn't drawn).
-- A sideways (`LR`) flowchart is drawn top-down on phones and when wider than the reading column, so both directions must read well. Keep labels short.
-- Every diagram fits a phone's column as a phone draws it (rule `mermaid-phone-width`): give each level at most two side-by-side nodes. A decision with more outcomes reads better as numbered questions in prose.
-- Edges flow one way (rule `mermaid-two-way-edges`): a node sending work to several nodes gets their returns at a new node below them, e.g. `coder -->|交付| qa[驗證把關]`.
-
-The two flowcharts in the typography sample are working models.
-
-## Shares
-
-A Share is a text next to `index.mdx`, one per platform, posted with a link card the platform draws for the live Post. Both open on the Post's hook in the Owner's voice and carry no URL: the card carries it.
-
-**`linkedin.txt`** is the more formal one: the hook in the first line (LinkedIn folds the rest behind 「…更多」), then two to five lines or a short `・` list of what the Reader gets, then a closing reframe. End with two or three hashtags, from the Post's Tags (`#Python`) plus at most one topic word (`#asyncio`); the content check fails a fourth, and anything past LinkedIn's 3,000 characters. Write the hashtags in plain `#tag` form: `pnpm linkedin` converts the text to LinkedIn's format.
-
-**`threads.txt`** is casual and short, aiming for 300 characters (the content check stops at 500): the hook, a line or two of what happened, what the Post covers in one sentence, then the closing reframe, each its own short paragraph. Its last line is one topic tag alone, `#AI` or the Post's main Tag, with no `.` or `&` (`#Nextjs`, not `#Next.js`); the content check fails a second tag anywhere in the text.
-
-To share, for each platform the Owner said yes to (`linkedin` or `threads` as `<platform>`):
-
-1. `pnpm <platform> <slug>` shows what would be posted, from the live page. Show the Owner the text and the link before posting.
-2. `pnpm <platform> <slug> --post` posts it publicly and writes the post's URL into the Share as a first `posted:` line. The script refuses a Share that already has one, so each platform gets a Post once. A Revision doesn't reshare the Post; only the Owner asking does, with a new text.
-3. Commit the `posted:` lines on a branch `share-<slug>` off `origin/main`, open a PR, and merge it yourself once its checks pass: it only records the shares. Send the Owner each post's URL.
-
-**Threads token**: `pnpm threads` refreshes its own token on each run after the first day and warns ten days before it expires. It expires only after 60 days without a run; then ask the Owner to run `bash scripts/threads-setup.sh` in their own terminal, which writes a new one into `.env.local`.
-
-**LinkedIn token**: the script reads `LINKEDIN_ACCESS_TOKEN` and `LINKEDIN_TOKEN_DATE` from `.env.local`. A token lasts 60 days; the script warns ten days ahead and fails with a 401 once it's expired. Then have the Owner open https://www.linkedin.com/developers/tools/oauth/token-generator, pick the app, tick `openid`, `profile` and `w_member_social`, and paste the new token into `.env.local` themselves (never into the chat), with today's date as `LINKEDIN_TOKEN_DATE`.
-
-## Promo images
-
-`pnpm promo <slug>` draws the Post's promo images (文宣圖) from its `promo` frontmatter, at 1200×630, 1080×1080 and 1080×1350. They are what someone scrolling a feed sees, most of them not engineers, so they sell the hook. Choose the template by what the Post mainly is:
-
-- `contour` (the default): every Post, code-heavy ones included; shows the Post's cover beside the text, so draw the cover first.
-- `flow`: a Post whose subject is a process, step by step; `steps` are its stages, each a `name` and an optional `command`.
-- `terminal`: a Post that teaches a set of commands the Reader will type; `lines` are those commands, each with an optional `comment`.
-
-```yaml
-promo:
-  template: flow
-  titleLines: [讓 AI 寫部落格，, 也有工程流程]   # the title split at natural breaks, words unchanged
-  points: [一個 skill 定義聲音與規則, 內容檢查擋下錯誤]
-  steps:
-    - name: 給題目
-    - name: 寫文章
-      command: /write-post
-    - name: 內容檢查
-      command: pnpm content:check
-```
-
-Always give `titleLines`, breaking after a full-width comma or between phrases; each line stays on one line and the title shrinks to fit the longest, so balance them. Give two or three `points`, each a short phrase that makes a scroller curious: the surprising finding, a measured number, the question the Post answers (多開執行緒，反而更慢？), rather than a summary of its sections (leave `points` out and the description shows instead). Done when someone who doesn't code would want to tap it. `steps` belong only to `flow` and `lines` only to `terminal`. The field rules are `checkPromo` in `src/content/content.ts`; `GLOSSARY.md`'s Promo image entry sums them up.
