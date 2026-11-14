@@ -17,7 +17,7 @@ Judgement calls for the reviewer. Lint, Prettier (`pnpm format` fixes it), typec
 ## Tests
 
 - Tests check behaviour through a public interface: the content module's queries and errors, HTTP responses from the built site, or a pure module's exports (the cover generator, `src/format-date.ts`).
-- Each user story a change implements has a test that goes red without it. A story only a person can check (mail reaching the Owner, a real browser past BotID) is named in the PR as checked on the preview. A story with neither isn't done.
+- Each user story a change implements has a test that goes red without it. A test of an order (by date, by count) uses data that loads in another order, so it goes red without the sort. A story only a person can check (mail reaching the Owner, a real browser past BotID) is named in the PR as checked on the preview. A story with neither isn't done.
 - Each content rule has its own fixture directory under `src/content/fixtures/` that breaks only that rule, unless the test is about how rules combine.
 
 ## Components

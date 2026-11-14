@@ -26,7 +26,7 @@
     "prod:check": "bash scripts/prod-check.sh"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm check"
+    "pre-commit": "sh scripts/pre-commit.sh"
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",

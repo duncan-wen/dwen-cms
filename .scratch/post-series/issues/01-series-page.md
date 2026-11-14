@@ -13,3 +13,7 @@
 - [x] Smoke: `e2e/content` has a `series.yml` and a Series of 2 smoke Posts; the Series page answers 200 and lists both in order; an unknown id answers 404; the sitemap lists the page
 - [x] `pnpm shots` of the Series page in light and dark at 1280px and 375px, read before ticking; nothing scrolls sideways
 - [x] The Owner has seen the screenshots and said OK
+
+## Comments
+
+- 2026-11-14: the Owner saw the screenshots and said OK.
