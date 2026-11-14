@@ -15,8 +15,18 @@ const HEIGHT = 1000;
 const CONTOURS = 22;
 const POINTS = 120;
 
-/** The contour-line cover for the Post with this Slug; the same Slug always gives the same cover. */
-export function generateCover(slug: string): Cover {
+/** How fast each of the terrain's four waves turns as the phase grows, alternating so the lines shift rather than spin. */
+const WAVE_SPEEDS = [1, -1 / 2, 1 / 3, -1 / 4];
+
+/**
+ * The contour-line cover for the Post with this Slug; the same Slug always gives the same cover.
+ * A phase moves the same terrain, for the Backdrop: the same Slug and phase always give the same
+ * lines, and its points keep one decimal, so lines moved a little at a time don't jump between
+ * whole pixels.
+ */
+export function generateCover(slug: string, phase?: number): Cover {
+  const turn = phase ?? 0;
+  const round = phase === undefined ? Math.round : (n: number) => Math.round(n * 10) / 10;
   const random = seededRandom(hash(slug));
   const cx = WIDTH * (0.25 + random() * 0.5);
   const cy = HEIGHT * (0.3 + random() * 0.4);
@@ -31,9 +41,12 @@ export function generateCover(slug: string): Cover {
     const k = index + 1;
     const points = Array.from({ length: POINTS }, (_, i) => {
       const a = (i / POINTS) * Math.PI * 2;
-      const m = waves.reduce((sum, w, j) => sum + w.amp * Math.sin((j + 2) * a + w.phase + k * w.drift), 1);
+      const m = waves.reduce(
+        (sum, w, j) => sum + w.amp * Math.sin((j + 2) * a + w.phase + k * w.drift + turn * WAVE_SPEEDS[j]),
+        1,
+      );
       const r = k * step * m;
-      return `${Math.round(cx + Math.cos(a) * r * 1.25)} ${Math.round(cy + Math.sin(a) * r * 0.85)}`;
+      return `${round(cx + Math.cos(a) * r * 1.25)} ${round(cy + Math.sin(a) * r * 0.85)}`;
     });
     return { d: `M${points.join("L")}Z`, heavy: k % 5 === 0 };
   });

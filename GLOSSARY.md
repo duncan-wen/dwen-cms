@@ -98,6 +98,10 @@ _Avoid_: Demo, video
 The home page's Animation: a loop beside the headline of an AI agent answering a question by calling a tool, with made-up data.
 _Avoid_: Demo, video
 
+**Backdrop**:
+The contour lines drawn across the whole window behind every page, in the margins beside the reading column. A Post's are seeded by its Slug, like its generated cover; every other page shares one terrain. They shift as the Reader scrolls and are still otherwise. It is decoration: it explains nothing, so it is not an Animation, and Readers are shown no name for it.
+_Avoid_: Background, wallpaper, Animation, Cover
+
 ## Lifecycle
 
 **Draft**:
