@@ -245,18 +245,20 @@ describe("images", () => {
 });
 
 describe("Demos", () => {
-  it("accepts a Post embedding a stored Demo with a title", async () => {
-    const content = await loadContent(fixture("demo"));
+  const demosDir = fixture("demos");
 
-    expect(content.resolveSlug("with-demo")).toMatchObject({ kind: "post", post: { body: expect.stringContaining("<Demo slug=\"listener-player\"") } });
+  it("accepts a Post embedding a stored Demo with a title", async () => {
+    const content = await loadContent(fixture("demo"), { demosDir });
+
+    expect(content.resolveSlug("with-demo")).toMatchObject({ kind: "post", post: { body: expect.stringContaining("<Demo slug=\"fixture-demo\"") } });
   });
 
   it.each([
     ["demo-own-line", "own line"],
     ["demo-needs-title", "title"],
-    ["demo-needs-files", "public/demos/no-such-demo/index.html"],
+    ["demo-needs-files", "fixtures/demos/no-such-demo/index.html"],
   ])("rejects a Post breaking %s, naming %s", async (rule, named) => {
-    const error = await loadContent(fixture(rule)).catch((e: unknown) => e);
+    const error = await loadContent(fixture(rule), { demosDir }).catch((e: unknown) => e);
 
     expect(error).toMatchObject({ problems: [{ file: "posts/with-demo/index.mdx", field: "body", rule }] });
     expect((error as Error).message).toContain(named);

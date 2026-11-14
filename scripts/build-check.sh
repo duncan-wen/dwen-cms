@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds the site and fails if `next build` fails or prints a warning.
-# CI runs this on the real content; run it locally after touching build config.
+# CI runs this on the real content, and `pnpm smoke` on e2e/content, so a warning fails locally too.
 set -o pipefail
 
 pnpm build 2>&1 | tee build.log || exit 1

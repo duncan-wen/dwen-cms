@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 
 // Smoke tests run against a build of e2e/content, never the real content.
@@ -1059,15 +1061,16 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
   expect(response.headers()["content-type"]).toContain("application/rss+xml");
   const xml = await response.text();
   const items = [...xml.matchAll(/<item>[\s\S]*?<\/item>/g)].map((m) => paths(m[0], "link")[0]);
-  expect(items).toEqual([
-    "/posts/smoke-post",
-    "/posts/revised-smoke-post",
-    "/posts/typography-sample",
-    "/posts/animation-smoke-post",
-    "/posts/demo-smoke-post",
-    "/posts/slide-deck-smoke-post",
-    "/posts/last-year-smoke-post",
-  ]);
+  // e2e/content has no taken-down folders, so every Post folder is Published and in the feed,
+  // whatever Posts are added; each item's date is no later than the one before it.
+  const postsDir = join(import.meta.dirname, "content", "posts");
+  const folders = readdirSync(postsDir, { withFileTypes: true }).filter((entry) => entry.isDirectory());
+  expect([...items].sort()).toEqual(folders.map((entry) => `/posts/${entry.name}`).sort());
+  const dates = items.map((item) => {
+    const source = readFileSync(join(postsDir, item.replace("/posts/", ""), "index.mdx"), "utf8");
+    return /^date: (\S+)$/m.exec(source)![1];
+  });
+  expect(dates).toEqual([...dates].sort().reverse());
   expect(xml).toContain("煙霧測試文章");
   expect(xml).not.toContain("/about");
 });
