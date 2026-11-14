@@ -6,7 +6,9 @@
 //   pnpm shots '/posts/<slug>?open=放大圖表'          or press that button: a Lightbox is shot as the screen shows it
 // Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration,
 // Diagram and Demo as <path>-<illustration|diagram|demo>-<n>-<theme>-<width>.png (n counts from the
-// top of the page), plus index.html showing this run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
+// top of the page), a page taller than 1,600px again as <path>-<theme>-<width>-part-<n>.png, each a
+// screen-sized piece an agent can read (the whole-page shot of a long Post shrinks past reading),
+// plus index.html showing this run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
 // box other than a code block clips its content (scrollWidth past its width), at any width.
 import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -17,6 +19,9 @@ import { SITE_LANGUAGE } from "../src/site-name";
 const outDir = "test-results/shots";
 const themes = ["light", "dark"] as const;
 const widths = [1280, 375];
+/** A page taller than this is also shot in parts this tall, each starting a little above where the last ended. */
+const PART_HEIGHT = 1600;
+const PART_OVERLAP = 80;
 /** The elements cropped from each page, named by what they are. A phone copy shows in its original's place. */
 const elements = [
   { kind: "illustration", label: "插圖", selector: "span.illustration" },
@@ -156,6 +161,16 @@ for (const path of paths) {
       for (const box of clipped) overflowing.push(`${path} (${theme}, ${width}px): ${box} clips its content`);
       const flagged = scrolls || clipped.length > 0 || scrollingFrames.length > 0 || unloadedFrames.length > 0;
       console.log(`${response?.status()} ${file}${flagged ? "  ← overflows" : ""}`);
+      const pageHeight = dialogOpen ? 0 : await page.evaluate(() => document.documentElement.scrollHeight);
+      for (const [index, top] of partTops(pageHeight).entries()) {
+        const partFile = `${outDir}/${fileName(path)}-${theme}-${width}-part-${index + 1}.png`;
+        await page.screenshot({
+          path: partFile,
+          fullPage: true,
+          clip: { x: 0, y: top, width, height: Math.min(PART_HEIGHT, pageHeight - top) },
+        });
+        console.log(`    ${partFile}`);
+      }
       for (const { kind, label: kindLabel, selector } of dialogOpen ? [] : elements) {
         const visible = await page.locator(selector).locator("visible=true").all();
         for (const [index, element] of visible.entries()) {
@@ -215,6 +230,14 @@ function contactSheet(sections: string[]): string {
 ${sections.join("\n")}
 </html>
 `;
+}
+
+/** Where each part of a page this tall starts; none when the whole page fits one part. */
+function partTops(pageHeight: number): number[] {
+  const tops: number[] = [];
+  if (pageHeight <= PART_HEIGHT) return tops;
+  for (let top = 0; top < pageHeight - PART_OVERLAP; top += PART_HEIGHT - PART_OVERLAP) tops.push(top);
+  return tops;
 }
 
 function themeLabel(theme: (typeof themes)[number]): string {
