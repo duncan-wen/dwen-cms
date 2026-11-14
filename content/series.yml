@@ -3,3 +3,6 @@
 concurrency:
   title: 並行，一次搞懂
   description: 同一台 8 核心電腦，實測不同語言怎麼處理並行
+parents-voice-stories:
+  title: 用爸媽的聲音講故事
+  description: 從零做一個讓爸媽用自己的聲音唸繪本給孩子聽的服務，一篇解決一個問題
