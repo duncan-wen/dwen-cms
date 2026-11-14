@@ -42,12 +42,12 @@ export async function checkTracker(scratchDir: string, { include = () => true }:
     for (const name of (await listOrEmpty(path.join(dir, "issues"))).sort()) {
       const file = `${feature}/issues/${name}`;
       if (!name.endsWith(".md") || !include(file)) continue;
-      tickets.push({ file, status: checkDoc(file, await readText(path.join(dir, "issues", name)), problems) });
+      tickets.push({ file, status: checkDoc(file, await readFile(path.join(dir, "issues", name), "utf8"), problems) });
     }
 
     const file = `${feature}/spec.md`;
     if (!files.includes("spec.md") || !include(file)) continue;
-    const status = checkDoc(file, await readText(path.join(dir, "spec.md")), problems);
+    const status = checkDoc(file, await readFile(path.join(dir, "spec.md"), "utf8"), problems);
     // A ticket with no valid Status is already reported; the spec's rules count only the rest.
     const known = tickets.filter((ticket) => ticket.status !== undefined);
     const open = known.filter((ticket) => !isClosed(ticket.status));
@@ -124,11 +124,6 @@ function readStatus(file: string, text: string, problems: TrackerProblem[]): str
     message: `needs a **Status:** line, one of ${STATUSES.join(", ")}${status === undefined ? "" : `; got "${status}"`}`,
   });
   return undefined;
-}
-
-/** A file's text with Windows line endings read as `\n`, so line anchors work on a file saved from Windows. */
-async function readText(file: string) {
-  return (await readFile(file, "utf8")).replace(/\r\n/g, "\n");
 }
 
 /** A directory's entries, or none when it doesn't exist; any other error is thrown. */

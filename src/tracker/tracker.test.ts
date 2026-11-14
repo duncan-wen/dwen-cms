@@ -1,3 +1,5 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { checkTracker } from "./tracker";
@@ -33,6 +35,30 @@ describe("checkTracker", () => {
     expect(problems).toContainEqual(
       expect.objectContaining({ file: "draft/issues/01-a.md", rule: "status-vocabulary" }),
     );
+  });
+
+  it("reads a file saved with Windows line endings", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "tracker-"));
+    try {
+      await mkdir(path.join(dir, "feature", "issues"), { recursive: true });
+      const ticket = [
+        "# Ticket",
+        "",
+        "**Status:** done",
+        "",
+        "- [x] The Owner has seen the screenshots and said OK",
+        "",
+        "## Comments",
+        "",
+        "- 2026-11-14: the Owner said OK.",
+        "",
+      ].join("\r\n");
+      await writeFile(path.join(dir, "feature", "issues", "01-a.md"), ticket);
+
+      expect(await checkTracker(dir)).toEqual([]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   it("reports a ticket with no Status line", async () => {
