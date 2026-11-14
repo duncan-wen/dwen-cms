@@ -7,8 +7,8 @@
 /** One closed contour line, as SVG path data in the cover's coordinate space. */
 export type Contour = { d: string; heavy: boolean };
 
-/** A cover's coordinate space and its contours, innermost first. */
-export type Cover = { width: number; height: number; contours: Contour[] };
+/** A terrain's coordinate space and its contours, innermost first: a generated cover, or the Backdrop. */
+export type ContourLines = { width: number; height: number; contours: Contour[] };
 
 const WIDTH = 1600;
 const HEIGHT = 1000;
@@ -19,21 +19,23 @@ const POINTS = 120;
 const WAVE_SPEEDS = [1, -1 / 2, 1 / 3, -1 / 4];
 
 /**
- * The contour-line cover for the Post with this Slug; the same Slug always gives the same cover.
- * A phase moves the same terrain, for the Backdrop: the same Slug and phase always give the same
+ * The contour lines for a seed; the same seed always gives the same lines. A Post's generated
+ * cover is seeded by its Slug.
+ * A phase moves the same terrain, for the Backdrop: the same seed and phase always give the same
  * lines, and its points keep one decimal, so lines moved a little at a time don't jump between
  * whole pixels.
  */
-export function generateCover(slug: string, phase?: number): Cover {
+export function generateCover(seed: string, phase?: number): ContourLines {
   const turn = phase ?? 0;
   const round = phase === undefined ? Math.round : (n: number) => Math.round(n * 10) / 10;
-  const random = seededRandom(hash(slug));
+  const random = seededRandom(hash(seed));
   const cx = WIDTH * (0.25 + random() * 0.5);
   const cy = HEIGHT * (0.3 + random() * 0.4);
-  const waves = Array.from({ length: 4 }, (_, j) => ({
+  const waves = WAVE_SPEEDS.map((speed, j) => ({
     amp: (0.22 / (j + 1)) * (0.6 + random()),
     phase: random() * 6.28,
     drift: (random() - 0.5) * 0.5,
+    speed,
   }));
   const step = (Math.hypot(WIDTH, HEIGHT) / CONTOURS) * 0.62;
 
@@ -42,7 +44,7 @@ export function generateCover(slug: string, phase?: number): Cover {
     const points = Array.from({ length: POINTS }, (_, i) => {
       const a = (i / POINTS) * Math.PI * 2;
       const m = waves.reduce(
-        (sum, w, j) => sum + w.amp * Math.sin((j + 2) * a + w.phase + k * w.drift + turn * WAVE_SPEEDS[j]),
+        (sum, w, j) => sum + w.amp * Math.sin((j + 2) * a + w.phase + k * w.drift + turn * w.speed),
         1,
       );
       const r = k * step * m;
@@ -74,7 +76,7 @@ export function coverSvg(slug: string): string {
   );
 }
 
-/** FNV-1a over the Slug's code points. */
+/** FNV-1a over the seed's code points. */
 function hash(text: string): number {
   let h = 2166136261;
   for (const char of text) {

@@ -19,7 +19,7 @@ The Owner agreed these decisions in chat on 2026-11-15 (grilling, three rounds, 
 1. As a Reader on a desktop screen, I want the margins to show something made for this site, so that the site reads as built by someone who builds things.
 2. As a Reader reading a Post, I want nothing to move while I'm not scrolling and no lines behind the text, so that the backdrop never competes with the words.
 3. As a Reader who asked for reduced motion, I want the lines to stay still, so that scrolling moves nothing but the page.
-4. As a Reader on a phone, I want the lines still and only near the top of the screen, so that they cost no battery and never sit behind the text.
+4. As a Reader on a phone, I want the lines still and only at the top of the page, so that they cost no battery and never sit behind the text.
 5. As a Reader using either theme, I want the lines to follow it, so that they look part of the page.
 6. As the Owner, I want one site-wide setting for the lines' strength (faint, medium, accent or off), so that I can turn them down or off without a redesign.
 
@@ -28,9 +28,9 @@ The Owner agreed these decisions in chat on 2026-11-15 (grilling, three rounds, 
 - **Where**: every page the root layout renders (home, `/posts`, a Post, `/tags`, a Tag, a Series, About, not-found). A Demo is its own page under `public/demos/` and gets none.
 - **Shape**: the cover's terrain, one centre with 22 closed lines, scaled to cover the window and cropped, not stretched. No second terrain algorithm.
 - **Seed**: on `/posts/<slug>` the Post's Slug, so a Post's backdrop matches its generated cover; everywhere else one fixed site seed.
-- **Where the lines show**: from 640px, full strength in the margins, fading out over the last stretch before the reading column and absent behind it (the prototype left 15% there; the Owner chose none). Below 640px, only near the top of the screen, fading out within about 260px.
+- **Where the lines show**: from 1024px, fixed to the window, full strength in the margins, fading out over the last stretch before the reading column and absent behind it (the prototype left 15% there; the Owner chose none). Below 1024px, only at the top of the page, fading out within about 260px and scrolling away with it. (Agreed as 640px and "near the top of the screen"; code review found the column leaves no margin until about 880px, and that a band fixed to a phone's screen sits behind the text once the Reader scrolls.)
 - **A Post's table of contents** sits in the right margin on wide screens, over the lines. It stays; its legibility is checked in the screenshots.
-- **Motion**: the terrain's phase follows the scroll position, eased, as in the prototype's variant B. At rest nothing changes and no frame is drawn. The home page follows the same rule, so the backdrop is still beside the Agent animation unless the Reader scrolls. Below 640px, and for Readers who ask for reduced motion, the lines never move.
+- **Motion**: the terrain's phase follows the scroll position, eased, as in the prototype's variant B. At rest nothing changes and no frame is drawn. The home page follows the same rule, so the backdrop is still beside the Agent animation unless the Reader scrolls. Below 1024px, and for Readers who ask for reduced motion, the lines never move.
 - **Changing page**: the terrain is replaced at once, with no morph between two seeds.
 - **Strength**: one site-wide constant, `off`, `faint`, `medium` or `accent`, set to `medium`. `faint` is the rule colour; `medium` mixes 40% soft ink into it; `accent` mixes 45% accent into it; `off` draws nothing at all. Readers get no control, and a Post can't set its own. The Owner changes it by asking; the change ships as a PR with screenshots like any visual change.
 - **Colour**: the three strengths are defined once in `src/app/globals.css` from the existing tokens, so the lines follow both themes with no script.
@@ -49,7 +49,7 @@ The Owner agreed these decisions in chat on 2026-11-15 (grilling, three rounds, 
 ## Testing Decisions
 
 - Unit (`src/cover/cover.test.ts`): `generateCover(slug)` with no phase equals today's output; a different phase gives different paths; the same slug and phase give the same paths.
-- Smoke (built site, `e2e/content`): the backdrop is present and `aria-hidden` on the home page, a Post and the not-found page; two Posts have different lines and two non-Post pages the same; at 1280px scrolling a Post changes the lines; with reduced motion, and at 375px, scrolling changes nothing.
+- Smoke (built site, `e2e/content`): the backdrop is present and `aria-hidden` on the home page, a Post and the not-found page; two Posts have different lines and two non-Post pages the same; at 1280px scrolling a Post changes the lines; with reduced motion, and at 375px, scrolling changes nothing, and at 375px the lines leave the screen with the top of the page.
 - `pnpm shots / /posts/typography-sample /posts` in light and dark at 1280px and 375px, read before ticking: no line behind the reading column, the table of contents legible, nothing scrolling sideways.
 - `off` is checked by a unit or component test, not by shipping it.
 

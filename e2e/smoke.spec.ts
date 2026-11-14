@@ -305,14 +305,18 @@ test.describe("the Backdrop", () => {
     expect(await lines(page)).toBe(atTop);
   });
 
-  test("stays still on a phone", async ({ page }) => {
+  test("on a phone stays still at the top of the page, and scrolls away with it", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/posts/typography-sample");
     const atTop = await lines(page);
+    // Its lines fade out within 260px of the top of the page.
+    expect(await backdrop(page).evaluate((svg) => getComputedStyle(svg).maskImage)).toContain("rgba(0, 0, 0, 0) 260px");
 
     await scrollAndWait(page);
     expect(await lines(page)).toBe(atTop);
+    // It left the screen with the top of the page, so no line sits behind the text being read.
+    expect((await backdrop(page).boundingBox())!.y).toBe(-600);
   });
 
   test("is not on a Demo's own page", async ({ page }) => {

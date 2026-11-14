@@ -221,11 +221,14 @@
 }
 
 /*
- * The Backdrop (src/components/backdrop.tsx). On phones its lines show only near the top of the
- * screen. From 640px they show in the margins, fade out before the reading column (672px with its
- * gutters) and are absent behind it.
+ * The Backdrop (src/components/backdrop.tsx). Below 1024px the reading column leaves no margin
+ * to speak of, so the lines sit at the top of the page, fading out within 260px, and scroll away
+ * with it. From 1024px they are fixed to the window: at full strength in the margins, fading out
+ * before the reading column (672px with its gutters) and absent behind it. The component moves
+ * the lines only where they are fixed.
  */
 .backdrop {
+  position: absolute;
   mask-image: linear-gradient(to bottom, black, transparent 260px);
 }
 
@@ -241,8 +244,9 @@
   color: var(--backdrop-accent);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 1024px) {
   .backdrop {
+    position: fixed;
     mask-image: linear-gradient(
       to right,
       black calc(50% - 440px),

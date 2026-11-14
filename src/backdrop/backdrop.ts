@@ -1,4 +1,4 @@
-import { type Cover, generateCover } from "@/cover/cover";
+import { type ContourLines, generateCover } from "@/cover/cover";
 
 /**
  * How strongly the Backdrop's lines are drawn, one value for the whole site:
@@ -22,6 +22,6 @@ export function backdropSeed(pathname: string): string {
 }
 
 /** The Backdrop's lines for a seed at a phase, or null when the Backdrop is off. */
-export function backdropLines(strength: BackdropStrength, seed: string, phase: number): Cover | null {
+export function backdropLines(strength: BackdropStrength, seed: string, phase: number): ContourLines | null {
   return strength === "off" ? null : generateCover(seed, phase);
 }
