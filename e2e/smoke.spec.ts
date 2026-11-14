@@ -902,6 +902,57 @@ test("a Series page lists its title, description and Posts, oldest first", async
   );
 });
 
+test("the first Post in a Series opens with the Series' contents, itself marked, and ends with 「下一篇」 only", async ({
+  page,
+}) => {
+  await page.goto("/posts/last-year-smoke-post");
+  const contents = page.getByRole("navigation", { name: "系列目錄" });
+
+  await expect(
+    page
+      .locator("header")
+      .filter({ has: page.locator("h1") })
+      .locator(":scope > *")
+      .last(),
+  ).toHaveAttribute("aria-label", "系列目錄");
+
+  await expect(contents.getByRole("link", { name: "煙霧測試系列" })).toHaveAttribute("href", "/series/smoke-series");
+  await expect(contents.locator("li")).toHaveText([/去年的煙霧測試文章/, /改過的煙霧測試文章/]);
+  await expect(contents.locator('[aria-current="page"]')).toHaveText("去年的煙霧測試文章");
+  await expect(contents.getByRole("link", { name: "改過的煙霧測試文章" })).toHaveAttribute(
+    "href",
+    "/posts/revised-smoke-post",
+  );
+  const neighbours = page.getByRole("navigation", { name: "系列導覽" });
+  await expect(neighbours.getByRole("link")).toHaveCount(1);
+  await expect(neighbours.getByRole("link", { name: /下一篇/ })).toHaveAttribute("href", "/posts/revised-smoke-post");
+});
+
+test("the last Post in a Series ends with 「上一篇」 only, before the Signature", async ({ page }) => {
+  await page.goto("/posts/revised-smoke-post");
+
+  await expect(page.getByRole("navigation", { name: "系列目錄" }).locator('[aria-current="page"]')).toHaveText(
+    "改過的煙霧測試文章",
+  );
+  const neighbours = page.getByRole("navigation", { name: "系列導覽" });
+  await expect(neighbours.getByRole("link")).toHaveCount(1);
+  await expect(neighbours.getByRole("link", { name: /上一篇/ })).toHaveAttribute("href", "/posts/last-year-smoke-post");
+  const order = await page.evaluate(() => {
+    const article = document.querySelector("article")!;
+    const at = (selector: string) => [...article.querySelectorAll("*")].indexOf(article.querySelector(selector)!);
+    return [at(".prose"), at('nav[aria-label="系列導覽"]'), at("footer")];
+  });
+  expect(order.every((at) => at >= 0)).toBe(true);
+  expect(order).toEqual([...order].sort((a, b) => a - b));
+});
+
+test("a Post in no Series shows no Series contents or neighbours", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+
+  await expect(page.getByRole("navigation", { name: "系列目錄" })).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "系列導覽" })).toHaveCount(0);
+});
+
 test("an unknown Series answers 404", async ({ request }) => {
   const response = await request.get("/series/no-such-series");
 
@@ -1176,6 +1227,18 @@ test("a revised Post's structured data is modified on its latest Revision's date
   const [posting] = await structuredData(page, "/posts/revised-smoke-post");
 
   expect(posting).toMatchObject({ datePublished: "2026-10-01", dateModified: "2026-10-15" });
+});
+
+test("each Post in a Series is part of the Series page in its structured data", async ({ page }) => {
+  for (const path of ["/posts/last-year-smoke-post", "/posts/revised-smoke-post"]) {
+    const [posting] = await structuredData(page, path);
+
+    expect(posting.isPartOf, path).toEqual({
+      "@type": "CreativeWorkSeries",
+      name: "煙霧測試系列",
+      url: "https://dwen.example/series/smoke-series",
+    });
+  }
 });
 
 test("a taken-down Slug carries no structured data", async ({ page }) => {

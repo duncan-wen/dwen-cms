@@ -1,6 +1,7 @@
 import type { Post } from "@/content/content";
 import { isoDate } from "@/format-date";
 import { PostRow } from "./post-row";
+import { SeriesPlace } from "./series-place";
 
 type Props = { posts: Post[] };
 
@@ -17,8 +18,8 @@ export function SeriesPostList({ posts }: Props) {
             post={post}
             heading="h2"
             marker={
-              <p className="text-[28px] leading-tight font-black text-rule" aria-label={`第 ${i + 1} 篇`}>
-                {String(i + 1).padStart(2, "0")}
+              <p className="text-[28px] leading-tight font-black text-rule">
+                <SeriesPlace place={i + 1} />
               </p>
             }
             meta={

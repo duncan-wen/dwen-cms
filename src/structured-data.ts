@@ -1,5 +1,5 @@
 import { ownerProfiles } from "@/contact-links";
-import type { Post } from "@/content/content";
+import type { Post, Series } from "@/content/content";
 import { isoDate, lastUpdated } from "@/format-date";
 import { OWNER_NAME, SITE_LANGUAGE, SITE_NAME } from "@/site-name";
 import { absoluteUrl } from "@/site-url";
@@ -13,8 +13,9 @@ const owner = () => ({ "@type": "Person", name: OWNER_NAME, url: absoluteUrl("/a
 /**
  * A Published Post as a `BlogPosting`. Dates stay date-only: a Post records no time of day,
  * so adding one would invent it. `dateModified` is `lastUpdated`, as in the sitemap.
+ * A Post in a shown Series is part of it, as a `CreativeWorkSeries` naming the Series page.
  */
-export function blogPosting(post: Post): StructuredData {
+export function blogPosting(post: Post, series?: Series): StructuredData {
   const url = absoluteUrl(`/posts/${post.slug}`);
   return {
     "@context": "https://schema.org",
@@ -29,6 +30,9 @@ export function blogPosting(post: Post): StructuredData {
     keywords: post.tags,
     url,
     mainEntityOfPage: url,
+    ...(series && {
+      isPartOf: { "@type": "CreativeWorkSeries", name: series.title, url: absoluteUrl(`/series/${series.id}`) },
+    }),
   };
 }
 
