@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Noto_Serif_TC } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
+import { BACKDROP_STRENGTH } from "@/backdrop/backdrop";
+import { Backdrop } from "@/components/backdrop";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SITE_LANGUAGE, SITE_NAME } from "@/site-name";
@@ -39,6 +41,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="flex min-h-dvh flex-col bg-paper text-ink antialiased">
         {/* data-theme on <html> picks the colour tokens in globals.css; with no stored choice it follows the system. */}
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <Backdrop strength={BACKDROP_STRENGTH} />
           <SiteHeader />
           <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-12">{children}</main>
           <SiteFooter />
