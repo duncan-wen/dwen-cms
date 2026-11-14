@@ -30,7 +30,7 @@ Owner 親口說的，可以直接寫：
 
 - [x] 1. AI 連口氣都學走了：三輪盲聽、為什麼選 ElevenLabs。已發布：`content/posts/voice-clone-bedtime-story/`。料：parents-story 議題 #2、#6，分支 `prototype/voice-audition`。
 - [ ] 2. 小孩拿到平板，手指先往哪裡去：三種播放器實測、字跟著聲音亮（逐字時間戳）、iPhone 不讓網頁自己出聲、鎖螢幕後停播。料：議題 #5、#7，分支 `prototype/player` 的 `prototypes/player/README.md`（「What to watch while the Listener plays」是觀察清單）。需要 Eunice 實際玩過的觀察。第一篇已經放了播放器的互動展示 `listener-player`。
-- [ ] 3. 主角每一頁都要長同一張臉：插圖一致性試做，Google 的模型因條款出局，首選 BFL 的 FLUX。料：議題 #3、#8，分支 `research/illustration-consistency`。
+- [x] 3. 主角每一頁都要長同一張臉：插圖一致性試做，Google 的模型因條款出局，首選的 FLUX 盲評輸給 GPT Image。已發布（系列第 2 篇，2026-11-15）：`content/posts/picture-book-character-consistency/`。料：議題 #3、#8，分支 `prototype/illustration-consistency`（評分在 `results.json`，圖在本機的 `out/`，不在 repo）。
 - [ ] 4. 別人爸媽的聲音，我敢不敢收：聲音同意、防冒用、小孩端什麼都不蒐集、服務條款。料：議題 #4、#9，分支 `research/privacy-requirements`。
 - [ ] 5. AI 寫的故事能直接給小孩聽嗎：故事生成流程與內容安全。料：議題 #10。
 - [ ] 6. 一本故事要多少錢：成本模型與用量上限。料：議題 #11。
