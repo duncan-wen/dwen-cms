@@ -12,4 +12,4 @@
 - [x] `/series/[id]` lists the title, description and Posts in order, with its own title, description and the default OG image; any other id answers 404; `sitemap.ts` lists it
 - [x] Smoke: `e2e/content` has a `series.yml` and a Series of 2 smoke Posts; the Series page answers 200 and lists both in order; an unknown id answers 404; the sitemap lists the page
 - [x] `pnpm shots` of the Series page in light and dark at 1280px and 375px, read before ticking; nothing scrolls sideways
-- [ ] The Owner has seen the screenshots and said OK
+- [x] The Owner has seen the screenshots and said OK
