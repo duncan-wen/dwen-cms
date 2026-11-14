@@ -1,6 +1,6 @@
 # Spec: Contour backdrop
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
