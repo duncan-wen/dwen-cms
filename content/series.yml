@@ -1,0 +1,5 @@
+# 系列清單：一組按順序讀的文章。id 一律是小寫英文 kebab-case，每個系列要有 title 和 description。
+# 文章用 `series: <id>` 加入系列，順序依日期；至少 2 篇已發布的文章才會在網站上出現。
+concurrency:
+  title: 並行，一次搞懂
+  description: 同一台 8 核心電腦，實測不同語言怎麼處理並行

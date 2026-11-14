@@ -885,6 +885,29 @@ test("an unknown Tag answers 404", async ({ request }) => {
   expect(response.status()).toBe(404);
 });
 
+test("a Series page lists its title, description and Posts, oldest first", async ({ page }) => {
+  const response = await page.goto("/series/smoke-series");
+
+  expect(response?.status()).toBe(200);
+  await expect(page).toHaveTitle(/^煙霧測試系列｜/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", "兩篇按順序讀的煙霧測試文章");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("煙霧測試系列");
+  await expect(page.locator("main")).toContainText("兩篇按順序讀的煙霧測試文章");
+  const posts = page.locator("main ol > li");
+  await expect(posts.getByRole("heading", { level: 2 })).toHaveText(["去年的煙霧測試文章", "改過的煙霧測試文章"]);
+  await expect(posts.first().getByRole("link")).toHaveAttribute("href", "/posts/last-year-smoke-post");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    "https://dwen.example/series/smoke-series",
+  );
+});
+
+test("an unknown Series answers 404", async ({ request }) => {
+  const response = await request.get("/series/no-such-series");
+
+  expect(response.status()).toBe(404);
+});
+
 test("a previous Slug permanently redirects to the Post's current URL", async ({ request }) => {
   const response = await request.get("/posts/old-smoke-post", { maxRedirects: 0 });
 
@@ -1075,7 +1098,7 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
   expect(xml).not.toContain("/about");
 });
 
-test("the sitemap answers as XML and lists every Published Post, Page and Tag page, and no taken-down or previous Slugs", async ({
+test("the sitemap answers as XML and lists every Published Post, Page, Tag and Series page, and no taken-down or previous Slugs", async ({
   request,
 }) => {
   const response = await request.get("/sitemap.xml");
@@ -1093,6 +1116,7 @@ test("the sitemap answers as XML and lists every Published Post, Page and Tag pa
     "/about",
     "/tags",
     "/tags/smoke",
+    "/series/smoke-series",
   ]) {
     expect(locs, path).toContain(path);
   }
