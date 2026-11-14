@@ -12,4 +12,4 @@
 - [x] `src/structured-data.ts` adds `isPartOf` naming the Series page
 - [x] Smoke: each Series smoke Post shows the box with itself marked and the right neighbour link; its JSON-LD has `isPartOf`
 - [x] `pnpm shots` of both Series smoke Posts in light and dark at 1280px and 375px, read before ticking; nothing scrolls sideways
-- [ ] The Owner has seen the screenshots and said OK
+- [x] The Owner has seen the screenshots and said OK
