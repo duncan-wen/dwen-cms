@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] `write-post` tells the agent to read `content/series.yml` and add `series` when the Topic fits one
 - [x] The PR body template names the suggested Series, so the Owner can keep or drop it

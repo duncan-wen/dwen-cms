@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The contents box sits after the date and Tags, lists every Post in the Series, marks the one being read and links to the Series page
 - [x] 「上一篇」 and 「下一篇」 sit after the body and before the Signature; the first Post shows only 「下一篇」, the last only 「上一篇」
@@ -13,3 +13,7 @@
 - [x] Smoke: each Series smoke Post shows the box with itself marked and the right neighbour link; its JSON-LD has `isPartOf`
 - [x] `pnpm shots` of both Series smoke Posts in light and dark at 1280px and 375px, read before ticking; nothing scrolls sideways
 - [x] The Owner has seen the screenshots and said OK
+
+## Comments
+
+- 2026-11-14: the Owner saw the screenshots and said OK.
