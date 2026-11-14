@@ -20,10 +20,11 @@
     "cover": "tsx scripts/cover.ts",
     "linkedin": "tsx scripts/linkedin.ts",
     "threads": "tsx scripts/threads.ts",
-    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm content:check && pnpm content:check e2e/content && pnpm test",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm content:check && pnpm content:check e2e/content && pnpm tracker:check && pnpm test",
     "prepare": "simple-git-hooks",
     "deck": "tsx scripts/deck.ts",
-    "prod:check": "bash scripts/prod-check.sh"
+    "prod:check": "bash scripts/prod-check.sh",
+    "tracker:check": "tsx scripts/tracker-check.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "sh scripts/pre-commit.sh"
