@@ -15,7 +15,7 @@ type Props = {
 export function Demo({ slug, title }: Props) {
   const url = demoUrl(slug);
   return (
-    <figure aria-label={`互動展示：${title}`} className="not-prose my-8">
+    <figure aria-label={`互動展示：${title}`} className="demo not-prose my-8">
       <p className="mb-3 font-serif font-bold text-ink">互動展示：{title}</p>
       <iframe
         src={url}

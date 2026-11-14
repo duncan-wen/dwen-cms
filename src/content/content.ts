@@ -16,7 +16,7 @@ import {
 } from "../deck/deck-names";
 import { linkedInHashtags } from "../linkedin";
 import { isValidThreadsTag, THREADS_TAG_MAX, threadsTopicTag } from "../threads";
-import { demoPagePath } from "../demo";
+import { DEMOS_DIR, demoPagePath } from "../demo";
 import {
   isDemo,
   isInlineDemo,
@@ -265,11 +265,17 @@ const TAGS_FILE = "tags.yml";
 /** The taken-down Slug list, relative to the content directory; optional. */
 const TAKEN_DOWN_FILE = "taken-down.yml";
 
+/** Where the content check looks for what a body names outside `contentDir`. */
+type LoadOptions = {
+  /** The folder holding each Demo as `<slug>/index.html`; the site's `public/demos` by default. */
+  demosDir?: string;
+};
+
 /**
  * Loads and validates every Post and Page under `contentDir`.
  * Throws a ContentValidationError listing every problem found.
  */
-export async function loadContent(contentDir: string): Promise<Content> {
+export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: LoadOptions = {}): Promise<Content> {
   const postsDir = path.join(contentDir, "posts");
   const slugs = (await readdir(postsDir, { withFileTypes: true }))
     .filter((entry) => entry.isDirectory())
@@ -311,7 +317,7 @@ export async function loadContent(contentDir: string): Promise<Content> {
     const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
     const threadsShare = await loadThreadsShare(contentDir, slug, problems);
     const deck = tree ? await loadSlideDeck(tree, contentDir, slug, problems, report) : undefined;
-    if (tree) await checkDemos(tree, report);
+    if (tree) await checkDemos(tree, demosDir, report);
 
     posts.push({
       slug,
@@ -425,9 +431,9 @@ function deckImages(deck: SlideDeck | undefined): PostImage[] {
 
 /**
  * Each `<Demo slug="…" title="…" />` in a body: on its own line, titled, and naming a Demo
- * stored in `public/demos/<slug>/index.html`. Each problem names its Demo by slug, or by position.
+ * stored in `<demosDir>/<slug>/index.html`. Each problem names its Demo by slug, or by position.
  */
-async function checkDemos(tree: MdNode, report: Report) {
+async function checkDemos(tree: MdNode, demosDir: string, report: Report) {
   const demos = mdNodes(tree).filter((node) => isDemo(node) || isInlineDemo(node));
   for (const [index, node] of demos.entries()) {
     const slug = mdAttribute(node, "slug");
@@ -438,7 +444,7 @@ async function checkDemos(tree: MdNode, report: Report) {
     if (!mdAttribute(node, "title")) {
       report("body", "demo-needs-title", `${named} needs a title="…" saying what the Demo is, shown after 「互動展示：」`);
     }
-    const page = demoPagePath(slug || "<slug>");
+    const page = demoPagePath(slug || "<slug>", demosDir);
     const found = slug !== "" && (await stat(page).catch(() => undefined))?.isFile();
     if (!found) report("body", "demo-needs-files", `${named} names no Demo: store the Demo's page at ${page}`);
   }

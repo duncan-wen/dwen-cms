@@ -1,3 +1,5 @@
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 
 // Smoke tests run against a build of e2e/content, never the real content.
@@ -1059,15 +1061,19 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
   expect(response.headers()["content-type"]).toContain("application/rss+xml");
   const xml = await response.text();
   const items = [...xml.matchAll(/<item>[\s\S]*?<\/item>/g)].map((m) => paths(m[0], "link")[0]);
-  expect(items).toEqual([
+  // Every e2e Post is Published, so the feed lists each folder once, whatever Posts are added.
+  const folders = readdirSync(join(import.meta.dirname, "content", "posts"), { withFileTypes: true }).filter((entry) =>
+    entry.isDirectory(),
+  );
+  expect([...items].sort()).toEqual(folders.map((entry) => `/posts/${entry.name}`).sort());
+  // Posts dated apart, newest first.
+  const datedApart = [
     "/posts/smoke-post",
     "/posts/revised-smoke-post",
     "/posts/typography-sample",
-    "/posts/animation-smoke-post",
-    "/posts/demo-smoke-post",
-    "/posts/slide-deck-smoke-post",
     "/posts/last-year-smoke-post",
-  ]);
+  ];
+  expect(items.filter((item) => datedApart.includes(item))).toEqual(datedApart);
   expect(xml).toContain("煙霧測試文章");
   expect(xml).not.toContain("/about");
 });

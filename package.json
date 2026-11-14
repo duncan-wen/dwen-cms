@@ -14,7 +14,7 @@
     "content:check": "tsx scripts/content-check.ts",
     "test": "vitest run",
     "test:smoke": "playwright test",
-    "smoke": "SITE_URL=https://dwen.example CONTENT_DIR=e2e/content pnpm build && pnpm test:smoke",
+    "smoke": "SITE_URL=https://dwen.example CONTENT_DIR=e2e/content bash scripts/build-check.sh && pnpm test:smoke",
     "shots": "tsx scripts/shots.ts",
     "promo": "tsx scripts/promo.ts",
     "cover": "tsx scripts/cover.ts",

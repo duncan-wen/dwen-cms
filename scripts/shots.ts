@@ -4,8 +4,8 @@
 //   pnpm shots --content content /posts/<slug>      build the real content instead
 //   pnpm shots '/posts/<slug>?open=所有頁面'          open that fold first (a shot of its own)
 //   pnpm shots '/posts/<slug>?open=放大圖表'          or press that button: a Lightbox is shot as the screen shows it
-// Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration
-// and Diagram as <path>-<illustration|diagram>-<n>-<theme>-<width>.png (n counts from the
+// Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration,
+// Diagram and Demo as <path>-<illustration|diagram|demo>-<n>-<theme>-<width>.png (n counts from the
 // top of the page), plus index.html showing this run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
 // box other than a code block clips its content (scrollWidth past its width), at any width.
 import { spawn, spawnSync } from "node:child_process";
@@ -21,6 +21,7 @@ const widths = [1280, 375];
 const elements = [
   { kind: "illustration", label: "插圖", selector: "span.illustration" },
   { kind: "diagram", label: "圖表", selector: "figure.mermaid-diagram" },
+  { kind: "demo", label: "互動展示", selector: "figure.demo" },
 ] as const;
 
 const args = process.argv.slice(2);
@@ -94,12 +95,17 @@ for (const path of paths) {
       // An open dialog covers the page, so it's shot as the screen shows it, and only it is checked for clipping.
       const dialogOpen = (await page.locator("dialog[open]").count()) > 0;
       await page.evaluate(() => document.fonts.ready);
-      // A full-page shot never scrolls, so lazy images below the fold would stay blank:
-      // load them all now and wait until each has decoded.
+      // A full-page shot never scrolls, so lazy images and frames (a Demo) below the fold would stay
+      // blank: load them all now and wait until each image has decoded and each frame has loaded.
       await page.evaluate(async () => {
         const images = [...document.images];
         for (const image of images) image.loading = "eager";
-        await Promise.all(images.map((image) => image.decode().catch(() => undefined)));
+        const frames = [...document.querySelectorAll("iframe")].filter((frame) => frame.loading === "lazy");
+        const loaded = frames.map(
+          (frame) => new Promise((resolve) => (frame.addEventListener("load", resolve), setTimeout(resolve, 5_000))),
+        );
+        for (const frame of frames) frame.loading = "eager";
+        await Promise.all([...images.map((image) => image.decode().catch(() => undefined)), ...loaded]);
       });
       const name = `${fileName(path)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
@@ -157,7 +163,7 @@ for (const path of paths) {
   const cropRows = [...crops.values()].map((row) => `<div class="row">${row.join("")}</div>`);
   sections.push(
     `<section><h2>${path}</h2><div class="row">${figures.join("")}</div>` +
-      (cropRows.length > 0 ? `<h3>插圖與圖表</h3>${cropRows.join("")}` : "") +
+      (cropRows.length > 0 ? `<h3>插圖、圖表與互動展示</h3>${cropRows.join("")}` : "") +
       `</section>`,
   );
 }
