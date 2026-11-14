@@ -17,7 +17,8 @@ export const metadata: Metadata = { alternates: pageAlternates("/") };
 const LATEST_COUNT = 5;
 
 export default async function HomePage() {
-  const latest = (await getContent()).listPublishedPosts().slice(0, LATEST_COUNT);
+  const content = await getContent();
+  const latest = content.listPublishedPosts().slice(0, LATEST_COUNT);
   return (
     <>
       <JsonLd data={webSite()} />
@@ -61,7 +62,7 @@ export default async function HomePage() {
             <TextLink href="/posts">所有文章</TextLink>
           </span>
         </div>
-        <PostGrid posts={latest} />
+        <PostGrid posts={latest} seriesOf={(slug) => content.getPostSeries(slug)?.series} />
       </section>
     </>
   );

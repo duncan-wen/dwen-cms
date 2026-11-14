@@ -953,6 +953,28 @@ test("a Post in no Series shows no Series contents or neighbours", async ({ page
   await expect(page.getByRole("navigation", { name: "系列導覽" })).toHaveCount(0);
 });
 
+for (const path of ["/", "/posts", "/tags/smoke"]) {
+  test(`cards on ${path} carry 「系列：<title>」 for Posts in a shown Series, and nothing for other Posts`, async ({
+    page,
+  }) => {
+    await page.goto(path);
+    const main = page.getByRole("main");
+    const card = (title: string) =>
+      main.locator("li").filter({ has: page.getByRole("link", { name: title, exact: true }) });
+
+    const label = card("改過的煙霧測試文章").getByRole("link", { name: "系列：煙霧測試系列" });
+    await expect(label).toHaveAttribute("href", "/series/smoke-series");
+    await expect(card("煙霧測試文章").getByText("系列：")).toHaveCount(0);
+    // The home page shows only the newest Posts, which leave out the older one in the Series.
+    if (path !== "/") {
+      await expect(card("去年的煙霧測試文章").getByRole("link", { name: "系列：煙霧測試系列" })).toHaveAttribute(
+        "href",
+        "/series/smoke-series",
+      );
+    }
+  });
+}
+
 test("an unknown Series answers 404", async ({ request }) => {
   const response = await request.get("/series/no-such-series");
 

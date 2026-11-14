@@ -1,16 +1,21 @@
-import type { Post } from "@/content/content";
+import type { Post, Series } from "@/content/content";
 import { groupPostsByYear } from "@/content/posts-by-year";
 import { isoDate, monthDay } from "@/format-date";
 import { PostRow } from "./post-row";
+import { SeriesLabel } from "./series-label";
 import { TagList } from "./tag-list";
 
-type Props = { posts: Post[] };
+type Props = {
+  posts: Post[];
+  /** A Post's shown Series by its Slug, as `getPostSeries` gives it, for its 「系列：<title>」. */
+  seriesOf: (slug: string) => Series | undefined;
+};
 
 /**
  * Posts grouped under year headings (h2), in the order given. Each is a PostRow
- * led by its `MM-DD` date, its Tags under the description.
+ * led by its `MM-DD` date, its Series label and Tags under the description.
  */
-export function PostList({ posts }: Props) {
+export function PostList({ posts, seriesOf }: Props) {
   return (
     <div className="space-y-12">
       {groupPostsByYear(posts).map(({ year, posts }) => (
@@ -31,7 +36,12 @@ export function PostList({ posts }: Props) {
                       {monthDay(post.date)}
                     </time>
                   }
-                  footer={<TagList tags={post.tags} />}
+                  footer={
+                    <>
+                      <SeriesLabel series={seriesOf(post.slug)} />
+                      <TagList tags={post.tags} />
+                    </>
+                  }
                 />
               </li>
             ))}
