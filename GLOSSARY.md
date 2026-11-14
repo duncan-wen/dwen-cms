@@ -38,6 +38,10 @@ _Avoid_: 主題, subject, idea
 A lowercase English label from the approved tag list; a Post has one or more. Shown to readers as 「標籤」, and only once at least one Post carries it.
 _Avoid_: Category, label, 主題, 分類
 
+**Series**:
+An ordered group of Posts, meant to be read first to last, named in `content/series.yml`; a Post joins one with `series: <id>` and belongs to at most one, its place following its date. Unlike a Tag it has an order, and it is shown only once at least 2 of its Posts are Published. Shown to readers as 「系列」.
+_Avoid_: Collection, course, 連載, 合集
+
 **Page**:
 Standalone undated content outside listings, such as the About page.
 _Avoid_: Static page
