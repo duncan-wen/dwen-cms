@@ -1,7 +1,7 @@
 import Link from "next/link";
-import type { Post, SeriesPlace } from "@/content/content";
+import type { Post, PostInSeries } from "@/content/content";
 
-type Props = { place: SeriesPlace };
+type Props = { inSeries: PostInSeries };
 
 type NeighbourProps = { post: Post; label: "上一篇" | "下一篇"; className?: string };
 
@@ -22,7 +22,7 @@ function Neighbour({ post, label, className = "" }: NeighbourProps) {
  * The Posts around this one in its Series, after the body: 「上一篇」 on the left, 「下一篇」
  * on the right, just one of them on the first or last Post.
  */
-export function SeriesNeighbours({ place: { previous, next } }: Props) {
+export function SeriesNeighbours({ inSeries: { previous, next } }: Props) {
   return (
     <nav aria-label="系列導覽" className="mt-14 grid gap-4 sm:grid-cols-2">
       {previous && <Neighbour post={previous} label="上一篇" />}

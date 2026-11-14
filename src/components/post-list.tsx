@@ -7,7 +7,7 @@ import { TagList } from "./tag-list";
 
 type Props = {
   posts: Post[];
-  /** A Post's shown Series by its Slug, as `getPostSeries` gives it, for its 「系列：<title>」. */
+  /** A Post's shown Series by its Slug, as `getSeriesOfPost` gives it, for its 「系列：<title>」. */
   seriesOf: (slug: string) => Series | undefined;
 };
 

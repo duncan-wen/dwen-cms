@@ -178,8 +178,10 @@ export type Content = {
   getSeries(id: string): Series | undefined;
   /** Every shown Series, in id order. */
   listSeries(): Series[];
-  /** The Post's place in its Series; undefined for a Post in no shown Series, or an unknown Slug. */
-  getPostSeries(slug: string): SeriesPlace | undefined;
+  /** The Post's shown Series and its neighbours there; undefined for a Post in no shown Series, or an unknown Slug. */
+  getPostSeries(slug: string): PostInSeries | undefined;
+  /** The Post's shown Series alone; undefined as for getPostSeries. Safe to pass on unbound. */
+  getSeriesOfPost(slug: string): Series | undefined;
   /** The Page in `pages/<name>/index.mdx`; undefined when there is none. */
   getPage(name: string): Page | undefined;
   /** Every Page, in name order. */
@@ -214,8 +216,8 @@ export type TagCount = { tag: string; count: number };
  */
 export type Series = { id: string; title: string; description: string; posts: Post[] };
 
-/** A Post's place in its shown Series: the Series, and the Posts just before and after it. */
-export type SeriesPlace = { series: Series; previous: Post | undefined; next: Post | undefined };
+/** A Post in its shown Series: the Series, and the Posts just before and after it. */
+export type PostInSeries = { series: Series; previous: Post | undefined; next: Post | undefined };
 
 export type ContentProblem = {
   /** Path relative to the content directory, with forward slashes. */
@@ -307,7 +309,7 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
   const takenDownSlugs = await loadTakenDownSlugs(contentDir, problems);
   const seriesList = await loadSeriesList(contentDir, problems);
   /** Each Post's Series id, by Slug. */
-  const seriesOf = new Map<string, string>();
+  const seriesIdOf = new Map<string, string>();
   const pages = await loadPages(contentDir, problems);
 
   for (const slug of slugs) {
@@ -330,7 +332,7 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
     const tags = checkTags(data.tags, approvedTags, report);
     const previousSlugs = checkPreviousSlugs(data.previousSlugs, takenDownSlugs, report);
     const seriesId = checkSeries(data.series, seriesList, report);
-    if (seriesId !== undefined) seriesOf.set(slug, seriesId);
+    if (seriesId !== undefined) seriesIdOf.set(slug, seriesId);
     const latestRevision = checkRevisions(data.revisions, date, report);
     const postDir = path.join(postsDir, slug);
     const cover = await checkCover(data.cover, postDir, report);
@@ -364,7 +366,7 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
   }
 
   checkPreviousSlugClaims(slugs, posts, problems);
-  checkSeriesDates(posts, seriesOf, problems);
+  checkSeriesDates(posts, seriesIdOf, problems);
 
   if (problems.length > 0) throw new ContentValidationError(problems);
 
@@ -385,10 +387,14 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
   const shownSeries = new Map<string, Series>();
   for (const [id, entry] of seriesList ?? []) {
     const seriesPosts = posts
-      .filter((post) => seriesOf.get(post.slug) === id)
+      .filter((post) => seriesIdOf.get(post.slug) === id)
       .sort((a, b) => a.date.localeCompare(b.date));
     if (seriesPosts.length >= 2) shownSeries.set(id, { id, ...entry, posts: seriesPosts });
   }
+  const seriesOfPost = (slug: string) => {
+    const id = seriesIdOf.get(slug);
+    return id === undefined ? undefined : shownSeries.get(id);
+  };
 
   return {
     listPublishedPosts() {
@@ -417,12 +423,12 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
       return [...shownSeries.values()].sort((a, b) => a.id.localeCompare(b.id));
     },
     getPostSeries(slug) {
-      const id = seriesOf.get(slug);
-      const series = id === undefined ? undefined : shownSeries.get(id);
+      const series = seriesOfPost(slug);
       if (series === undefined) return undefined;
       const index = series.posts.findIndex((post) => post.slug === slug);
       return { series, previous: series.posts[index - 1], next: series.posts[index + 1] };
     },
+    getSeriesOfPost: seriesOfPost,
     getPage(name) {
       return pages.get(name);
     },
@@ -910,10 +916,10 @@ function checkPreviousSlugClaims(
  * A Series orders its Posts by date, so no two of its Posts may share one. Posts are
  * checked in Slug order, so of two Posts sharing a date, the one later in Slug order is reported.
  */
-function checkSeriesDates(posts: Post[], seriesOf: Map<string, string>, problems: ContentProblem[]) {
+function checkSeriesDates(posts: Post[], seriesIdOf: Map<string, string>, problems: ContentProblem[]) {
   const firstOn = new Map<string, string>();
   for (const post of [...posts].sort((a, b) => a.slug.localeCompare(b.slug))) {
-    const id = seriesOf.get(post.slug);
+    const id = seriesIdOf.get(post.slug);
     if (id === undefined || post.date === "") continue;
     const key = `${id} ${post.date}`;
     const other = firstOn.get(key);

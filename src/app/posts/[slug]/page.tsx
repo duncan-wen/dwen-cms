@@ -78,11 +78,11 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
-  const seriesPlace = (await getContent()).getPostSeries(post.slug);
+  const inSeries = (await getContent()).getPostSeries(post.slug);
   const { Body, headings } = await compileMdx(post.body, bodyImageSources(post), slideDeckSource(post));
   return (
     <article>
-      <JsonLd data={blogPosting(post, seriesPlace?.series)} />
+      <JsonLd data={blogPosting(post, inSeries?.series)} />
       <PostCover post={post} sizes={bodyColumnSizes} preload className="aspect-[21/9] rounded-md" />
       {/* The table of contents hangs off the column's right edge, so the column never moves. */}
       <div className="relative">
@@ -100,12 +100,12 @@ export default async function PostPage({ params }: Props) {
               ：{revision.note}
             </p>
           )}
-          {seriesPlace && <SeriesContents series={seriesPlace.series} slug={post.slug} />}
+          {inSeries && <SeriesContents series={inSeries.series} slug={post.slug} />}
         </PageHeading>
         <div className="prose prose-site max-w-none prose-h2:scroll-mt-6">
           <Body />
         </div>
-        {seriesPlace && <SeriesNeighbours place={seriesPlace} />}
+        {inSeries && <SeriesNeighbours inSeries={inSeries} />}
         <FeedbackBlock slug={post.slug} />
         <footer className="mt-14 flex items-center gap-3.5 border-t border-rule pt-7">
           <Seal size="large" />

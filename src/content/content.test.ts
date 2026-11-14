@@ -444,7 +444,7 @@ describe("Series", () => {
     const series = content.getSeries("runs");
 
     expect(series).toMatchObject({ id: "runs", title: "三次實驗", description: "同一個實驗跑三次" });
-    expect(series?.posts.map((post) => post.slug)).toEqual(["first-run", "second-run", "third-run"]);
+    expect(series?.posts.map((post) => post.slug)).toEqual(["warm-up", "main-run", "follow-up"]);
   });
 
   it("gives a Post its Series and the Posts before and after it", async () => {
@@ -454,20 +454,29 @@ describe("Series", () => {
       return found && { id: found.series.id, previous: found.previous?.slug, next: found.next?.slug };
     };
 
-    expect(place("first-run")).toEqual({ id: "runs", previous: undefined, next: "second-run" });
-    expect(place("second-run")).toEqual({ id: "runs", previous: "first-run", next: "third-run" });
-    expect(place("third-run")).toEqual({ id: "runs", previous: "second-run", next: undefined });
+    expect(place("warm-up")).toEqual({ id: "runs", previous: undefined, next: "main-run" });
+    expect(place("main-run")).toEqual({ id: "runs", previous: "warm-up", next: "follow-up" });
+    expect(place("follow-up")).toEqual({ id: "runs", previous: "main-run", next: undefined });
     expect(place("plain")).toBeUndefined();
     expect(place("no-such-post")).toBeUndefined();
   });
 
+  it("gives a Post's shown Series alone, for its label in a list", async () => {
+    const content = await loadContent(fixture("series"));
+    const { getSeriesOfPost } = content;
+
+    expect(getSeriesOfPost("main-run")?.id).toBe("runs");
+    expect(getSeriesOfPost("plain")).toBeUndefined();
+  });
+
   it("counts a Series as absent while only 1 of its Posts is Published", async () => {
-    // `solo` has one Published Post; its other Post is taken down (in taken-down.yml) or a
-    // Draft (on a branch, so not in the content directory), and neither counts.
+    // `solo` has one Published Post. Its other Post, taken down (`removed-solo` in taken-down.yml,
+    // so it has no folder) or a Draft (on a branch), never reaches loadContent: one Post is all it has.
     const content = await loadContent(fixture("series"));
 
     expect(content.getSeries("solo")).toBeUndefined();
     expect(content.getPostSeries("lonely")).toBeUndefined();
+    expect(content.getSeriesOfPost("lonely")).toBeUndefined();
     expect(content.listSeries().map((series) => series.id)).toEqual(["runs"]);
   });
 

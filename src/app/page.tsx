@@ -62,7 +62,7 @@ export default async function HomePage() {
             <TextLink href="/posts">所有文章</TextLink>
           </span>
         </div>
-        <PostGrid posts={latest} seriesOf={(slug) => content.getPostSeries(slug)?.series} />
+        <PostGrid posts={latest} seriesOf={content.getSeriesOfPost} />
       </section>
     </>
   );

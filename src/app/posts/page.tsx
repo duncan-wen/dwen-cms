@@ -17,7 +17,7 @@ export default async function PostsPage() {
   return (
     <>
       <PageHeading title="文章" summary={`共 ${posts.length} 篇，由新到舊。`} />
-      <PostList posts={posts} seriesOf={(slug) => content.getPostSeries(slug)?.series} />
+      <PostList posts={posts} seriesOf={content.getSeriesOfPost} />
     </>
   );
 }
