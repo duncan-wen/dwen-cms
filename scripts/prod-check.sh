@@ -17,8 +17,9 @@ if [ "${1:-}" = "--pr" ]; then
   gh pr checks "$pr" --watch --fail-fast || exit 1
   pr_state=""
   for _ in $(seq 1 40); do
-    pr_state=$(gh pr view "$pr" --json state --jq .state)
-    [ "$pr_state" = "OPEN" ] || break
+    # A call that fails leaves this empty: that's a retry, not an answer.
+    pr_state=$(gh pr view "$pr" --json state --jq .state) || pr_state=""
+    [ "$pr_state" = "MERGED" ] || [ "$pr_state" = "CLOSED" ] && break
     sleep 15
   done
   echo "PR #$pr: $pr_state"
