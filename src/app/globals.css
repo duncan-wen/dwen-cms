@@ -113,6 +113,13 @@
   --scene-book: color-mix(in oklab, var(--code-string) 55%, var(--paper));
 }
 
+/* The Backdrop's line colour at each strength (src/backdrop/backdrop.ts), mixed from the tokens so it follows both themes. */
+:root {
+  --backdrop-faint: var(--rule);
+  --backdrop-medium: color-mix(in oklab, var(--ink-soft) 40%, var(--rule));
+  --backdrop-accent: color-mix(in oklab, var(--accent) 45%, var(--rule));
+}
+
 /* dark: follows the same rule as the tokens, not just the system preference. */
 @custom-variant dark {
   &:where([data-theme="dark"], [data-theme="dark"] *) {
@@ -211,6 +218,43 @@
 :root:has(dialog[open]),
 :root:has([data-covering-page]) {
   overflow: hidden;
+}
+
+/*
+ * The Backdrop (src/components/backdrop.tsx). Below 1024px the reading column leaves no margin
+ * to speak of, so the lines sit at the top of the page, fading out within 260px, and scroll away
+ * with it. From 1024px they are fixed to the window: at full strength in the margins, fading out
+ * before the reading column (672px with its gutters) and absent behind it. The component moves
+ * the lines only where they are fixed.
+ */
+.backdrop {
+  position: absolute;
+  mask-image: linear-gradient(to bottom, black, transparent 260px);
+}
+
+.backdrop[data-strength="faint"] {
+  color: var(--backdrop-faint);
+}
+
+.backdrop[data-strength="medium"] {
+  color: var(--backdrop-medium);
+}
+
+.backdrop[data-strength="accent"] {
+  color: var(--backdrop-accent);
+}
+
+@media (min-width: 1024px) {
+  .backdrop {
+    position: fixed;
+    mask-image: linear-gradient(
+      to right,
+      black calc(50% - 440px),
+      transparent calc(50% - 336px),
+      transparent calc(50% + 336px),
+      black calc(50% + 440px)
+    );
+  }
 }
 
 /* Mermaid diagrams (src/mdx/mermaid.tsx) take their colours from the tokens; their text is the sans face. */

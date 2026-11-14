@@ -232,6 +232,100 @@ test.describe("an Animation in a Post", () => {
   });
 });
 
+test.describe("the Backdrop", () => {
+  const backdrop = (page: Page) => page.locator("svg.backdrop");
+  const lines = (page: Page) =>
+    backdrop(page).evaluate((svg) => [...svg.querySelectorAll("path")].map((path) => path.getAttribute("d")).join(""));
+  /** Scrolls down, then waits long enough for eased lines to have moved. */
+  async function scrollAndWait(page: Page) {
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await page.waitForTimeout(600);
+  }
+
+  test("is behind the home page, a Post and the not-found page, hidden from screen readers", async ({ page }) => {
+    for (const path of ["/", "/posts/smoke-post", "/no-such-page"]) {
+      await page.goto(path);
+
+      await expect(backdrop(page)).toHaveCount(1);
+      await expect(backdrop(page)).toHaveAttribute("aria-hidden", "true");
+      await expect(backdrop(page).locator("path")).toHaveCount(22);
+      await expect(backdrop(page)).toHaveCSS("pointer-events", "none");
+    }
+  });
+
+  test("is in the page's HTML, so it shows before any script runs", async ({ request }) => {
+    const html = await (await request.get("/posts/smoke-post")).text();
+
+    expect(html).toMatch(/<svg[^>]*class="backdrop[^>]*>.*?<path d="M/);
+  });
+
+  test("gives each Post its own lines, and every other page the same ones", async ({ page }) => {
+    const linesOf: Record<string, string> = {};
+    for (const path of ["/", "/tags", "/posts/smoke-post", "/posts/typography-sample"]) {
+      await page.goto(path);
+      linesOf[path] = await lines(page);
+    }
+
+    expect(linesOf["/"]).toBe(linesOf["/tags"]);
+    expect(linesOf["/posts/smoke-post"]).not.toBe(linesOf["/"]);
+    expect(linesOf["/posts/smoke-post"]).not.toBe(linesOf["/posts/typography-sample"]);
+  });
+
+  test("shows no line behind the reading column on a desktop", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/posts/typography-sample");
+
+    const mask = await backdrop(page).evaluate((svg) => getComputedStyle(svg).maskImage);
+    // Transparent from 336px left of centre to 336px right of it: the 672px column with its gutters.
+    expect(mask).toContain("rgba(0, 0, 0, 0) calc(50% - 336px), rgba(0, 0, 0, 0) calc(50% + 336px)");
+  });
+
+  test("follows the scroll position on a desktop, then rests", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/posts/typography-sample");
+    const atTop = await lines(page);
+
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await expect.poll(() => lines(page)).not.toBe(atTop);
+    // Once the lines catch up with the page, nothing more is drawn.
+    await page.waitForTimeout(2500);
+    const settled = await lines(page);
+    await page.waitForTimeout(500);
+    expect(await lines(page)).toBe(settled);
+  });
+
+  test("stays still for a Reader who asked for reduced motion", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/posts/typography-sample");
+    const atTop = await lines(page);
+
+    await scrollAndWait(page);
+    expect(await lines(page)).toBe(atTop);
+  });
+
+  test("on a phone stays still at the top of the page, and scrolls away with it", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto("/posts/typography-sample");
+    const atTop = await lines(page);
+    // Its lines fade out within 260px of the top of the page.
+    expect(await backdrop(page).evaluate((svg) => getComputedStyle(svg).maskImage)).toContain("rgba(0, 0, 0, 0) 260px");
+
+    await scrollAndWait(page);
+    expect(await lines(page)).toBe(atTop);
+    // It left the screen with the top of the page, so no line sits behind the text being read.
+    expect((await backdrop(page).boundingBox())!.y).toBe(-600);
+  });
+
+  test("is not on a Demo's own page", async ({ page }) => {
+    await page.goto("/demos/listener-player/index.html");
+
+    await expect(backdrop(page)).toHaveCount(0);
+  });
+});
+
 test.describe("a Demo", () => {
   const post = "/posts/demo-smoke-post";
   const demo = "/demos/listener-player/index.html";
