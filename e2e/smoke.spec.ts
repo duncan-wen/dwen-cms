@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 
@@ -1061,19 +1061,16 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
   expect(response.headers()["content-type"]).toContain("application/rss+xml");
   const xml = await response.text();
   const items = [...xml.matchAll(/<item>[\s\S]*?<\/item>/g)].map((m) => paths(m[0], "link")[0]);
-  // Every e2e Post is Published, so the feed lists each folder once, whatever Posts are added.
-  const folders = readdirSync(join(import.meta.dirname, "content", "posts"), { withFileTypes: true }).filter((entry) =>
-    entry.isDirectory(),
-  );
+  // e2e/content has no taken-down folders, so every Post folder is Published and in the feed,
+  // whatever Posts are added; each item's date is no later than the one before it.
+  const postsDir = join(import.meta.dirname, "content", "posts");
+  const folders = readdirSync(postsDir, { withFileTypes: true }).filter((entry) => entry.isDirectory());
   expect([...items].sort()).toEqual(folders.map((entry) => `/posts/${entry.name}`).sort());
-  // Posts dated apart, newest first.
-  const datedApart = [
-    "/posts/smoke-post",
-    "/posts/revised-smoke-post",
-    "/posts/typography-sample",
-    "/posts/last-year-smoke-post",
-  ];
-  expect(items.filter((item) => datedApart.includes(item))).toEqual(datedApart);
+  const dates = items.map((item) => {
+    const source = readFileSync(join(postsDir, item.replace("/posts/", ""), "index.mdx"), "utf8");
+    return /^date: (\S+)$/m.exec(source)![1];
+  });
+  expect(dates).toEqual([...dates].sort().reverse());
   expect(xml).toContain("煙霧測試文章");
   expect(xml).not.toContain("/about");
 });

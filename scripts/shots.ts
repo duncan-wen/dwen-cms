@@ -97,21 +97,40 @@ for (const path of paths) {
       await page.evaluate(() => document.fonts.ready);
       // A full-page shot never scrolls, so lazy images and frames (a Demo) below the fold would stay
       // blank: load them all now and wait until each image has decoded and each frame has loaded.
-      await page.evaluate(async () => {
+      const unloadedFrames = await page.evaluate(async () => {
         const images = [...document.images];
         for (const image of images) image.loading = "eager";
-        const frames = [...document.querySelectorAll("iframe")].filter((frame) => frame.loading === "lazy");
-        const loaded = frames.map(
-          (frame) => new Promise((resolve) => (frame.addEventListener("load", resolve), setTimeout(resolve, 5_000))),
-        );
+        const frames = [...document.querySelectorAll("iframe")];
+        // Inline, not a named helper: tsx wraps named functions in a `__name` the page doesn't have.
+        const loaded = frames
+          .filter((frame) => frame.contentDocument?.readyState !== "complete")
+          .map(
+            (frame) => new Promise((resolve) => (frame.addEventListener("load", resolve), setTimeout(resolve, 10_000))),
+          );
         for (const frame of frames) frame.loading = "eager";
         await Promise.all([...images.map((image) => image.decode().catch(() => undefined)), ...loaded]);
+        return frames
+          .filter((frame) => frame.contentDocument?.readyState !== "complete")
+          .map((frame) => frame.getAttribute("src"));
       });
+      for (const src of unloadedFrames)
+        overflowing.push(`${path} (${theme}, ${width}px): the frame ${src} didn't load`);
       const name = `${fileName(path)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
       await page.screenshot({ path: file, fullPage: !dialogOpen });
       const scrolls = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
       if (scrolls) overflowing.push(`${path} (${theme}, ${width}px): the page scrolls horizontally`);
+      // A Demo is its own page in a frame: it mustn't scroll sideways inside the frame either.
+      const scrollingFrames = await page.evaluate(() =>
+        [...document.querySelectorAll("iframe")]
+          .filter((frame) => {
+            const root = frame.contentDocument?.documentElement;
+            return root !== undefined && root.scrollWidth > root.clientWidth + 1;
+          })
+          .map((frame) => frame.getAttribute("src")),
+      );
+      for (const src of scrollingFrames)
+        overflowing.push(`${path} (${theme}, ${width}px): the frame ${src} scrolls horizontally`);
       // A box that clips its content shows it cut off in a screenshot: sideways (only code blocks may scroll),
       // or downwards (an animation's frame cuts off what doesn't fit).
       const clipped = await page.evaluate(
@@ -135,7 +154,7 @@ for (const path of paths) {
         dialogOpen,
       );
       for (const box of clipped) overflowing.push(`${path} (${theme}, ${width}px): ${box} clips its content`);
-      const flagged = scrolls || clipped.length > 0;
+      const flagged = scrolls || clipped.length > 0 || scrollingFrames.length > 0 || unloadedFrames.length > 0;
       console.log(`${response?.status()} ${file}${flagged ? "  ← overflows" : ""}`);
       for (const { kind, label: kindLabel, selector } of dialogOpen ? [] : elements) {
         const visible = await page.locator(selector).locator("visible=true").all();
