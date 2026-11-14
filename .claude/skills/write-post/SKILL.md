@@ -7,7 +7,7 @@ description: Write, revise or re-slug a Post in the Owner's voice and open it as
 
 You are a Writing Agent. You turn a Topic into a Draft: one Post on its own branch, opened as a draft PR that passes CI. The Owner's merge is what publishes it, so the PR is the whole deliverable. When the Owner asks for a new Post without a Topic, run `pick-post-topic` first.
 
-Terms (Post, Topic, Slug, Tag, Draft, Correction, Revision, Takedown, Cover, Promo image, Share, LinkedIn share, Threads share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
+Terms (Post, Topic, Slug, Tag, Series, Draft, Correction, Revision, Takedown, Cover, Promo image, Share, LinkedIn share, Threads share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
 
 Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CHANGING-A-POST.md](CHANGING-A-POST.md) instead of steps 2–5. Sharing an already Published Post on a platform it hasn't been shared on, when the Owner asks by name, is **Shares** alone, one Post at a time: write that platform's Share on the `share-<slug>` branch of its step 3, before posting.
 
@@ -26,12 +26,13 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
 7. **Make the promo images.** `pnpm promo <slug>` (run `pnpm exec playwright install chromium` once if it can't launch a browser). Read every PNG it writes to `promo/` and the contact sheet `promo/index.html`. Done when the title breaks where you meant, nothing overflows, and the points read as the Post's hook.
    Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`, and read the light and dark shots at both widths. It also crops each Illustration, Diagram and Demo on its own (`…-illustration-<n>-…png`, `…-diagram-<n>-…png`, `…-demo-<n>-…png`), shown under the page on the contact sheet: read those for labels and colours. Done when the command passes (it fails on anything cut off or scrolling sideways) and every diagram, Illustration, Demo and image reads well in both themes.
 8. **Write the Shares**: `content/posts/<slug>/linkedin.txt` and `threads.txt` (**Shares**). Done when `pnpm content:check` passes and both lead with the same hook as the title.
-9. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
+9. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag, and `content/series.yml` when proposing a Series). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
    - one paragraph on what the Post says and who it's for;
    - the voice mode you chose;
    - the cover: the candidate you chose and why its style and scene fit the Post, with every candidate's style, seed and prompt (the Owner can say 「換第 2 張」); or 「Fooocus 沒開，封面待補」 under 「請 Owner 確認」;
    - the LinkedIn share's and the Threads share's texts, each quoted, so the Owner reviews them with the Post;
    - any new Tag and the reason it's needed;
+   - the Series the Post joins or the new one it proposes, if any, and why the Post continues it, under 「請 Owner 確認」 for the Owner to keep or drop;
    - every personal detail you couldn't verify, under 「請 Owner 確認」;
    - a Slide deck's place in the Post and every slide's title and text, under 「請 Owner 確認」 ([SLIDE-DECKS.md](SLIDE-DECKS.md) step 6);
    - the cover candidates, promo images and page shots: `covers/`, `promo/` and `test-results/` are gitignored and `gh` can't upload images, so list the files and give the Owner `explorer.exe covers/<slug>.html`, `explorer.exe promo/index.html` and `explorer.exe test-results/shots/index.html` to open the contact sheets.
@@ -93,6 +94,7 @@ title: 讓 AI 寫部落格，也有工程流程   # required, Traditional Chines
 description: 一句話說出這篇文章給讀者什麼。   # required; shown in listings, meta and OG images
 date: 2026-11-01                     # required, YYYY-MM-DD: the day you write it
 tags: [meta]                         # one or more, each in content/tags.yml
+series: <id>                         # optional, one id from content/series.yml; see Series
 cover: cover.jpg                     # the cover image you drew (see Cover image); without it the generated cover shows
 promo: { … }                         # optional; see Promo images
 ---
@@ -105,6 +107,8 @@ promo: { … }                         # optional; see Promo images
 The body starts with prose (the page shows the title), uses `##` and `###` for sections, and fences code with its language (```` ```ts ````, ```` ```bash ````) so it is highlighted. `<Callout title="注意">…</Callout>` boxes a tip or warning, with blank lines inside it around the Markdown. `e2e/content/posts/typography-sample/index.mdx` shows every body element.
 
 **Tags.** Pick one to three from `content/tags.yml`, lowercase English kebab-case, none repeated; each entry's comment says what it covers. An approved Tag that means the same thing is the one to use, whatever the spelling you had in mind: singular or plural, synonym, abbreviation, Chinese or English (`ai-agents` covers "AI agent", "agent", 智能體). Only a topic no entry's comment covers earns a new Tag: add it to `content/tags.yml` under the right group with its own comment, in the same PR, and give the reason in the PR body; the Owner approves it by merging. Propose the broadest Tag that fits (`ai-agents`, not `claude-code-skills`), so the list stays small.
+
+**Series.** Read `content/series.yml` while drafting: each entry's title and description say what its Posts share. When the Topic continues a Series (the same experiment in another language, the next part of what its Posts started), add `series: <id>`. When the Topic opens a set of Posts meant to be read in order and no Series fits, propose one: add it to `content/series.yml` in the same PR, with a lowercase English kebab-case id, a Traditional Chinese `title` and a one-line `description`, and give the Post `series: <id>`. The site shows a Series once 2 of its Posts are Published, so until a second Post joins, the new Series shows nowhere and the Post reads as any other.
 
 **Experiments.** A mode 1 Post whose result comes from calling a model (an eval, a model comparison, a prompt test) uses DeepSeek: load `DEEPSEEK_API_KEY` from `~/projects/kai/.env` into the environment without printing it, call the OpenAI-compatible `https://api.deepseek.com/chat/completions` with model `deepseek-v4-flash`, and pass `tool_choice: "auto"` (its thinking mode rejects `"required"`). The shell's `GEMINI_API_KEY` has no quota and answers 402. Keep the script and its data in the scratchpad; every number in the Post is the script's real output, and the PR body says under 「請 Owner 確認」 that the Writing Agent ran it.
 

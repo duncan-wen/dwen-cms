@@ -437,6 +437,107 @@ describe("querying by Tag", () => {
   });
 });
 
+describe("Series", () => {
+  it("gives a Series its title, description and Published Posts, oldest first", async () => {
+    const content = await loadContent(fixture("series"));
+
+    const series = content.getSeries("runs");
+
+    expect(series).toMatchObject({ id: "runs", title: "三次實驗", description: "同一個實驗跑三次" });
+    expect(series?.posts.map((post) => post.slug)).toEqual(["warm-up", "main-run", "follow-up"]);
+  });
+
+  it("gives a Post its Series and the Posts before and after it", async () => {
+    const content = await loadContent(fixture("series"));
+    const place = (slug: string) => {
+      const found = content.getPostSeries(slug);
+      return found && { id: found.series.id, previous: found.previous?.slug, next: found.next?.slug };
+    };
+
+    expect(place("warm-up")).toEqual({ id: "runs", previous: undefined, next: "main-run" });
+    expect(place("main-run")).toEqual({ id: "runs", previous: "warm-up", next: "follow-up" });
+    expect(place("follow-up")).toEqual({ id: "runs", previous: "main-run", next: undefined });
+    expect(place("plain")).toBeUndefined();
+    expect(place("no-such-post")).toBeUndefined();
+  });
+
+  it("gives a Post's shown Series alone, for its label in a list", async () => {
+    const content = await loadContent(fixture("series"));
+    const { getSeriesOfPost } = content;
+
+    expect(getSeriesOfPost("main-run")?.id).toBe("runs");
+    expect(getSeriesOfPost("plain")).toBeUndefined();
+  });
+
+  it("counts a Series as absent while only 1 of its Posts is Published", async () => {
+    // `solo` has one Published Post. Its other Post, taken down (`removed-solo` in taken-down.yml,
+    // so it has no folder) or a Draft (on a branch), never reaches loadContent: one Post is all it has.
+    const content = await loadContent(fixture("series"));
+
+    expect(content.getSeries("solo")).toBeUndefined();
+    expect(content.getPostSeries("lonely")).toBeUndefined();
+    expect(content.getSeriesOfPost("lonely")).toBeUndefined();
+    expect(content.listSeries().map((series) => series.id)).toEqual(["runs"]);
+  });
+
+  it("counts an unused or unknown Series id as absent", async () => {
+    const content = await loadContent(fixture("series"));
+
+    expect(content.getSeries("unused")).toBeUndefined();
+    expect(content.getSeries("no-such-series")).toBeUndefined();
+  });
+});
+
+describe("validating Series", () => {
+  it("rejects a Post naming a Series that isn't in the Series list", async () => {
+    const error = await loadContent(fixture("series-unknown")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/typo-post/index.mdx", field: "series", rule: "series-unknown" }],
+    });
+    expect((error as Error).message).toContain('"rnus"');
+    expect((error as Error).message).toContain("series.yml");
+  });
+
+  it("rejects a `series` that is a list, a number or empty", async () => {
+    await expect(loadContent(fixture("series-not-string"))).rejects.toMatchObject({
+      problems: [
+        { file: "posts/empty-series/index.mdx", field: "series", rule: "series-not-string" },
+        { file: "posts/list-series/index.mdx", field: "series", rule: "series-not-string" },
+        { file: "posts/number-series/index.mdx", field: "series", rule: "series-not-string" },
+      ],
+    });
+  });
+
+  it("rejects two Posts in one Series sharing a date, naming the other Post", async () => {
+    const error = await loadContent(fixture("series-same-date")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/beta-run/index.mdx", field: "series", rule: "series-same-date" }],
+    });
+    expect((error as Error).message).toContain("posts/alpha-run/index.mdx");
+  });
+
+  it.each([
+    ["series-file-yaml", ["file"]],
+    ["series-file-not-a-mapping", ["file"]],
+    [
+      "series-file",
+      [
+        "Concurrency_Models",
+        "no-title.title",
+        "no-description.description",
+        "not-a-mapping.title",
+        "not-a-mapping.description",
+      ],
+    ],
+  ])("rejects a Series list in fixture %s: fields %j break series-file", async (fixtureName, fields) => {
+    await expect(loadContent(fixture(fixtureName))).rejects.toMatchObject({
+      problems: fields.map((field) => ({ file: "series.yml", field, rule: "series-file" })),
+    });
+  });
+});
+
 describe("Pages", () => {
   it("gets a Page by its name", async () => {
     const content = await loadContent(fixture("pages"));

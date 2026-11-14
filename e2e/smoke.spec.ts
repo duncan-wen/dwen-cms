@@ -885,6 +885,102 @@ test("an unknown Tag answers 404", async ({ request }) => {
   expect(response.status()).toBe(404);
 });
 
+test("a Series page lists its title, description and Posts, oldest first", async ({ page }) => {
+  const response = await page.goto("/series/smoke-series");
+
+  expect(response?.status()).toBe(200);
+  await expect(page).toHaveTitle(/^煙霧測試系列｜/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", "兩篇按順序讀的煙霧測試文章");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("煙霧測試系列");
+  await expect(page.locator("main")).toContainText("兩篇按順序讀的煙霧測試文章");
+  const posts = page.locator("main ol > li");
+  await expect(posts.getByRole("heading", { level: 2 })).toHaveText(["去年的煙霧測試文章", "改過的煙霧測試文章"]);
+  await expect(posts.first().getByRole("link")).toHaveAttribute("href", "/posts/last-year-smoke-post");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    "https://dwen.example/series/smoke-series",
+  );
+});
+
+test("the first Post in a Series opens with the Series' contents, itself marked, and ends with 「下一篇」 only", async ({
+  page,
+}) => {
+  await page.goto("/posts/last-year-smoke-post");
+  const contents = page.getByRole("navigation", { name: "系列目錄" });
+
+  await expect(
+    page
+      .locator("header")
+      .filter({ has: page.locator("h1") })
+      .locator(":scope > *")
+      .last(),
+  ).toHaveAttribute("aria-label", "系列目錄");
+
+  await expect(contents.getByRole("link", { name: "煙霧測試系列" })).toHaveAttribute("href", "/series/smoke-series");
+  await expect(contents.locator("li")).toHaveText([/去年的煙霧測試文章/, /改過的煙霧測試文章/]);
+  await expect(contents.locator('[aria-current="page"]')).toHaveText("去年的煙霧測試文章");
+  await expect(contents.getByRole("link", { name: "改過的煙霧測試文章" })).toHaveAttribute(
+    "href",
+    "/posts/revised-smoke-post",
+  );
+  const neighbours = page.getByRole("navigation", { name: "系列導覽" });
+  await expect(neighbours.getByRole("link")).toHaveCount(1);
+  await expect(neighbours.getByRole("link", { name: /下一篇/ })).toHaveAttribute("href", "/posts/revised-smoke-post");
+});
+
+test("the last Post in a Series ends with 「上一篇」 only, before the Signature", async ({ page }) => {
+  await page.goto("/posts/revised-smoke-post");
+
+  await expect(page.getByRole("navigation", { name: "系列目錄" }).locator('[aria-current="page"]')).toHaveText(
+    "改過的煙霧測試文章",
+  );
+  const neighbours = page.getByRole("navigation", { name: "系列導覽" });
+  await expect(neighbours.getByRole("link")).toHaveCount(1);
+  await expect(neighbours.getByRole("link", { name: /上一篇/ })).toHaveAttribute("href", "/posts/last-year-smoke-post");
+  const order = await page.evaluate(() => {
+    const article = document.querySelector("article")!;
+    const at = (selector: string) => [...article.querySelectorAll("*")].indexOf(article.querySelector(selector)!);
+    return [at(".prose"), at('nav[aria-label="系列導覽"]'), at("footer")];
+  });
+  expect(order.every((at) => at >= 0)).toBe(true);
+  expect(order).toEqual([...order].sort((a, b) => a - b));
+});
+
+test("a Post in no Series shows no Series contents or neighbours", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+
+  await expect(page.getByRole("navigation", { name: "系列目錄" })).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "系列導覽" })).toHaveCount(0);
+});
+
+for (const path of ["/", "/posts", "/tags/smoke"]) {
+  test(`cards on ${path} carry 「系列：<title>」 for Posts in a shown Series, and nothing for other Posts`, async ({
+    page,
+  }) => {
+    await page.goto(path);
+    const main = page.getByRole("main");
+    const card = (title: string) =>
+      main.locator("li").filter({ has: page.getByRole("link", { name: title, exact: true }) });
+
+    const label = card("改過的煙霧測試文章").getByRole("link", { name: "系列：煙霧測試系列" });
+    await expect(label).toHaveAttribute("href", "/series/smoke-series");
+    await expect(card("煙霧測試文章").getByText("系列：")).toHaveCount(0);
+    // The home page shows only the newest Posts, which leave out the older one in the Series.
+    if (path !== "/") {
+      await expect(card("去年的煙霧測試文章").getByRole("link", { name: "系列：煙霧測試系列" })).toHaveAttribute(
+        "href",
+        "/series/smoke-series",
+      );
+    }
+  });
+}
+
+test("an unknown Series answers 404", async ({ request }) => {
+  const response = await request.get("/series/no-such-series");
+
+  expect(response.status()).toBe(404);
+});
+
 test("a previous Slug permanently redirects to the Post's current URL", async ({ request }) => {
   const response = await request.get("/posts/old-smoke-post", { maxRedirects: 0 });
 
@@ -1075,7 +1171,7 @@ test("the RSS feed answers as RSS and lists Published Posts newest first, and no
   expect(xml).not.toContain("/about");
 });
 
-test("the sitemap answers as XML and lists every Published Post, Page and Tag page, and no taken-down or previous Slugs", async ({
+test("the sitemap answers as XML and lists every Published Post, Page, Tag and Series page, and no taken-down or previous Slugs", async ({
   request,
 }) => {
   const response = await request.get("/sitemap.xml");
@@ -1093,6 +1189,7 @@ test("the sitemap answers as XML and lists every Published Post, Page and Tag pa
     "/about",
     "/tags",
     "/tags/smoke",
+    "/series/smoke-series",
   ]) {
     expect(locs, path).toContain(path);
   }
@@ -1152,6 +1249,18 @@ test("a revised Post's structured data is modified on its latest Revision's date
   const [posting] = await structuredData(page, "/posts/revised-smoke-post");
 
   expect(posting).toMatchObject({ datePublished: "2026-10-01", dateModified: "2026-10-15" });
+});
+
+test("each Post in a Series is part of the Series page in its structured data", async ({ page }) => {
+  for (const path of ["/posts/last-year-smoke-post", "/posts/revised-smoke-post"]) {
+    const [posting] = await structuredData(page, path);
+
+    expect(posting.isPartOf, path).toEqual({
+      "@type": "CreativeWorkSeries",
+      name: "煙霧測試系列",
+      url: "https://dwen.example/series/smoke-series",
+    });
+  }
 });
 
 test("a taken-down Slug carries no structured data", async ({ page }) => {

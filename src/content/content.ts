@@ -171,6 +171,17 @@ export type Content = {
    * first, ties in name order. Approved Tags no Post uses are left out.
    */
   listTagsWithCounts(): TagCount[];
+  /**
+   * A shown Series by its id, its Published Posts oldest first; undefined for an id not in
+   * `series.yml` or a Series with fewer than 2 Published Posts.
+   */
+  getSeries(id: string): Series | undefined;
+  /** Every shown Series, in id order. */
+  listSeries(): Series[];
+  /** The Post's shown Series and its neighbours there; undefined for a Post in no shown Series, or an unknown Slug. */
+  getPostSeries(slug: string): PostInSeries | undefined;
+  /** The Post's shown Series alone; undefined as for getPostSeries. Safe to pass on unbound. */
+  getSeriesOfPost(slug: string): Series | undefined;
   /** The Page in `pages/<name>/index.mdx`; undefined when there is none. */
   getPage(name: string): Page | undefined;
   /** Every Page, in name order. */
@@ -198,6 +209,15 @@ export type Content = {
 export type PostImageFile = { bytes: Uint8Array; type: string };
 
 export type TagCount = { tag: string; count: number };
+
+/**
+ * A Series shown to Readers: one in `series.yml` with at least 2 Published Posts,
+ * its Posts oldest first.
+ */
+export type Series = { id: string; title: string; description: string; posts: Post[] };
+
+/** A Post in its shown Series: the Series, and the Posts just before and after it. */
+export type PostInSeries = { series: Series; previous: Post | undefined; next: Post | undefined };
 
 export type ContentProblem = {
   /** Path relative to the content directory, with forward slashes. */
@@ -262,6 +282,9 @@ function isIllustration(file: string): boolean {
 /** The approved Tag list, relative to the content directory. */
 const TAGS_FILE = "tags.yml";
 
+/** The Series list, relative to the content directory; optional. */
+const SERIES_FILE = "series.yml";
+
 /** The taken-down Slug list, relative to the content directory; optional. */
 const TAKEN_DOWN_FILE = "taken-down.yml";
 
@@ -284,6 +307,9 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
   const posts: Post[] = [];
   const approvedTags = await loadApprovedTags(contentDir, problems);
   const takenDownSlugs = await loadTakenDownSlugs(contentDir, problems);
+  const seriesList = await loadSeriesList(contentDir, problems);
+  /** Each Post's Series id, by Slug. */
+  const seriesIdOf = new Map<string, string>();
   const pages = await loadPages(contentDir, problems);
 
   for (const slug of slugs) {
@@ -305,6 +331,8 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
     const date = checkDate(data.date, report);
     const tags = checkTags(data.tags, approvedTags, report);
     const previousSlugs = checkPreviousSlugs(data.previousSlugs, takenDownSlugs, report);
+    const seriesId = checkSeries(data.series, seriesList, report);
+    if (seriesId !== undefined) seriesIdOf.set(slug, seriesId);
     const latestRevision = checkRevisions(data.revisions, date, report);
     const postDir = path.join(postsDir, slug);
     const cover = await checkCover(data.cover, postDir, report);
@@ -338,6 +366,7 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
   }
 
   checkPreviousSlugClaims(slugs, posts, problems);
+  checkSeriesDates(posts, seriesIdOf, problems);
 
   if (problems.length > 0) throw new ContentValidationError(problems);
 
@@ -355,6 +384,17 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
   const tagCounts: TagCount[] = [...counts]
     .map(([tag, count]) => ({ tag, count }))
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+  const shownSeries = new Map<string, Series>();
+  for (const [id, entry] of seriesList ?? []) {
+    const seriesPosts = posts
+      .filter((post) => seriesIdOf.get(post.slug) === id)
+      .sort((a, b) => a.date.localeCompare(b.date));
+    if (seriesPosts.length >= 2) shownSeries.set(id, { id, ...entry, posts: seriesPosts });
+  }
+  const seriesOfPost = (slug: string) => {
+    const id = seriesIdOf.get(slug);
+    return id === undefined ? undefined : shownSeries.get(id);
+  };
 
   return {
     listPublishedPosts() {
@@ -376,6 +416,19 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
     listTagsWithCounts() {
       return [...tagCounts];
     },
+    getSeries(id) {
+      return shownSeries.get(id);
+    },
+    listSeries() {
+      return [...shownSeries.values()].sort((a, b) => a.id.localeCompare(b.id));
+    },
+    getPostSeries(slug) {
+      const series = seriesOfPost(slug);
+      if (series === undefined) return undefined;
+      const index = series.posts.findIndex((post) => post.slug === slug);
+      return { series, previous: series.posts[index - 1], next: series.posts[index + 1] };
+    },
+    getSeriesOfPost: seriesOfPost,
     getPage(name) {
       return pages.get(name);
     },
@@ -730,6 +783,48 @@ function loadApprovedTags(contentDir: string, problems: ContentProblem[]) {
   });
 }
 
+/** A Series as `series.yml` names it. */
+type SeriesEntry = { title: string; description: string };
+
+/**
+ * Reads the Series list, a map from kebab-case id to `{ title, description }`. The file is
+ * optional: without it there are no Series. Reports problems with the file under rule
+ * `series-file`, and returns undefined when the file can't be used, so Post `series` fields
+ * aren't checked against a broken list; a broken entry is left out.
+ */
+async function loadSeriesList(contentDir: string, problems: ContentProblem[]) {
+  const report: Report = (field, rule, message) => problems.push({ file: SERIES_FILE, field, rule, message });
+  const source = await readFile(path.join(contentDir, SERIES_FILE), "utf8").catch(() => undefined);
+  if (source === undefined) return new Map<string, SeriesEntry>();
+  let data: unknown;
+  try {
+    data = loadYaml(source, { schema: CORE_SCHEMA });
+  } catch (error) {
+    report("file", "series-file", (error as Error).message.split("\n")[0]);
+    return undefined;
+  }
+  if (!isMapping(data)) {
+    report("file", "series-file", "must be a YAML mapping from Series id to its title and description, e.g. concurrency: { title: …, description: … }");
+    return undefined;
+  }
+  const list = new Map<string, SeriesEntry>();
+  for (const [id, value] of Object.entries(data)) {
+    if (!KEBAB_CASE.test(id)) {
+      report(id, "series-file", `the Series id "${id}" must be lowercase English kebab-case`);
+      continue;
+    }
+    const entry = isMapping(value) ? value : {};
+    const title = requiredString(entry.title);
+    const description = requiredString(entry.description);
+    if (title === undefined) report(`${id}.title`, "series-file", `the Series "${id}" needs a title, a non-empty string`);
+    if (description === undefined) {
+      report(`${id}.description`, "series-file", `the Series "${id}" needs a description, a non-empty string`);
+    }
+    if (title !== undefined && description !== undefined) list.set(id, { title, description });
+  }
+  return list;
+}
+
 /**
  * Reads the taken-down Slug list. The file is optional: without it no
  * Slug is taken down.
@@ -817,6 +912,30 @@ function checkPreviousSlugClaims(
   }
 }
 
+/**
+ * A Series orders its Posts by date, so no two of its Posts may share one. Posts are
+ * checked in Slug order, so of two Posts sharing a date, the one later in Slug order is reported.
+ */
+function checkSeriesDates(posts: Post[], seriesIdOf: Map<string, string>, problems: ContentProblem[]) {
+  const firstOn = new Map<string, string>();
+  for (const post of [...posts].sort((a, b) => a.slug.localeCompare(b.slug))) {
+    const id = seriesIdOf.get(post.slug);
+    if (id === undefined || post.date === "") continue;
+    const key = `${id} ${post.date}`;
+    const other = firstOn.get(key);
+    if (other === undefined) {
+      firstOn.set(key, post.slug);
+      continue;
+    }
+    problems.push({
+      file: postFile(post.slug),
+      field: "series",
+      rule: "series-same-date",
+      message: `shares the date ${post.date} with ${postFile(other)} in the Series "${id}", so their order is undefined; give one of them another date`,
+    });
+  }
+}
+
 /** Records one problem with a frontmatter field of the file being checked. */
 type Report = (field: string, rule: string, message: string) => void;
 
@@ -870,6 +989,28 @@ function checkTags(value: unknown, approvedTags: Set<string> | undefined, report
     }
   }
   return tags;
+}
+
+/**
+ * The Post's `series`: optional, one id from the Series list. Unchecked against a broken list.
+ * Rules spanning Posts are checked later by checkSeriesDates.
+ */
+function checkSeries(value: unknown, seriesList: Map<string, SeriesEntry> | undefined, report: Report) {
+  if (value === undefined) return undefined;
+  const id = requiredString(value);
+  if (id === undefined) {
+    report("series", "series-not-string", "must be one Series id, e.g. series: concurrency");
+    return undefined;
+  }
+  if (seriesList && !seriesList.has(id)) {
+    report(
+      "series",
+      "series-unknown",
+      `"${id}" isn't in the Series list (${SERIES_FILE}); use a Series listed there, or add it there in the same PR`,
+    );
+    return undefined;
+  }
+  return id;
 }
 
 /**
@@ -1361,6 +1502,11 @@ function checkPromoEntries<Entry>(
     if (main !== undefined && !blankExtra) valid.push(build(main, extra));
   });
   return valid;
+}
+
+/** Whether a YAML value is a mapping (an object, not a list). */
+function isMapping(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function requiredString(value: unknown): string | undefined {

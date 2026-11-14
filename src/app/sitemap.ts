@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/site-url";
 
 /**
  * Every URL search engines should index: the listings, each Published Post, each
- * Page (served at `/<name>`) and each Tag page. Previous and taken-down Slugs are
+ * Page (served at `/<name>`), each Tag page and each shown Series page. Previous and taken-down Slugs are
  * left out, since they redirect or answer 410.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -21,5 +21,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...content.listPages().map((page) => ({ url: absoluteUrl(`/${page.name}`) })),
     { url: absoluteUrl("/tags") },
     ...content.listTagsWithCounts().map(({ tag }) => ({ url: absoluteUrl(`/tags/${tag}`) })),
+    ...content.listSeries().map(({ id }) => ({ url: absoluteUrl(`/series/${id}`) })),
   ];
 }

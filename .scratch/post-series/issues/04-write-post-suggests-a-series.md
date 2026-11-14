@@ -6,6 +6,6 @@
 
 **Status:** ready-for-agent
 
-- [ ] `write-post` tells the agent to read `content/series.yml` and add `series` when the Topic fits one
-- [ ] The PR body template names the suggested Series, so the Owner can keep or drop it
-- [ ] `write-post` says how to add a new Series in the same PR as its first Post
+- [x] `write-post` tells the agent to read `content/series.yml` and add `series` when the Topic fits one
+- [x] The PR body template names the suggested Series, so the Owner can keep or drop it
+- [x] `write-post` says how to add a new Series in the same PR as its first Post

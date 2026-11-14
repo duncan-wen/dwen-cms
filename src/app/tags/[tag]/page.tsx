@@ -16,15 +16,16 @@ export async function generateStaticParams() {
   return content.listTagsWithCounts().map(({ tag }) => ({ tag }));
 }
 
-async function findPosts(params: Props["params"]) {
+async function loadTag(params: Props["params"]) {
   const { tag } = await params;
-  const posts = (await getContent()).listPostsByTag(tag);
+  const content = await getContent();
+  const posts = content.listPostsByTag(tag);
   if (posts.length === 0) notFound();
-  return { tag, posts };
+  return { tag, posts, content };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { tag } = await findPosts(params);
+  const { tag } = await loadTag(params);
   return {
     title: `#${tag}`,
     description: `${OWNER_NAME} 標記為 #${tag} 的文章。`,
@@ -33,14 +34,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function TagPage({ params }: Props) {
-  const { tag, posts } = await findPosts(params);
+  const { tag, posts, content } = await loadTag(params);
   return (
     <>
       <PageHeading
         title={<span className="font-mono font-medium">#{tag}</span>}
         summary={`共 ${posts.length} 篇，由新到舊。`}
       />
-      <PostList posts={posts} />
+      <PostList posts={posts} seriesOf={content.getSeriesOfPost} />
       <p className="mt-12">
         <TextLink href="/tags">所有標籤</TextLink>
       </p>

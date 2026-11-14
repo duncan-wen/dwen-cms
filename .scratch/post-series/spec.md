@@ -69,3 +69,10 @@ The Owner agreed these decisions in chat on 2026-11-14 (grilling, three rounds, 
 - A Series' own RSS feed or OG image.
 - A Post in more than one Series.
 - Reader comments, which wait for this to ship (`.scratch/reader-comments/notes.md`).
+
+## Comments
+
+**Retro notes from ticket 01 (2026-11-14), for the retro after the last ticket:**
+
+- The spec asked for "the site's default OG image" on the Series page, but the site has none: only Posts draw an OG image. The Series page sets none, as Tag pages do. Lesson for grilling: check a fact like this against the code before writing it into a spec.
+- Code review found the Series page's rows copied the Post list's row. They now share `PostRow`, which is listed in `CODING_STANDARDS.md`. The reviewer caught it, so no new rule is needed.

@@ -12,11 +12,12 @@ export const metadata: Metadata = {
 };
 
 export default async function PostsPage() {
-  const posts = (await getContent()).listPublishedPosts();
+  const content = await getContent();
+  const posts = content.listPublishedPosts();
   return (
     <>
       <PageHeading title="文章" summary={`共 ${posts.length} 篇，由新到舊。`} />
-      <PostList posts={posts} />
+      <PostList posts={posts} seriesOf={content.getSeriesOfPost} />
     </>
   );
 }
