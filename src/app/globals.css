@@ -288,3 +288,36 @@
     border-radius: 6px;
   }
 }
+
+/*
+ * PROTOTYPE (prototype/contour-backdrop): where the backdrop's lines show. On phones only near the
+ * top of the screen; from 640px in the margins, fading to almost nothing behind the reading column.
+ */
+.contour-backdrop {
+  mask-image: linear-gradient(to bottom, #000, transparent 260px);
+}
+
+@media (min-width: 640px) {
+  .contour-backdrop {
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(50% - 440px),
+      rgb(0 0 0 / 0.15) calc(50% - 336px),
+      rgb(0 0 0 / 0.15) calc(50% + 336px),
+      #000 calc(50% + 440px)
+    );
+  }
+}
+
+.contour-ink-1 {
+  color: var(--rule);
+}
+
+.contour-ink-2 {
+  color: color-mix(in oklab, var(--ink-soft) 40%, var(--rule));
+}
+
+.contour-ink-3 {
+  color: color-mix(in oklab, var(--accent) 45%, var(--rule));
+}
