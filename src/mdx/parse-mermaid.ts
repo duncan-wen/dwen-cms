@@ -21,6 +21,35 @@ export type ParsedMermaid = {
   edges: [from: string, to: string][];
 };
 
+/** Words Mermaid's flowchart grammar keeps for itself, so its parser rejects one written as a node ID. */
+const FLOWCHART_KEYWORDS = [
+  "style",
+  "end",
+  "class",
+  "classDef",
+  "click",
+  "graph",
+  "subgraph",
+  "linkStyle",
+  "interpolate",
+  "call",
+  "href",
+];
+/** A keyword where a node ID goes: at the start of a statement or after an arrow, with a shape or an arrow next. */
+const KEYWORD_NODE_ID = new RegExp(
+  String.raw`(?:^|[\s;&>|-])(${FLOWCHART_KEYWORDS.join("|")})[ \t]*(?:[\[({]|-[-.]|==)`,
+  "m",
+);
+
+/**
+ * The Mermaid keyword a flowchart's source uses as a node ID, e.g. `style` in
+ * `a --> style[畫風]`; undefined when it uses none. Mermaid's own parse error
+ * for one names only a line, so the content check asks this once parsing fails.
+ */
+export function keywordNodeId(source: string): string | undefined {
+  return KEYWORD_NODE_ID.exec(source)?.[1];
+}
+
 let mermaidModule: Promise<typeof import("mermaid").default> | undefined;
 
 /**

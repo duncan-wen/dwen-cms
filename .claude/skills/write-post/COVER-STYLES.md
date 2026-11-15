@@ -1,6 +1,10 @@
 # Cover image
 
-Every new Post gets a cover image (`GLOSSARY.md`'s Cover), drawn by Fooocus on the Owner's machine (`docs/adr/0004`):
+Every new Post gets a cover image (`GLOSSARY.md`'s Cover).
+
+A Post about a picture it shows (an illustration trial, a drawing a model made) takes that picture as its cover: `pnpm grid content/posts/<slug>/cover.jpg 1 <image>`, choosing one with no lettering that reads at card size. The PR body says which picture and why.
+
+Every other Post's cover is drawn by Fooocus on the Owner's machine (`docs/adr/0004`):
 
 1. Read **Styles** below, then choose a style for this Post and one scene that carries its feeling.
 2. Draw three candidates, varying the style or the scene between them: `pnpm cover <slug> --prompt "<scene>" --style "<style>"`. Each takes about 20 seconds and adds `covers/<slug>-<n>.jpg` to the sheet `covers/<slug>.html`. When it says Fooocus isn't answering, skip to the PR note in [SKILL.md](SKILL.md) step 9.
@@ -27,5 +31,6 @@ Pick the style that fits the Post's mood, and vary it across Posts: covers are w
 The trial showed what Fooocus draws well:
 
 - **One concrete scene with one subject**, in plain English: `paper boats drifting down a calm river toward a small harbor, morning light`. A busy scene (a house, a person, a robot and a sunrise at once) draws as the same realistic sunset whatever the style, so the style is lost.
+- **One character.** Two characters, each with its own item (a bear in a scarf, a penguin in a hat), come back with the items swapped; Fooocus can't hold a character sheet.
 - **A picture, never a structure.** "A river that splits into branches and merges again" came out as just a river in all 12 styles. Pick a scene that carries the Post's feeling: the Post on two tools merging into one workflow got a waterfall joining a river.
 - **Nothing that invites lettering**: screens, documents, signs, books and code come back with made-up letters. The negative prompt already bans text; the scene shouldn't ask for it.

@@ -30,7 +30,7 @@ import {
 import { diagramMinWidth, mermaidSvg, topDownFlowchart } from "../mdx/mermaid-svg";
 import { PHONE_COLUMN_PX } from "../body-column";
 import { checkIllustration, type IllustrationShape } from "../mdx/illustration-svg";
-import { DRAWN_DIAGRAM_TYPES, type ParsedMermaid, parseMermaid } from "../mdx/parse-mermaid";
+import { DRAWN_DIAGRAM_TYPES, keywordNodeId, type ParsedMermaid, parseMermaid } from "../mdx/parse-mermaid";
 
 export type Post = {
   slug: string;
@@ -1180,7 +1180,8 @@ function isLink({ type, name }: MdNode): boolean {
 }
 
 /**
- * Every ```mermaid block in the body must parse as Mermaid, be a diagram type
+ * Every ```mermaid block in the body must parse as Mermaid (a keyword used as
+ * a node ID is named, since Mermaid's own error names only a line), be a diagram type
  * the site can draw, give a flowchart's nodes ASCII IDs, draw with the
  * site's renderer (mermaidSvg), which reads less than Mermaid does, keep a
  * flowchart's edges from tangling, and fit a phone's column as a phone draws it. Each
@@ -1196,7 +1197,16 @@ async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
     try {
       parsed = await parseMermaid(source);
     } catch (error) {
-      report("body", "mermaid-syntax", `${which} isn't valid Mermaid (${firstLine(error)}); try it at https://mermaid.live`);
+      const keyword = keywordNodeId(source);
+      if (keyword !== undefined) {
+        report(
+          "body",
+          "mermaid-keyword-id",
+          `${which} uses the Mermaid keyword "${keyword}" as a node ID, which Mermaid can't parse; rename the node, e.g. ${keyword}Node`,
+        );
+      } else {
+        report("body", "mermaid-syntax", `${which} isn't valid Mermaid (${firstLine(error)}); try it at https://mermaid.live`);
+      }
       continue;
     }
     if (!DRAWN_DIAGRAM_TYPES.has(parsed.diagramType)) {

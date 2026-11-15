@@ -6,8 +6,9 @@
 //   pnpm shots '/posts/<slug>?open=放大圖表'          or press that button: a Lightbox is shot as the screen shows it
 // Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration,
 // Diagram and Demo as <path>-<illustration|diagram|demo>-<n>-<theme>-<width>.png (n counts from the
-// top of the page), a page taller than 1,600px again as <path>-<theme>-<width>-part-<n>.png, each a
-// screen-sized piece an agent can read (the whole-page shot of a long Post shrinks past reading),
+// top of the page), a page taller than 1,600px again as <path>-<theme>-1280-part-<n>.png, each a
+// screen-sized piece an agent can read (the whole-page shot of a long Post shrinks past reading), and its
+// phone parts four to an image as <path>-<theme>-375-sheet-<n>.png,
 // plus index.html showing this run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
 // box other than a code block clips its content (scrollWidth past its width), at any width.
 import { spawn, spawnSync } from "node:child_process";
@@ -22,6 +23,9 @@ const widths = [1280, 375];
 /** A page taller than this is also shot in parts this tall, each starting a little above where the last ended. */
 const PART_HEIGHT = 1600;
 const PART_OVERLAP = 80;
+/** Below this width a page's parts are joined, this many side by side, into sheets: one image to read instead of four. */
+const SHEET_BELOW_WIDTH = 640;
+const PARTS_PER_SHEET = 4;
 /** The elements cropped from each page, named by what they are. A phone copy shows in its original's place. */
 const elements = [
   { kind: "illustration", label: "插圖", selector: "span.illustration" },
@@ -162,14 +166,22 @@ for (const path of paths) {
       const flagged = scrolls || clipped.length > 0 || scrollingFrames.length > 0 || unloadedFrames.length > 0;
       console.log(`${response?.status()} ${file}${flagged ? "  ← overflows" : ""}`);
       const pageHeight = dialogOpen ? 0 : await page.evaluate(() => document.documentElement.scrollHeight);
+      const phoneParts: Buffer[] = [];
       for (const [index, top] of partTops(pageHeight).entries()) {
+        const clip = { x: 0, y: top, width, height: Math.min(PART_HEIGHT, pageHeight - top) };
+        // A phone's parts are narrow, so they are read side by side on sheets instead of one file each.
+        if (width < SHEET_BELOW_WIDTH) {
+          phoneParts.push(await page.screenshot({ fullPage: true, clip }));
+          continue;
+        }
         const partFile = `${outDir}/${fileName(path)}-${theme}-${width}-part-${index + 1}.png`;
-        await page.screenshot({
-          path: partFile,
-          fullPage: true,
-          clip: { x: 0, y: top, width, height: Math.min(PART_HEIGHT, pageHeight - top) },
-        });
+        await page.screenshot({ path: partFile, fullPage: true, clip });
         console.log(`    ${partFile}`);
+      }
+      for (let first = 0; first < phoneParts.length; first += PARTS_PER_SHEET) {
+        const sheetFile = `${outDir}/${fileName(path)}-${theme}-${width}-sheet-${first / PARTS_PER_SHEET + 1}.png`;
+        await writeSheet(sheetFile, phoneParts.slice(first, first + PARTS_PER_SHEET), width);
+        console.log(`    ${sheetFile}`);
       }
       for (const { kind, label: kindLabel, selector } of dialogOpen ? [] : elements) {
         const visible = await page.locator(selector).locator("visible=true").all();
@@ -230,6 +242,21 @@ function contactSheet(sections: string[]): string {
 ${sections.join("\n")}
 </html>
 `;
+}
+
+/** Writes parts of a page, each `width` wide, side by side in reading order as one image. */
+async function writeSheet(file: string, parts: Buffer[], width: number): Promise<void> {
+  const gap = 16;
+  const sheet = await browser.newPage({
+    viewport: { width: parts.length * width + (parts.length + 1) * gap, height: PART_HEIGHT + 2 * gap },
+  });
+  await sheet.setContent(
+    `<body style="margin:0;padding:${gap}px;display:flex;gap:${gap}px;align-items:flex-start;background:#888">` +
+      parts.map((part) => `<img width="${width}" src="data:image/png;base64,${part.toString("base64")}">`).join("") +
+      `</body>`,
+  );
+  await sheet.screenshot({ path: file });
+  await sheet.close();
 }
 
 /** Where each part of a page this tall starts; none when the whole page fits one part. */

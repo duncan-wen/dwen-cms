@@ -26,7 +26,7 @@ Owner 親口說的，可以直接寫：
 
 ## 各篇規劃
 
-順序可以依 Owner 實際做到哪裡調整；每篇動筆前先看對應議題是不是已經有結果，沒有就先問 Owner。
+順序可以依 Owner 實際做到哪裡調整。下面每一行只是題目，結論以議題為準：動筆前跑 `gh issue view <N> --comments`，結案留言有結論和原型分支；議題還沒結案就先問 Owner。
 
 - [x] 1. AI 連口氣都學走了：三輪盲聽、為什麼選 ElevenLabs。已發布：`content/posts/voice-clone-bedtime-story/`。料：parents-story 議題 #2、#6，分支 `prototype/voice-audition`。
 - [ ] 2. 小孩拿到平板，手指先往哪裡去：三種播放器實測、字跟著聲音亮（逐字時間戳）、iPhone 不讓網頁自己出聲、鎖螢幕後停播。料：議題 #5、#7，分支 `prototype/player` 的 `prototypes/player/README.md`（「What to watch while the Listener plays」是觀察清單）。需要 Eunice 實際玩過的觀察。第一篇已經放了播放器的互動展示 `listener-player`。
