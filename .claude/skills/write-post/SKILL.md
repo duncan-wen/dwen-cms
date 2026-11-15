@@ -5,7 +5,7 @@ description: Write, revise or re-slug a Post in the Owner's voice and open it as
 
 # write-post
 
-You are a Writing Agent. You turn a Topic into a Draft: one Post on its own branch, opened as a draft PR that passes CI. The Owner's merge is what publishes it, so the PR is the whole deliverable. When the Owner asks for a new Post without a Topic, run `pick-post-topic` first.
+You are a Writing Agent. You turn a Topic into a Draft: one Post on its own branch, opened as a draft PR that passes CI. The Owner's OK is what publishes it: you merge only after it, so the PR is the whole deliverable. When the Owner asks for a new Post without a Topic, run `pick-post-topic` first.
 
 Terms (Post, Topic, Slug, Tag, Series, Draft, Correction, Revision, Takedown, Cover, Promo image, Share, LinkedIn share, Threads share) are `GLOSSARY.md`'s; read it first. Every rule below is enforced by `src/content/content.ts`, which is the source of truth: when this skill and the code disagree, the code wins, and its error messages say exactly what to fix.
 
@@ -20,7 +20,9 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - each paragraph makes one point, and conditions or steps the Reader must keep apart are a list;
    - every detail serves the hook: a timestamp or rule the Reader takes nothing from is cut, and so is anything about the Owner's writing workflow when the Post is about something else;
    - the first paragraph leads with step 2's hook;
-   - in mode 4, a person in a moment comes before the first number.
+   - in mode 4, a person in a moment comes before the first number;
+   - every sentence about the Owner's own situation (who they know, who uses the thing, how far it has got) traces to the Series brief's confirmed details or to the Owner's words, and a source's "if" is still an "if" in the Post;
+   - `pnpm content:check` passes: `pnpm cover` runs it before it draws.
 4. **Draw the cover** ([COVER-STYLES.md](COVER-STYLES.md)). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose, or the Post's own picture when the Post is about one, and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
 5. **Add `promo` frontmatter** ([PROMO.md](PROMO.md)).
 6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
@@ -44,7 +46,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - a Slide deck's place in the Post and every slide's title and text, under 「請 Owner 確認」 ([SLIDE-DECKS.md](SLIDE-DECKS.md) step 6);
    - the cover candidates, promo images and page shots: `covers/`, `promo/` and `test-results/` are gitignored and `gh` can't upload images, so list the files and give the Owner `explorer.exe covers/<slug>.html`, `explorer.exe promo/index.html` and `explorer.exe test-results/shots/index.html` to open the contact sheets.
 
-10. **Offer to share it.** Once the Owner has merged the Post and it's live, ask them once: 「要發哪些平台？LinkedIn、Threads、兩個都發，或都不發」, with nothing preselected. Post each platform they name by [SHARES.md](SHARES.md).
+10. **Merge, then offer to share it.** When the Owner says OK, merge the PR and check production by `docs/agents/shipping.md`. Once the Post is live, ask them once: 「要發哪些平台？LinkedIn、Threads、兩個都發，或都不發」, with nothing preselected. Post each platform they name by [SHARES.md](SHARES.md).
 
 **One concern per PR.** A Post's PR holds only that Post. A Post that needs a new MDX component waits for the component's own PR (code only, added to `src/mdx/components.tsx`) to merge first. The components a body can use today are the ones in that map.
 
@@ -59,7 +61,7 @@ The Owner is a middle-aged Taiwanese software engineer, a parent, and a stock an
 The traits and samples show how the Owner sounds; they are a reference, not a checklist. Each Post draws its images and metaphors from its own topic, and reads as written fresh, never as a sample with the nouns swapped.
 
 - **First person, lived.** 我 did this, felt this. Honest about limits and emotion (有點不知所措, 這一個月的燒腦都值了), never boastful.
-- **Specific numbers and names.** 1 個月, 34 萬公里的老 K12, 五天四夜; DeepSeek, Python, MCP, 那霸大拔河祭, 牧志市場. Replace every vague quantity with the real one. Prefer facts you can verify (the repo, its git log, real command output); a personal detail you can't verify goes in the PR body under 「請 Owner 確認」. A YouTube source's title and channel come from `curl "https://www.youtube.com/oembed?url=<URL>&format=json"` (the page itself serves no text); its content comes from what the Owner gave you.
+- **Specific numbers and names.** 1 個月, 34 萬公里的老 K12, 五天四夜; DeepSeek, Python, MCP, 那霸大拔河祭, 牧志市場. Replace every vague quantity with the real one. Prefer facts you can verify (the repo, its git log, real command output); a personal detail you can't verify goes in the PR body under 「請 Owner 確認」. A claim about someone else's product or about a law is checked against its official page before the PR, and the PR body links that page: the Owner is asked only what the Owner alone knows. A YouTube source's title and channel come from `curl "https://www.youtube.com/oembed?url=<URL>&format=json"` (the page itself serves no text); its content comes from what the Owner gave you.
 - **Sensory detail** at the emotional beats: 切菜的規律聲, 鍋裡的煙火氣, 沖繩湛藍的海岸線, 第一次成功呼叫自訂 Tool 的那一刻.
 - **The 「……」 pause.** A full-width six-dot ellipsis where the thought turns or holds before the payoff: 再幫它配上了該有的手跟腳 (Tools)……讓這顆大腦終於能真正落地做事. A few per Post, at turning points.
 - **A metaphor from the topic's own world.** The model is 大腦 and its Tools are 手跟腳: an image the Reader already holds that makes the idea land. Investing and trading images (K 線, 回檔整理, 反彈) belong to Posts about investing, career or money, the way Sample 2 uses them; a tech Post finds its image elsewhere, or needs none. One well-placed metaphor in a Post beats one per section.
@@ -100,7 +102,7 @@ A Post is the folder `content/posts/<slug>/`: its `index.mdx` plus any images it
 ---
 title: 讓 AI 寫部落格，也有工程流程   # required, Traditional Chinese; see Title
 description: 一句話說出這篇文章給讀者什麼。   # required; shown in listings, meta and OG images
-date: 2026-11-01                     # required, YYYY-MM-DD: the day you write it
+date: 2026-11-01                     # required, YYYY-MM-DD: the day you write it; the day after when its Series' latest Post has today's date
 tags: [meta]                         # one or more, each in content/tags.yml
 series: <id>                         # optional, one id from content/series.yml; see Series
 cover: cover.jpg                     # the cover image you drew (see Cover image); without it the generated cover shows
@@ -116,7 +118,7 @@ The body starts with prose (the page shows the title), uses `##` and `###` for s
 
 **Tags.** Pick one to three from `content/tags.yml`, lowercase English kebab-case, none repeated; each entry's comment says what it covers. An approved Tag that means the same thing is the one to use, whatever the spelling you had in mind: singular or plural, synonym, abbreviation, Chinese or English (`ai-agents` covers "AI agent", "agent", 智能體). Only a topic no entry's comment covers earns a new Tag: add it to `content/tags.yml` under the right group with its own comment, in the same PR, and give the reason in the PR body; the Owner approves it by merging. Propose the broadest Tag that fits (`ai-agents`, not `claude-code-skills`), so the list stays small.
 
-**Series.** Read `content/series.yml` while drafting: each entry's title and description say what its Posts share. When the Topic continues a Series (the same experiment in another language, the next part of what its Posts started), add `series: <id>`. When the Topic opens a set of Posts meant to be read in order and no Series fits, propose one: add it to `content/series.yml` in the same PR, with a lowercase English kebab-case id, a Traditional Chinese `title` and a one-line `description`, and give the Post `series: <id>`. The site shows a Series once 2 of its Posts are Published, so until a second Post joins, the new Series shows nowhere and the Post reads as any other. A Series with a brief at `.scratch/post-briefs/<series-id>.md` has its plan, sources and confirmed personal details there: read it before step 2. After the Post merges, tick its part and add any detail the Owner confirmed: on the Post's `share-<slug>` branch when it is shared ([SHARES.md](SHARES.md) step 3), else on a branch and PR of its own.
+**Series.** Read `content/series.yml` while drafting: each entry's title and description say what its Posts share. When the Topic continues a Series (the same experiment in another language, the next part of what its Posts started), add `series: <id>`. When the Topic opens a set of Posts meant to be read in order and no Series fits, propose one: add it to `content/series.yml` in the same PR, with a lowercase English kebab-case id, a Traditional Chinese `title` and a one-line `description`, and give the Post `series: <id>`. The site shows a Series once 2 of its Posts are Published, so until a second Post joins, the new Series shows nowhere and the Post reads as any other. A Series with a brief at `.scratch/post-briefs/<series-id>.md` has its plan, sources and confirmed personal details there: read it before step 2. After the Post merges, tick its part and add any detail the Owner confirmed: on the Post's `share-<slug>` branch when it is shared ([SHARES.md](SHARES.md) step 3), else on a branch and PR of its own, merged by you once its checks pass.
 
 **Experiments.** A mode 1 Post whose result comes from calling a model (an eval, a model comparison, a prompt test) uses DeepSeek: load `DEEPSEEK_API_KEY` from `~/projects/kai/.env` into the environment without printing it, call the OpenAI-compatible `https://api.deepseek.com/chat/completions` with model `deepseek-v4-flash`, and pass `tool_choice: "auto"` (its thinking mode rejects `"required"`). The shell's `GEMINI_API_KEY` has no quota and answers 402. Keep the script and its data in the scratchpad; every number in the Post is the script's real output, and the PR body says under 「請 Owner 確認」 that the Writing Agent ran it.
 
