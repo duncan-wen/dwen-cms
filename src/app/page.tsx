@@ -9,9 +9,18 @@ import { contactFormHref } from "@/contact-links";
 import { getContent } from "@/content/site-content";
 import { pageAlternates } from "@/page-alternates";
 import { webSite } from "@/structured-data";
-import { OWNER_NAME } from "@/site-name";
+import { OWNER_NAME, SITE_NAME } from "@/site-name";
 
-export const metadata: Metadata = { alternates: pageAlternates("/") };
+/** The introduction's two sentences, shown on the page and joined as its description for search results and shares. */
+const INTRODUCTION = `我是 ${OWNER_NAME}，一名軟體工程師，把 AI 從對話框帶進真正能運作的系統。`;
+const PURPOSE = "這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。";
+const DESCRIPTION = INTRODUCTION + PURPOSE;
+
+export const metadata: Metadata = {
+  description: DESCRIPTION,
+  openGraph: { title: SITE_NAME, description: DESCRIPTION, url: "/" },
+  alternates: pageAlternates("/"),
+};
 
 /** How many of the newest Posts the home page shows: one lead and two rows of two. */
 const LATEST_COUNT = 5;
@@ -43,10 +52,8 @@ export default async function HomePage() {
           <div className="order-last sm:order-none">
             <AgentAnimation />
           </div>
-          <p className="font-serif text-[21px] leading-[1.6] font-bold">
-            我是 {OWNER_NAME}，一名軟體工程師，把 AI 從對話框帶進真正能運作的系統。
-          </p>
-          <p className="max-w-[22em] text-ink-soft">這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。</p>
+          <p className="font-serif text-[21px] leading-[1.6] font-bold">{INTRODUCTION}</p>
+          <p className="max-w-[22em] text-ink-soft">{PURPOSE}</p>
           <LinkRow
             links={[
               { href: "/about", label: "關於我" },
