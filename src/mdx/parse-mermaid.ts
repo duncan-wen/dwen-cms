@@ -21,33 +21,50 @@ export type ParsedMermaid = {
   edges: [from: string, to: string][];
 };
 
-/** Words Mermaid's flowchart grammar keeps for itself, so its parser rejects one written as a node ID. */
+/** Words Mermaid's flowchart grammar reads as something other than a node ID wherever a statement allows one. */
 const FLOWCHART_KEYWORDS = [
   "style",
   "end",
   "class",
   "classDef",
   "click",
-  "graph",
-  "subgraph",
-  "linkStyle",
-  "interpolate",
   "call",
   "href",
+  "graph",
+  "subgraph",
+  "flowchart",
+  "linkStyle",
+  "interpolate",
+  "default",
 ];
-/** A keyword where a node ID goes: at the start of a statement or after an arrow, with a shape or an arrow next. */
-const KEYWORD_NODE_ID = new RegExp(
-  String.raw`(?:^|[\s;&>|-])(${FLOWCHART_KEYWORDS.join("|")})[ \t]*(?:[\[({]|-[-.]|==)`,
-  "m",
-);
 
 /**
- * The Mermaid keyword a flowchart's source uses as a node ID, e.g. `style` in
- * `a --> style[畫風]`; undefined when it uses none. Mermaid's own parse error
- * for one names only a line, so the content check asks this once parsing fails.
+ * The Mermaid keyword a flowchart that doesn't parse uses as a node ID, e.g.
+ * `style` in `a --> style[畫風]`; undefined when no keyword is to blame.
+ * Mermaid's own error for one names only a line. A keyword is to blame when
+ * the flowchart parses once that word alone is spelled differently below the
+ * first line, so a keyword in a label or beside another mistake is never named.
  */
-export function keywordNodeId(source: string): string | undefined {
-  return KEYWORD_NODE_ID.exec(source)?.[1];
+export async function keywordNodeId(source: string): Promise<string | undefined> {
+  const [header, ...rest] = source.trimStart().split("\n");
+  if (!/^(flowchart|graph)\b/.test(header)) return undefined;
+  const body = rest.join("\n");
+  for (const keyword of FLOWCHART_KEYWORDS) {
+    const word = new RegExp(String.raw`(?<![\w-])${keyword}(?![\w-])`, "g");
+    if (!word.test(body)) continue;
+    const renamed = `${header}\n${body.replace(word, `${keyword}Node`)}`;
+    if (await parses(renamed)) return keyword;
+  }
+  return undefined;
+}
+
+async function parses(source: string): Promise<boolean> {
+  try {
+    await parseMermaid(source);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 let mermaidModule: Promise<typeof import("mermaid").default> | undefined;

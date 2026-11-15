@@ -12,9 +12,10 @@
 // plus index.html showing this run's shots on one page for the Owner. Fails if a page scrolls horizontally, or if a
 // box other than a code block clips its content (scrollWidth past its width), at any width.
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { chromium } from "@playwright/test";
+import sharp from "sharp";
 import { SITE_LANGUAGE } from "../src/site-name";
 
 const outDir = "test-results/shots";
@@ -64,6 +65,8 @@ process.on("SIGINT", () => process.exit(130));
 const base = `http://localhost:${port}`;
 await waitUntilUp(base);
 
+// Only this run's shots: one left from an earlier run would read as the page's current state.
+rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch();
 const overflowing: string[] = [];
@@ -244,19 +247,24 @@ ${sections.join("\n")}
 `;
 }
 
-/** Writes parts of a page, each `width` wide, side by side in reading order as one image. */
+/**
+ * Writes parts of a page, each `width` wide, side by side in reading order as one image.
+ * Not imageGrid: parts keep their own heights and stay top-aligned, where a grid crops every tile to one shape.
+ */
 async function writeSheet(file: string, parts: Buffer[], width: number): Promise<void> {
   const gap = 16;
-  const sheet = await browser.newPage({
-    viewport: { width: parts.length * width + (parts.length + 1) * gap, height: PART_HEIGHT + 2 * gap },
-  });
-  await sheet.setContent(
-    `<body style="margin:0;padding:${gap}px;display:flex;gap:${gap}px;align-items:flex-start;background:#888">` +
-      parts.map((part) => `<img width="${width}" src="data:image/png;base64,${part.toString("base64")}">`).join("") +
-      `</body>`,
-  );
-  await sheet.screenshot({ path: file });
-  await sheet.close();
+  const grey = { r: 136, g: 136, b: 136 };
+  await sharp({
+    create: {
+      width: parts.length * width + (parts.length + 1) * gap,
+      height: PART_HEIGHT + 2 * gap,
+      channels: 3,
+      background: grey,
+    },
+  })
+    .composite(parts.map((input, index) => ({ input, left: gap + index * (width + gap), top: gap })))
+    .png()
+    .toFile(file);
 }
 
 /** Where each part of a page this tall starts; none when the whole page fits one part. */

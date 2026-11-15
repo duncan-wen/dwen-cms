@@ -1197,7 +1197,7 @@ async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
     try {
       parsed = await parseMermaid(source);
     } catch (error) {
-      const keyword = keywordNodeId(source);
+      const keyword = await keywordNodeId(source);
       if (keyword !== undefined) {
         report(
           "body",
