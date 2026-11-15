@@ -39,8 +39,10 @@ describe("the Analytics opt-out", () => {
     expect(dropWhenOptedOut(pageview, () => storage)).toBe(pageview);
   });
 
-  it("counts storage that can't be read as not opted out, and reports a write it refused", () => {
+  it("counts storage that can't be read or written as not opted out", () => {
+    setOptedOut(true, brokenStorage);
+
+    expect(isOptedOut(brokenStorage)).toBe(false);
     expect(dropWhenOptedOut(pageview, brokenStorage)).toBe(pageview);
-    expect(setOptedOut(true, brokenStorage)).toBe(false);
   });
 });

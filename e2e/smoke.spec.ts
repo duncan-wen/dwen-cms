@@ -1301,8 +1301,10 @@ test("the Analytics opt-out page keeps out of search results, the sitemap and th
   await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", "noindex");
   await expect(page.locator("a[href^='/owner']")).toHaveCount(0);
   expect(paths(await (await request.get("/sitemap.xml")).text(), "loc")).not.toContain("/owner/analytics");
-  await page.goto("/");
-  await expect(page.locator("a[href^='/owner']")).toHaveCount(0);
+  for (const path of ["/", "/posts", "/posts/smoke-post", "/about"]) {
+    await page.goto(path);
+    await expect(page.locator("a[href^='/owner']"), path).toHaveCount(0);
+  }
 });
 
 test("the Analytics opt-out switches this browser's status, and the choice survives a reload", async ({ page }) => {

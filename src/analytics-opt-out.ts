@@ -16,14 +16,13 @@ export function isOptedOut(storage: () => OptOutStorage = browserStorage): boole
   }
 }
 
-/** Sets or clears the Analytics opt-out in this browser; false when storage refused the write. */
-export function setOptedOut(optedOut: boolean, storage: () => OptOutStorage = browserStorage): boolean {
+/** Sets or clears the Analytics opt-out in this browser; storage that refuses the write leaves it as it was. */
+export function setOptedOut(optedOut: boolean, storage: () => OptOutStorage = browserStorage): void {
   try {
     if (optedOut) storage().setItem(STORAGE_KEY, "1");
     else storage().removeItem(STORAGE_KEY);
-    return true;
   } catch {
-    return false;
+    // Without storage the browser stays counted, and the page goes on saying so.
   }
 }
 

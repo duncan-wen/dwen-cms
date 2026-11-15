@@ -17,7 +17,7 @@ const subscribe = (onChange: () => void) => {
   };
 };
 
-/** Says whether this device's visits are counted in Web Analytics, with one button to switch. */
+/** Says whether this browser's visits are counted in Web Analytics, with one button to switch. */
 export function AnalyticsOptOutSwitch() {
   // The server can't know, so its markup says "counted" until the browser reads its storage.
   const optedOut = useSyncExternalStore(
