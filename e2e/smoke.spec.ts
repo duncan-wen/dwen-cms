@@ -952,6 +952,18 @@ test("the home page links to the About page", async ({ request }) => {
   expect(html).toContain('href="/about"');
 });
 
+test("the home page describes the site in its introduction's words, for search results and shares", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const description =
+    "我是 Duncan Wen，一名軟體工程師，把 AI 從對話框帶進真正能運作的系統。這裡記錄我的做法、踩過的坑，和每個取捨背後的理由。";
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", description);
+  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", description);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Duncan Wen");
+});
+
 test("the home page's 「聯絡我」 links to the About page's contact section", async ({ page }) => {
   await page.goto("/");
   const main = page.getByRole("main");
