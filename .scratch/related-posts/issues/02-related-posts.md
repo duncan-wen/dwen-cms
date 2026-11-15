@@ -4,21 +4,23 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The content module exposes `listRelatedPosts(slug)`, returning up to 3 Published Posts in the spec's order
 - [x] The Post itself and the Posts of its Series (shown or not) never appear; a Draft or a taken-down Slug can't, since the content module holds Published Posts only
 - [x] Fewer than 3 sharing a Tag are filled with the newest other Posts; with no candidates the block isn't rendered
+- [x] A Post sharing no Tag isn't taken when its Series already has a Post among those picked
 - [x] `RelatedPosts` sits after the Signature and before the 「所有文章／聯絡我」 row, under the heading 「接著讀」
 - [x] Each row shows the Cover through `PostCover` (on phones too), the title, the description clamped to 2 lines, and `SeriesLabel` for a Post in a shown Series; no date, no Tags
 - [x] `GLOSSARY.md` gains **Related Posts**, and `RelatedPosts` joins the "one way to do each thing" list in `CODING_STANDARDS.md`
 - [x] vitest covers `listRelatedPosts` through the content module on a fixture directory: shared-Tag order, the date and Slug tie-breaks (with data that loads in another order), every exclusion, the fill, a one-Post site
 - [x] Smoke covers: a Post shows 「接著讀」 after the Signature with at most 3 links to other Posts and none to itself
 - [x] `pnpm shots` of a Post, read in light and dark at 1280px and 375px; nothing clips or scrolls sideways
-- [ ] The Owner says OK to the screenshots
+- [x] The Owner says OK to the screenshots
 
 ## Comments
 
 - 2026-11-15: The second box first listed Drafts and taken-down Slugs as exclusions to build. Neither is a Post the content module loads, so there is nothing to leave out; the box now says so.
 - 2026-11-15: `pnpm shots` failed on the description's two-line clamp, as a box that clips its content. Text clamped with `line-clamp` ends in an ellipsis on purpose, so `scripts/shots.ts` now lets it through, and `shipping.md` says so.
 - 2026-11-15: The Slug tie-break has no fixture that loads in another order: Posts load in Slug order, so none can. `listRelatedPosts` keeps the order `listPublishedPosts` gives Posts sharing a date, which the `same-date` fixture already tests.
+- 2026-11-15: The Owner saw the screenshots, where a Post in the 並行 Series had all three places filled from one other Series, and asked that a fill take at most one Post from a Series. With that added, the Owner said OK to the rest.

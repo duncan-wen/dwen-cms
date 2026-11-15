@@ -43,7 +43,7 @@ An ordered group of Posts, meant to be read first to last, named in `content/ser
 _Avoid_: Collection, course, 連載, 合集
 
 **Related Posts**:
-The Posts offered at the end of a Post to read next, at most three, picked automatically: the other Posts sharing the most Tags with it, the newest filling any place left. Unlike a Series they have no order, nothing in a Post names them, and the Posts of the Post's own Series are left out, since its Series neighbours already point to those. Shown to readers as 「接著讀」.
+The Posts offered at the end of a Post to read next, at most three, picked automatically: the other Posts sharing the most Tags with it, the newest filling any place left, at most one of those from a Series. Unlike a Series they have no order, nothing in a Post names them, and the Posts of the Post's own Series are left out, since its Series neighbours already point to those. Shown to readers as 「接著讀」.
 _Avoid_: Recommended, similar posts, 延伸閱讀, 相關文章
 
 **Page**:

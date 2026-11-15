@@ -188,7 +188,8 @@ export type Content = {
   /**
    * The Post's Related Posts, up to `RELATED_POSTS_LIMIT`: the other Published Posts outside its
    * Series, those sharing the most Tags with it first, then the newest, then in Slug order. Posts
-   * sharing no Tag fill the places left. Empty for an unknown Slug.
+   * sharing no Tag fill the places left, but never from a Series that already has a Post among
+   * them. Empty for an unknown Slug.
    */
   listRelatedPosts(slug: string): Post[];
   /** The Page in `pages/<name>/index.mdx`; undefined when there is none. */
@@ -444,10 +445,20 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
       const seriesId = seriesIdOf.get(slug);
       const sharedTags = (other: Post) => other.tags.filter((tag) => post.tags.includes(tag)).length;
       // `posts` is already newest first, then in Slug order, and the sort keeps that among equals.
-      return posts
+      const candidates = posts
         .filter((other) => other.slug !== slug && (seriesId === undefined || seriesIdOf.get(other.slug) !== seriesId))
-        .sort((a, b) => sharedTags(b) - sharedTags(a))
-        .slice(0, RELATED_POSTS_LIMIT);
+        .sort((a, b) => sharedTags(b) - sharedTags(a));
+      const related: Post[] = [];
+      const seriesTaken = new Set<string>();
+      for (const other of candidates) {
+        if (related.length === RELATED_POSTS_LIMIT) break;
+        const otherSeries = seriesIdOf.get(other.slug);
+        // A Post sharing no Tag only fills a place, and one Series' newest Posts would fill them all.
+        if (sharedTags(other) === 0 && otherSeries !== undefined && seriesTaken.has(otherSeries)) continue;
+        if (otherSeries !== undefined) seriesTaken.add(otherSeries);
+        related.push(other);
+      }
+      return related;
     },
     getPage(name) {
       return pages.get(name);

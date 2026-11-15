@@ -945,6 +945,19 @@ describe("Related Posts", () => {
     expect(await related("related-posts", "unrelated-newest")).toEqual(["one-shared-a", "one-shared-b", "sibling"]);
   });
 
+  it("fills a place from a Series only once, however many of its Posts are the newest", async () => {
+    // Newest first: run-three, run-two, run-one, plain, trial-two, trial-one. No Post shares `reader`'s Tag.
+    expect(await related("related-posts-fill", "reader")).toEqual(["run-three", "plain", "trial-two"]);
+  });
+
+  it("doesn't fill a place from the Series of a Post that shares a Tag", async () => {
+    expect(await related("related-posts-fill", "matched-reader")).toEqual(["run-two", "plain", "trial-two"]);
+  });
+
+  it("keeps every Post that shares a Tag, even several from one Series", async () => {
+    expect(await related("related-posts", "one-shared-a")).toEqual(["one-shared-b", "sibling", "subject"]);
+  });
+
   it("has none on a site with one Post, or for an unknown Slug", async () => {
     expect(await related("related-posts-alone", "only")).toEqual([]);
     expect(await related("related-posts", "no-such-post")).toEqual([]);

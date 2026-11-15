@@ -1,6 +1,6 @@
 # Spec: Related Posts and the Analytics opt-out
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
@@ -36,14 +36,14 @@ The opt-out ships first, so that clean numbers start as early as possible.
 
 - **Analytics opt-out**: a flag in the browser's `localStorage`. The site's `<Analytics />` gets a `beforeSend` that drops every event while the flag is set. Storage that can't be read counts as not opted out. The flag's key and the read live in one module, shared by `beforeSend` and the page.
 - **The page**: `/owner/analytics`, a client component, `robots: { index: false }`, absent from `sitemap.ts`, the header, the footer and every link on the site. It shows 「這台裝置的瀏覽會計入統計」 or 「這台裝置的瀏覽不會計入統計」 and one button that switches between them. It isn't secret: a stranger who finds it can only leave their own visits out.
-- **Picking Related Posts**: a new query on the content module, `listRelatedPosts(slug)`, returning up to 3 Published Posts. Candidates are every Published Post except the Post itself and the Posts of its own Series. They are ordered by the number of Tags shared with the Post (most first), then by date (newest first), then by Slug (A to Z). The first 3 are returned, so when fewer than 3 share a Tag the newest others fill the remaining places. A Post in a Series not yet shown (fewer than 2 Published) still leaves out its Series' Posts.
+- **Picking Related Posts**: a new query on the content module, `listRelatedPosts(slug)`, returning up to 3 Published Posts. Candidates are every Published Post except the Post itself and the Posts of its own Series. They are ordered by the number of Tags shared with the Post (most first), then by date (newest first), then by Slug (A to Z). The first 3 are taken, so when fewer than 3 share a Tag the newest others fill the remaining places. A Post sharing no Tag is skipped when its Series already has a Post among those taken, so one Series' newest Posts can't fill every place; a Post that shares a Tag is never skipped. A Post in a Series not yet shown (fewer than 2 Published) still leaves out its Series' Posts.
 - **Showing them**: a `RelatedPosts` component on the Post page, after the Signature and before the 「所有文章／聯絡我」 row. Its heading is 「接著讀」. Each Post is one row, stacked: a small Cover on the left (through `PostCover`, kept on phones), then the title linking to the Post, the description clamped to 2 lines, and `SeriesLabel` when the Post is in a shown Series. No date and no Tags. With no candidates the block isn't rendered. `PostRow` isn't reused: it leads with a marker column and hides its Cover on phones. `RelatedPosts` joins the "one way to do each thing" list in `CODING_STANDARDS.md`.
 - **Filled places aren't marked**: a Post that shares no Tag appears under the same heading as one that does.
 - **Names**: `GLOSSARY.md` gains **Related Posts** (shown to readers as 「接著讀」; unlike a Series, unordered and picked automatically) and **Analytics opt-out**.
 
 ## Testing Decisions
 
-- **`listRelatedPosts` (vitest, a fixture content directory)**: more shared Tags come first; equal shared Tags fall back to the newer date, with fixture data that loads in another order, then the Slug (the order `listPublishedPosts` already gives Posts sharing a date); the Post itself and its Series' Posts never appear (a Draft or a taken-down Slug isn't a Post the content module loads, so neither can); fewer than 3 sharing a Tag are filled with the newest others; a site with one Post returns none.
+- **`listRelatedPosts` (vitest, a fixture content directory)**: more shared Tags come first; equal shared Tags fall back to the newer date, with fixture data that loads in another order, then the Slug (the order `listPublishedPosts` already gives Posts sharing a date); the Post itself and its Series' Posts never appear (a Draft or a taken-down Slug isn't a Post the content module loads, so neither can); fewer than 3 sharing a Tag are filled with the newest others, at most one from a Series, and none from the Series of a Post that shares a Tag; a site with one Post returns none.
 - **Analytics opt-out (vitest)**: the module's `beforeSend` returns the event when the flag is unset and `null` when it's set, and returns the event when storage throws.
 - **Smoke (Playwright, `e2e/content`)**: a Post shows 「接著讀」 after the Signature with at most 3 links to other Posts, none to itself; `/owner/analytics` answers with `noindex`, isn't in `/sitemap.xml`, and its button switches the stated status and survives a reload.
 - **Visual**: `pnpm shots` of a Post in light and dark at 1280px and 375px for the Owner's review; `/owner/analytics` is shot too, for the agent to read.
