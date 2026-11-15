@@ -21,3 +21,4 @@
 
 - 2026-11-15: The second box first listed Drafts and taken-down Slugs as exclusions to build. Neither is a Post the content module loads, so there is nothing to leave out; the box now says so.
 - 2026-11-15: `pnpm shots` failed on the description's two-line clamp, as a box that clips its content. Text clamped with `line-clamp` ends in an ellipsis on purpose, so `scripts/shots.ts` now lets it through, and `shipping.md` says so.
+- 2026-11-15: The Slug tie-break has no fixture that loads in another order: Posts load in Slug order, so none can. `listRelatedPosts` keeps the order `listPublishedPosts` gives Posts sharing a date, which the `same-date` fixture already tests.

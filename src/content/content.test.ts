@@ -939,7 +939,9 @@ describe("Related Posts", () => {
   });
 
   it("fills the places no shared Tag takes with the newest other Posts", async () => {
-    expect(await related("related-posts", "lonely")).toEqual(["unrelated-newest", "one-shared-a", "one-shared-b"]);
+    // `lonely` is the one Post sharing a Tag with `partial`, and older than every Post that fills in after it.
+    expect(await related("related-posts", "partial")).toEqual(["lonely", "unrelated-newest", "one-shared-a"]);
+    // No Post shares a Tag with `unrelated-newest`, so all three places are filled.
     expect(await related("related-posts", "unrelated-newest")).toEqual(["one-shared-a", "one-shared-b", "sibling"]);
   });
 

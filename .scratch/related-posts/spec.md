@@ -43,7 +43,7 @@ The opt-out ships first, so that clean numbers start as early as possible.
 
 ## Testing Decisions
 
-- **`listRelatedPosts` (vitest, a fixture content directory)**: more shared Tags come first; equal shared Tags fall back to the newer date, then the Slug, with fixture data that loads in another order; the Post itself, its Series' Posts, Drafts and taken-down Slugs never appear; fewer than 3 sharing a Tag are filled with the newest others; a site with one Post returns none.
+- **`listRelatedPosts` (vitest, a fixture content directory)**: more shared Tags come first; equal shared Tags fall back to the newer date, with fixture data that loads in another order, then the Slug (the order `listPublishedPosts` already gives Posts sharing a date); the Post itself and its Series' Posts never appear (a Draft or a taken-down Slug isn't a Post the content module loads, so neither can); fewer than 3 sharing a Tag are filled with the newest others; a site with one Post returns none.
 - **Analytics opt-out (vitest)**: the module's `beforeSend` returns the event when the flag is unset and `null` when it's set, and returns the event when storage throws.
 - **Smoke (Playwright, `e2e/content`)**: a Post shows 「接著讀」 after the Signature with at most 3 links to other Posts, none to itself; `/owner/analytics` answers with `noindex`, isn't in `/sitemap.xml`, and its button switches the stated status and survives a reload.
 - **Visual**: `pnpm shots` of a Post in light and dark at 1280px and 375px for the Owner's review; `/owner/analytics` is shot too, for the agent to read.

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useId } from "react";
 import type { Post, Series } from "@/content/content";
 import { PostCover } from "./post-cover";
 import { SeriesLabel } from "./series-label";
@@ -17,16 +18,18 @@ type Props = {
  * stacked over it (`z-10`), since links can't nest. Nothing when there are none.
  */
 export function RelatedPosts({ posts, seriesOf }: Props) {
+  // Not a fixed id: a body heading's id comes from its text, and one could spell the same.
+  const headingId = useId();
   if (posts.length === 0) return null;
   return (
-    <nav aria-labelledby="related-posts" className="mt-14 grid gap-6">
-      <h2 id="related-posts" className="text-[21px] font-bold">
+    <nav aria-labelledby={headingId} className="mt-14 grid gap-6">
+      <h2 id={headingId} className="text-[21px] font-bold">
         接著讀
       </h2>
       <ul className="grid gap-6">
         {posts.map((post) => (
           <li key={post.slug}>
-            <article className="group relative grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-x-6">
+            <div className="group relative grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-x-6">
               <div className="pt-1">
                 <PostCover post={post} sizes="(min-width: 640px) 120px, 96px" className="aspect-[3/2] rounded" />
               </div>
@@ -39,7 +42,7 @@ export function RelatedPosts({ posts, seriesOf }: Props) {
                 <p className="line-clamp-2 text-[15px] leading-[1.75] text-ink-soft">{post.description}</p>
                 <SeriesLabel series={seriesOf(post.slug)} className="relative z-10" />
               </div>
-            </article>
+            </div>
           </li>
         ))}
       </ul>

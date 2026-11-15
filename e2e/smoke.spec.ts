@@ -1436,25 +1436,28 @@ test("a Post ends with 「接著讀」 after the signature: up to three other Po
     "href",
     "/series/smoke-series",
   );
-  const follows = (first: string, second: string) =>
-    page.evaluate(
-      ([a, b]) =>
-        Boolean(
-          document.querySelector(a)!.compareDocumentPosition(document.querySelector(b)!) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
-        ),
-      [first, second],
-    );
-  expect(await follows("article > div > footer", "nav[aria-labelledby='related-posts']")).toBe(true);
-  expect(await follows("nav[aria-labelledby='related-posts']", "a[href='/about#contact']")).toBe(true);
+  // In reading order: the signature, then 「接著讀」, then the link row.
+  const top = async (locator: Locator) => (await locator.boundingBox())!.y;
+  const [signature, relatedTop, linkRow] = await Promise.all([
+    top(page.locator("article footer")),
+    top(related),
+    top(page.locator("article").getByRole("link", { name: "聯絡我" })),
+  ]);
+  expect(signature).toBeLessThan(relatedTop);
+  expect(relatedTop).toBeLessThan(linkRow);
 });
 
 test("a Post in a Series isn't offered its own Series' Posts in 「接著讀」", async ({ page }) => {
-  await page.goto("/posts/revised-smoke-post");
+  await page.goto("/posts/last-year-smoke-post");
   const related = page.getByRole("navigation", { name: "接著讀" });
 
-  await expect(related.getByRole("heading", { level: 3 })).toHaveCount(3);
-  await expect(related.locator("a[href='/posts/last-year-smoke-post']")).toHaveCount(0);
+  // 「改過的煙霧測試文章」 is the second newest Post and shares the Tag, so only its Series keeps it out.
+  await expect(related.getByRole("heading", { level: 3 }).getByRole("link")).toHaveText([
+    "煙霧測試文章",
+    "排版樣本文章",
+    "示意動畫測試文章",
+  ]);
+  await expect(related.locator("a[href='/posts/revised-smoke-post']")).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "系列導覽" })).toBeVisible();
 });
 
