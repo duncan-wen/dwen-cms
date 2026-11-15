@@ -47,7 +47,7 @@ The opt-out ships first, so that clean numbers start as early as possible.
 - **Analytics opt-out (vitest)**: the module's `beforeSend` returns the event when the flag is unset and `null` when it's set, and returns the event when storage throws.
 - **Smoke (Playwright, `e2e/content`)**: a Post shows 「接著讀」 after the Signature with at most 3 links to other Posts, none to itself; `/owner/analytics` answers with `noindex`, isn't in `/sitemap.xml`, and its button switches the stated status and survives a reload.
 - **Visual**: `pnpm shots` of a Post in light and dark at 1280px and 375px for the Owner's review; `/owner/analytics` is shot too, for the agent to read.
-- **Only a person can check**: that an opted-out device's visits stop appearing in Web Analytics. The agent opts a browser out on production, visits a page, and confirms through the analytics API that no pageview was added; the Owner opts out their own devices.
+- **Only a person can check**: that an opted-out device's visits stop appearing in Web Analytics. On the PR's Vercel preview the agent watches the browser's own request to Web Analytics: a browser that has opted out sends none, one that hasn't sends one. The Owner opts out their own devices once it's on production.
 
 ## Out of Scope
 
