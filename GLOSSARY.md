@@ -47,7 +47,7 @@ Standalone undated content outside listings, such as the About page.
 _Avoid_: Static page
 
 **Cover**:
-The image at the top of a Post and on its listing card, shown to readers as 「封面」. It is either the **generated cover**, contour lines seeded by the Slug (the default), or a **cover image**, the file the `cover` field names, which a Writing Agent draws with Fooocus while drafting. A cover carries no text.
+The image at the top of a Post and on its listing card, shown to readers as 「封面」. It is either the **generated cover**, contour lines seeded by the Slug (the default), or a **cover image**, the file the `cover` field names, which a Writing Agent draws with Fooocus while drafting, or takes from the Post's own pictures when the Post is about one. A cover carries no text.
 _Avoid_: Hero, thumbnail, banner, featured image
 
 **Body image**:

@@ -18,6 +18,7 @@
     "shots": "tsx scripts/shots.ts",
     "promo": "tsx scripts/promo.ts",
     "cover": "tsx scripts/cover.ts",
+    "grid": "tsx scripts/grid.ts",
     "linkedin": "tsx scripts/linkedin.ts",
     "threads": "tsx scripts/threads.ts",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm content:check && pnpm content:check e2e/content && pnpm tracker:check && pnpm test",

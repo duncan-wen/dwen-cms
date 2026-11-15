@@ -242,6 +242,16 @@ describe("images", () => {
     expect((error as Error).message).toContain('"審閱"');
     expect((error as Error).message).toContain("review{審閱}");
   });
+
+  it("rejects a flowchart node ID that is a Mermaid keyword, naming the keyword", async () => {
+    const error = await loadContent(fixture("mermaid-keyword-id")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/keyword-id/index.mdx", field: "body", rule: "mermaid-keyword-id" }],
+    });
+    expect((error as Error).message).toContain("Mermaid block 1 (line 8)");
+    expect((error as Error).message).toContain('the Mermaid keyword "style"');
+  });
 });
 
 describe("Demos", () => {
