@@ -27,7 +27,9 @@ const useGeneratedId =
 const noFixedId = [
   "JSXAttribute[name.name='id'] > Literal",
   "JSXAttribute[name.name='id'] > JSXExpressionContainer > Literal",
-  "JSXAttribute[name.name='id'] > JSXExpressionContainer > TemplateLiteral[expressions.length=0]",
+  // A template that starts with fixed text (`contact-${name}`) is a fixed id too; one built on useId starts with it.
+  "JSXAttribute[name.name='id'] > JSXExpressionContainer > TemplateLiteral[quasis.0.value.raw=/^./]",
+  "JSXAttribute[name.name='id'] > JSXExpressionContainer > BinaryExpression[left.type='Literal']",
 ].map((selector) => ({ selector, message: useGeneratedId }));
 const noLiteralIdentity = [
   `Literal[value=${siteIdentity}]`,
@@ -68,7 +70,7 @@ export default defineConfig([
   },
   {
     // An Animation's scenes are left out: their ids name parts of one SVG and its clip paths.
-    files: ["src/components/**/*.tsx"],
+    files: ["src/components/**/*.tsx", "src/app/**/*.tsx"],
     ignores: ["src/components/job-shifts-animation/**", "src/components/agent-animation/**"],
     rules: { "no-restricted-syntax": ["error", ...noLiteralColour, ...noLiteralIdentity, ...noFixedId] },
   },

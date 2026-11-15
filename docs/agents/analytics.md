@@ -2,7 +2,7 @@
 
 How to read the site's Vercel Web Analytics, and what its numbers do and don't say.
 
-**Query**: `pnpm analytics` prints the last 30 days by day, path, referrer, device and country (`--days <n>`, `--since <date> --until <date>`, `--filter "country ne 'TW'"`). It calls the logged-in CLI, `vercel api /v1/query/web-analytics/visits/aggregate`; the Vercel MCP answers 403 for this team. For two dimensions at once, call that endpoint with `by` twice.
+**Query**: `pnpm analytics` prints the last 30 days by day, path, referrer, device and country (`--days <n>`, `--since <date> --until <date>` with both days included, `--filter "country ne 'TW'"`). Its days are UTC days, eight hours behind Taiwan: a visit before 08:00 Taiwan time counts on the day before. It calls the logged-in CLI, `vercel api /v1/query/web-analytics/visits/aggregate`; the Vercel MCP answers 403 for this team. For two dimensions at once, call that endpoint with `by` twice.
 
 **Limits of the Hobby plan**: 31 days of data, so numbers needed later are written down before they age out. No custom events (the endpoint answers 402), so a click can't be counted. Nothing measures time on a page or scroll depth.
 
