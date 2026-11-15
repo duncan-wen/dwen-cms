@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useId, useState, useSyncExternalStore } from "react";
 import { FEEDBACK_LINE_LIMIT } from "@/owner-inbox/limits";
 import type { Feedback, Vote } from "@/owner-inbox/owner-inbox";
 import { VOTES } from "@/owner-inbox/votes";
@@ -67,6 +67,7 @@ export function FeedbackBlock({ slug }: Props) {
     () => false,
   );
   const [phase, setPhase] = useState<Phase>({ step: "ask" });
+  const lineId = useId();
 
   async function vote(choice: Vote) {
     setPhase({ step: "sending" });
@@ -90,12 +91,12 @@ export function FeedbackBlock({ slug }: Props) {
     const choice = phase.vote;
     body = (
       <form action={(form) => sendLine(form, choice)} className="grid gap-3">
-        <label htmlFor="feedback-line" className="text-ink">
+        <label htmlFor={lineId} className="text-ink">
           謝謝！想多說一句嗎？（選填）
         </label>
         <div className="flex flex-wrap gap-3">
           <input
-            id="feedback-line"
+            id={lineId}
             name="line"
             type="text"
             maxLength={FEEDBACK_LINE_LIMIT}

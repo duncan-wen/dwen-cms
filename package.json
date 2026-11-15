@@ -25,7 +25,8 @@
     "prepare": "simple-git-hooks",
     "deck": "tsx scripts/deck.ts",
     "prod:check": "bash scripts/prod-check.sh",
-    "tracker:check": "tsx scripts/tracker-check.ts"
+    "tracker:check": "tsx scripts/tracker-check.ts",
+    "analytics": "tsx scripts/analytics.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "sh scripts/pre-commit.sh"
