@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { FEEDBACK_LINE_LIMIT } from "@/owner-inbox/limits";
 import type { Feedback, Vote } from "@/owner-inbox/owner-inbox";
 import { VOTES } from "@/owner-inbox/votes";
+import { buttonClass } from "./button-class";
 import { inputClass } from "./input-class";
 
 type Props = { slug: string };
@@ -58,9 +59,6 @@ type Phase =
   | { step: "failed" }
   | { step: "line-failed" };
 
-const voteButton =
-  "inline-flex items-center gap-2 rounded-md border border-rule bg-paper px-4 py-2 text-sm text-ink hover:border-accent hover:text-accent disabled:opacity-60";
-
 /** At the end of a Post: 「這篇對你有幫助嗎？」, a one-click vote, then an optional line. */
 export function FeedbackBlock({ slug }: Props) {
   const given = useSyncExternalStore(
@@ -103,7 +101,7 @@ export function FeedbackBlock({ slug }: Props) {
             maxLength={FEEDBACK_LINE_LIMIT}
             className={`min-w-0 flex-1 basis-56 ${inputClass}`}
           />
-          <button type="submit" disabled={phase.sending} className={voteButton}>
+          <button type="submit" disabled={phase.sending} className={buttonClass}>
             {phase.sending ? "送出中…" : "送出"}
           </button>
         </div>
@@ -122,7 +120,7 @@ export function FeedbackBlock({ slug }: Props) {
         <p className="text-ink">這篇對你有幫助嗎？</p>
         <div className="flex gap-3">
           {(["up", "down"] as const).map((choice) => (
-            <button key={choice} type="button" disabled={sending} onClick={() => vote(choice)} className={voteButton}>
+            <button key={choice} type="button" disabled={sending} onClick={() => vote(choice)} className={buttonClass}>
               <span aria-hidden="true">{VOTES[choice].emoji}</span>
               {VOTES[choice].label}
             </button>

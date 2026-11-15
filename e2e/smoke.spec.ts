@@ -1291,6 +1291,35 @@ test("the sitemap answers as XML and lists every Published Post, Page, Tag and S
   expect(locs).not.toContain("/posts/old-smoke-post");
 });
 
+test("the Analytics opt-out page keeps out of search results, the sitemap and the site's links", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/owner/analytics");
+
+  await expect(page.getByRole("heading", { level: 1, name: "統計設定" })).toBeVisible();
+  await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", "noindex");
+  await expect(page.locator("a[href^='/owner']")).toHaveCount(0);
+  expect(paths(await (await request.get("/sitemap.xml")).text(), "loc")).not.toContain("/owner/analytics");
+  await page.goto("/");
+  await expect(page.locator("a[href^='/owner']")).toHaveCount(0);
+});
+
+test("the Analytics opt-out switches this browser's status, and the choice survives a reload", async ({ page }) => {
+  await page.goto("/owner/analytics");
+  const status = page.getByRole("status");
+  await expect(status).toHaveText("這台裝置的瀏覽會計入統計。");
+
+  await page.getByRole("button", { name: "不要計入這台裝置" }).click();
+  await expect(status).toHaveText("這台裝置的瀏覽不會計入統計。");
+
+  await page.reload();
+  await expect(status).toHaveText("這台裝置的瀏覽不會計入統計。");
+
+  await page.getByRole("button", { name: "恢復計入這台裝置" }).click();
+  await expect(status).toHaveText("這台裝置的瀏覽會計入統計。");
+});
+
 test("robots.txt allows every crawler and names the sitemap on the base URL", async ({ request }) => {
   const response = await request.get("/robots.txt");
 
