@@ -916,3 +916,35 @@ describe("a Post's LinkedIn share", () => {
     return result.post;
   }
 });
+
+describe("Related Posts", () => {
+  const related = async (fixtureName: string, slug: string) =>
+    (await loadContent(fixture(fixtureName))).listRelatedPosts(slug).map((post) => post.slug);
+
+  it("puts Posts sharing more Tags first, then the newer, then by Slug, and stops at three", async () => {
+    // Newest first the candidates load as unrelated-newest, one-shared-a, one-shared-b, beta-newer, alpha-older.
+    expect(await related("related-posts", "subject")).toEqual(["beta-newer", "alpha-older", "one-shared-a"]);
+  });
+
+  it("leaves out the Post itself and the Posts of its Series", async () => {
+    const slugs = await related("related-posts", "subject");
+
+    expect(slugs).not.toContain("subject");
+    // `sibling` shares all three Tags, so only its Series keeps it out.
+    expect(slugs).not.toContain("sibling");
+  });
+
+  it("offers a Post in a Series to a Post outside it", async () => {
+    expect(await related("related-posts", "alpha-older")).toEqual(["sibling", "subject", "beta-newer"]);
+  });
+
+  it("fills the places no shared Tag takes with the newest other Posts", async () => {
+    expect(await related("related-posts", "lonely")).toEqual(["unrelated-newest", "one-shared-a", "one-shared-b"]);
+    expect(await related("related-posts", "unrelated-newest")).toEqual(["one-shared-a", "one-shared-b", "sibling"]);
+  });
+
+  it("has none on a site with one Post, or for an unknown Slug", async () => {
+    expect(await related("related-posts-alone", "only")).toEqual([]);
+    expect(await related("related-posts", "no-such-post")).toEqual([]);
+  });
+});

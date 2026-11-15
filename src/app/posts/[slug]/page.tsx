@@ -8,6 +8,7 @@ import { LinkRow } from "@/components/link-row";
 import { MutedParagraph } from "@/components/muted-paragraph";
 import { PageHeading } from "@/components/page-heading";
 import { PostCover } from "@/components/post-cover";
+import { RelatedPosts } from "@/components/related-posts";
 import { Seal } from "@/components/seal";
 import { SeriesContents } from "@/components/series-contents";
 import { SeriesNeighbours } from "@/components/series-neighbours";
@@ -78,7 +79,8 @@ export default async function PostPage({ params }: Props) {
   if (result.kind === "taken-down") return <TakenDown />;
   const { post } = result;
   const revision = post.latestRevision;
-  const inSeries = (await getContent()).getPostSeries(post.slug);
+  const content = await getContent();
+  const inSeries = content.getPostSeries(post.slug);
   const { Body, headings } = await compileMdx(post.body, bodyImageSources(post), slideDeckSource(post));
   return (
     <article>
@@ -117,8 +119,9 @@ export default async function PostPage({ params }: Props) {
             <span className="text-sm text-ink-soft">寫於 {formatDate(post.date)}</span>
           </p>
         </footer>
+        <RelatedPosts posts={content.listRelatedPosts(post.slug)} seriesOf={content.getSeriesOfPost} />
         <LinkRow
-          className="mt-7"
+          className="mt-10"
           links={[
             { href: "/posts", label: "所有文章" },
             { href: contactFormHref, label: "聯絡我" },

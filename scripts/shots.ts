@@ -155,6 +155,8 @@ for (const path of paths) {
             .filter((el) => !el.closest("pre") && !el.closest(".sr-only"))
             .filter((el) => {
               const style = getComputedStyle(el);
+              // Text clamped to a few lines ends in an ellipsis, so it reads as cut short on purpose.
+              if (style.webkitLineClamp !== "none") return false;
               const sideways = el.scrollWidth > el.clientWidth + 1 && style.overflowX !== "visible";
               const downwards = el.scrollHeight > el.clientHeight + 1 && style.overflowY !== "visible";
               return sideways || downwards;

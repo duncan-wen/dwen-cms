@@ -42,6 +42,10 @@ _Avoid_: Category, label, 主題, 分類
 An ordered group of Posts, meant to be read first to last, named in `content/series.yml`; a Post joins one with `series: <id>` and belongs to at most one, its place following its date. Unlike a Tag it has an order, and it is shown only once at least 2 of its Posts are Published. Shown to readers as 「系列」.
 _Avoid_: Collection, course, 連載, 合集
 
+**Related Posts**:
+The Posts offered at the end of a Post to read next, at most three, picked automatically: the other Posts sharing the most Tags with it, the newest filling any place left. Unlike a Series they have no order, nothing in a Post names them, and the Posts of the Post's own Series are left out, since its Series neighbours already point to those. Shown to readers as 「接著讀」.
+_Avoid_: Recommended, similar posts, 延伸閱讀, 相關文章
+
 **Page**:
 Standalone undated content outside listings, such as the About page.
 _Avoid_: Static page

@@ -158,6 +158,9 @@ export type SlugResolution =
   | { kind: "taken-down" }
   | { kind: "not-found" };
 
+/** How many Related Posts a Post shows at most. */
+export const RELATED_POSTS_LIMIT = 3;
+
 export type Content = {
   /** Every Published Post, newest first; Posts sharing a date are in Slug order. */
   listPublishedPosts(): Post[];
@@ -182,6 +185,12 @@ export type Content = {
   getPostSeries(slug: string): PostInSeries | undefined;
   /** The Post's shown Series alone; undefined as for getPostSeries. Safe to pass on unbound. */
   getSeriesOfPost(slug: string): Series | undefined;
+  /**
+   * The Post's Related Posts, up to `RELATED_POSTS_LIMIT`: the other Published Posts outside its
+   * Series, those sharing the most Tags with it first, then the newest, then in Slug order. Posts
+   * sharing no Tag fill the places left. Empty for an unknown Slug.
+   */
+  listRelatedPosts(slug: string): Post[];
   /** The Page in `pages/<name>/index.mdx`; undefined when there is none. */
   getPage(name: string): Page | undefined;
   /** Every Page, in name order. */
@@ -429,6 +438,17 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
       return { series, previous: series.posts[index - 1], next: series.posts[index + 1] };
     },
     getSeriesOfPost: seriesOfPost,
+    listRelatedPosts(slug) {
+      const post = bySlug.get(slug);
+      if (post === undefined) return [];
+      const seriesId = seriesIdOf.get(slug);
+      const sharedTags = (other: Post) => other.tags.filter((tag) => post.tags.includes(tag)).length;
+      // `posts` is already newest first, then in Slug order, and the sort keeps that among equals.
+      return posts
+        .filter((other) => other.slug !== slug && (seriesId === undefined || seriesIdOf.get(other.slug) !== seriesId))
+        .sort((a, b) => sharedTags(b) - sharedTags(a))
+        .slice(0, RELATED_POSTS_LIMIT);
+    },
     getPage(name) {
       return pages.get(name);
     },
