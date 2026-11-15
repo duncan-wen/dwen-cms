@@ -21,6 +21,16 @@ const useColourToken =
 const noLiteralColour = [`Literal[value=${literalColour}]`, `TemplateElement[value.raw=${literalColour}]`].map(
   (selector) => ({ selector, message: useColourToken }),
 );
+// `rehype-slug` gives each body heading an id spelt from its text, so a fixed id elsewhere on the page can match one.
+const useGeneratedId =
+  "An element's id in a component comes from useId(), never a fixed string: a body heading's id is spelt from its text and could match it.";
+const noFixedId = [
+  "JSXAttribute[name.name='id'] > Literal",
+  "JSXAttribute[name.name='id'] > JSXExpressionContainer > Literal",
+  // A template that starts with fixed text (`contact-${name}`) is a fixed id too; one built on useId starts with it.
+  "JSXAttribute[name.name='id'] > JSXExpressionContainer > TemplateLiteral[quasis.0.value.raw=/^./]",
+  "JSXAttribute[name.name='id'] > JSXExpressionContainer > BinaryExpression[left.type='Literal']",
+].map((selector) => ({ selector, message: useGeneratedId }));
 const noLiteralIdentity = [
   `Literal[value=${siteIdentity}]`,
   `TemplateElement[value.raw=${siteIdentity}]`,
@@ -57,6 +67,12 @@ export default defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/site-name.ts"],
     rules: { "no-restricted-syntax": ["error", ...noLiteralColour, ...noLiteralIdentity] },
+  },
+  {
+    // An Animation's scenes are left out: their ids name parts of one SVG and its clip paths.
+    files: ["src/components/**/*.tsx", "src/app/**/*.tsx"],
+    ignores: ["src/components/job-shifts-animation/**", "src/components/agent-animation/**"],
+    rules: { "no-restricted-syntax": ["error", ...noLiteralColour, ...noLiteralIdentity, ...noFixedId] },
   },
   {
     files: ["src/site-name.ts"],

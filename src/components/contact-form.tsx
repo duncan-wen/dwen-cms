@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useActionState } from "react";
+import { type ReactNode, useActionState, useId } from "react";
 import { type ContactFormState, sendContactMessage } from "@/app/about/send-contact-message";
 import { fallbackContactLinks } from "@/contact-links";
 import { CONTACT_LIMITS } from "@/owner-inbox/limits";
@@ -23,6 +23,8 @@ export function ContactForm() {
   const [state, action, pending] = useActionState<ContactFormState, FormData>(sendContactMessage, {
     status: "idle",
   });
+  // Ids from useId: a body heading's id is spelt from its text, and a fixed id here could match it.
+  const formId = useId();
 
   if (state.status === "sent") {
     return (
@@ -38,14 +40,15 @@ export function ContactForm() {
 
   const field = (name: ContactField, input: (props: InputProps) => ReactNode) => {
     const issue = issueFor(name);
-    const errorId = `contact-${name}-error`;
+    const inputId = `${formId}-${name}`;
+    const errorId = `${inputId}-error`;
     return (
       <div>
-        <label htmlFor={`contact-${name}`} className="text-sm font-medium text-ink">
+        <label htmlFor={inputId} className="text-sm font-medium text-ink">
           {labels[name]}
         </label>
         {input({
-          id: `contact-${name}`,
+          id: inputId,
           name,
           required: true,
           defaultValue: values?.[name],
@@ -75,8 +78,8 @@ export function ContactForm() {
       ))}
       {/* Only bots fill this in: it's off-screen, skipped by Tab and hidden from screen readers. */}
       <div aria-hidden="true" className="absolute -left-[9999px]">
-        <label htmlFor="contact-website">網站</label>
-        <input id="contact-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+        <label htmlFor={`${formId}-website`}>網站</label>
+        <input id={`${formId}-website`} name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
       {state.status === "unavailable" && (
         <div role="alert" className="text-sm text-ink">
