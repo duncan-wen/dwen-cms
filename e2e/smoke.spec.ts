@@ -1421,6 +1421,46 @@ test("the home page names the site as a WebSite", async ({ page }) => {
   ]);
 });
 
+test("a Post ends with 「接著讀」 after the signature: up to three other Posts, never itself", async ({ page }) => {
+  await page.goto("/posts/smoke-post");
+  const related = page.getByRole("navigation", { name: "接著讀" });
+
+  // Every Post here shares the one Tag, so the newest three others are picked, the same date in Slug order.
+  await expect(related.getByRole("heading", { level: 3 }).getByRole("link")).toHaveText([
+    "改過的煙霧測試文章",
+    "排版樣本文章",
+    "示意動畫測試文章",
+  ]);
+  await expect(related.locator("a[href='/posts/smoke-post']")).toHaveCount(0);
+  await expect(related.getByRole("link", { name: "系列：煙霧測試系列" })).toHaveAttribute(
+    "href",
+    "/series/smoke-series",
+  );
+  // In reading order: the signature, then 「接著讀」, then the link row.
+  const top = async (locator: Locator) => (await locator.boundingBox())!.y;
+  const [signature, relatedTop, linkRow] = await Promise.all([
+    top(page.locator("article footer")),
+    top(related),
+    top(page.locator("article").getByRole("link", { name: "聯絡我" })),
+  ]);
+  expect(signature).toBeLessThan(relatedTop);
+  expect(relatedTop).toBeLessThan(linkRow);
+});
+
+test("a Post in a Series isn't offered its own Series' Posts in 「接著讀」", async ({ page }) => {
+  await page.goto("/posts/last-year-smoke-post");
+  const related = page.getByRole("navigation", { name: "接著讀" });
+
+  // 「改過的煙霧測試文章」 is the second newest Post and shares the Tag, so only its Series keeps it out.
+  await expect(related.getByRole("heading", { level: 3 }).getByRole("link")).toHaveText([
+    "煙霧測試文章",
+    "排版樣本文章",
+    "示意動畫測試文章",
+  ]);
+  await expect(related.locator("a[href='/posts/revised-smoke-post']")).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "系列導覽" })).toBeVisible();
+});
+
 test("the signature at the end of a Post links the Owner's name to the About Page", async ({ page }) => {
   await page.goto("/posts/smoke-post");
 

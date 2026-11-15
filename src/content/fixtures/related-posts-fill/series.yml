@@ -1,0 +1,6 @@
+runs:
+  title: 三次實驗
+  description: 同一個實驗跑三次
+trials:
+  title: 兩次試用
+  description: 同一個試用做兩次

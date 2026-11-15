@@ -916,3 +916,50 @@ describe("a Post's LinkedIn share", () => {
     return result.post;
   }
 });
+
+describe("Related Posts", () => {
+  const related = async (fixtureName: string, slug: string) =>
+    (await loadContent(fixture(fixtureName))).listRelatedPosts(slug).map((post) => post.slug);
+
+  it("puts Posts sharing more Tags first, then the newer, then by Slug, and stops at three", async () => {
+    // Newest first the candidates load as unrelated-newest, one-shared-a, one-shared-b, beta-newer, alpha-older.
+    expect(await related("related-posts", "subject")).toEqual(["beta-newer", "alpha-older", "one-shared-a"]);
+  });
+
+  it("leaves out the Post itself and the Posts of its Series", async () => {
+    const slugs = await related("related-posts", "subject");
+
+    expect(slugs).not.toContain("subject");
+    // `sibling` shares all three Tags, so only its Series keeps it out.
+    expect(slugs).not.toContain("sibling");
+  });
+
+  it("offers a Post in a Series to a Post outside it", async () => {
+    expect(await related("related-posts", "alpha-older")).toEqual(["sibling", "subject", "beta-newer"]);
+  });
+
+  it("fills the places no shared Tag takes with the newest other Posts", async () => {
+    // `lonely` is the one Post sharing a Tag with `partial`, and older than every Post that fills in after it.
+    expect(await related("related-posts", "partial")).toEqual(["lonely", "unrelated-newest", "one-shared-a"]);
+    // No Post shares a Tag with `unrelated-newest`, so all three places are filled.
+    expect(await related("related-posts", "unrelated-newest")).toEqual(["one-shared-a", "one-shared-b", "sibling"]);
+  });
+
+  it("fills a place from a Series only once, however many of its Posts are the newest", async () => {
+    // Newest first: run-three, run-two, run-one, plain, trial-two, trial-one. No Post shares `reader`'s Tag.
+    expect(await related("related-posts-fill", "reader")).toEqual(["run-three", "plain", "trial-two"]);
+  });
+
+  it("doesn't fill a place from the Series of a Post that shares a Tag", async () => {
+    expect(await related("related-posts-fill", "matched-reader")).toEqual(["run-two", "plain", "trial-two"]);
+  });
+
+  it("keeps every Post that shares a Tag, even several from one Series", async () => {
+    expect(await related("related-posts", "one-shared-a")).toEqual(["one-shared-b", "sibling", "subject"]);
+  });
+
+  it("has none on a site with one Post, or for an unknown Slug", async () => {
+    expect(await related("related-posts-alone", "only")).toEqual([]);
+    expect(await related("related-posts", "no-such-post")).toEqual([]);
+  });
+});
