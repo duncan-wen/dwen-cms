@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Backdrop strength={BACKDROP_STRENGTH} />
           <SiteHeader />
-          <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-12">{children}</main>
+          <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-9 pb-12">{children}</main>
           <SiteFooter />
         </ThemeProvider>
         <SiteAnalytics />

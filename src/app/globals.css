@@ -332,3 +332,16 @@
     border-radius: 6px;
   }
 }
+
+/*
+ * The site header sticks to the top of the window (SiteHeader). --header-height is its height
+ * there, on one line; a link to an anchor lands the target that far down, plus the gap a
+ * heading had above it before the header stuck, and the table of contents sticks below it.
+ */
+:root {
+  --header-height: 72px;
+}
+
+html {
+  scroll-padding-top: calc(var(--header-height) + 1.5rem);
+}

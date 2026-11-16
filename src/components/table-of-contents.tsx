@@ -11,7 +11,10 @@ export function TableOfContents({ headings }: Props) {
   if (headings.length === 0) return null;
   return (
     <aside className="absolute top-0 left-full ml-14 hidden h-full w-[200px] min-[1180px]:block">
-      <nav aria-label="本文目錄" className="sticky top-12 mt-8 grid gap-1 text-sm leading-[1.6]">
+      <nav
+        aria-label="本文目錄"
+        className="sticky top-[calc(var(--header-height)+1.5rem)] mt-8 grid gap-1 text-sm leading-[1.6]"
+      >
         <p className="mb-2 text-[13px] text-ink-soft">本文目錄</p>
         {headings.map(({ id, label }) => (
           <a
