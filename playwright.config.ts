@@ -15,6 +15,8 @@ function hash(text: string): number {
 /** Smoke tests run against a production build of e2e/content: `pnpm smoke` builds, then tests. */
 export default defineConfig({
   testDir: "e2e",
+  // e2e/probe/ holds throwaway specs that measure a page (gitignored); smoke runs them only under PROBE=1.
+  testIgnore: process.env.PROBE ? undefined : "probe/**",
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL: `http://localhost:${port}` },

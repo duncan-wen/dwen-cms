@@ -4,6 +4,7 @@
 //   pnpm shots --content content /posts/<slug>      build the real content instead
 //   pnpm shots '/posts/<slug>?open=所有頁面'          open that fold first (a shot of its own)
 //   pnpm shots '/posts/<slug>?open=放大圖表'          or press that button: a Lightbox is shot as the screen shows it
+//   pnpm shots '/posts/<slug>?scroll=1100'           scroll that many px first: the window as the Reader sees it there
 // Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration,
 // Diagram and Demo as <path>-<illustration|diagram|demo>-<n>-<theme>-<width>.png (n counts from the
 // top of the page), a page taller than 1,600px again as <path>-<theme>-1280-part-<n>.png, each a
@@ -88,6 +89,10 @@ for (const path of paths) {
       const url = new URL(path, base);
       const labels = url.searchParams.getAll("open");
       url.searchParams.delete("open");
+      // `?scroll=<px>` isn't sent either: the page is scrolled that far before the shot, for what
+      // only shows once scrolled (a sticky header's line, the Backdrop's lines moving).
+      const scrollBy = Number(url.searchParams.get("scroll") ?? 0);
+      url.searchParams.delete("scroll");
       const response = await page.goto(url.href);
       // A button named exactly so wins over a fold whose text merely contains the label. A
       // Lightbox covers the page, so its button belongs last among the labels.
@@ -127,9 +132,18 @@ for (const path of paths) {
       });
       for (const src of unloadedFrames)
         overflowing.push(`${path} (${theme}, ${width}px): the frame ${src} didn't load`);
+      if (scrollBy > 0) {
+        await page.mouse.wheel(0, scrollBy);
+        // Two frames, so observers that react to the scroll (IntersectionObserver) have run and painted.
+        await page.evaluate(
+          () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+        );
+      }
+      // An open dialog, or a scrolled page, is shot as the window shows it, not as the whole page.
+      const windowOnly = dialogOpen || scrollBy > 0;
       const name = `${fileName(path)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
-      await page.screenshot({ path: file, fullPage: !dialogOpen });
+      await page.screenshot({ path: file, fullPage: !windowOnly });
       const scrolls = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
       if (scrolls) overflowing.push(`${path} (${theme}, ${width}px): the page scrolls horizontally`);
       // A Demo is its own page in a frame: it mustn't scroll sideways inside the frame either.
@@ -170,7 +184,7 @@ for (const path of paths) {
       for (const box of clipped) overflowing.push(`${path} (${theme}, ${width}px): ${box} clips its content`);
       const flagged = scrolls || clipped.length > 0 || scrollingFrames.length > 0 || unloadedFrames.length > 0;
       console.log(`${response?.status()} ${file}${flagged ? "  ← overflows" : ""}`);
-      const pageHeight = dialogOpen ? 0 : await page.evaluate(() => document.documentElement.scrollHeight);
+      const pageHeight = windowOnly ? 0 : await page.evaluate(() => document.documentElement.scrollHeight);
       const phoneParts: Buffer[] = [];
       for (const [index, top] of partTops(pageHeight).entries()) {
         const clip = { x: 0, y: top, width, height: Math.min(PART_HEIGHT, pageHeight - top) };
@@ -188,7 +202,7 @@ for (const path of paths) {
         await writeSheet(sheetFile, phoneParts.slice(first, first + PARTS_PER_SHEET), width);
         console.log(`    ${sheetFile}`);
       }
-      for (const { kind, label: kindLabel, selector } of dialogOpen ? [] : elements) {
+      for (const { kind, label: kindLabel, selector } of windowOnly ? [] : elements) {
         const visible = await page.locator(selector).locator("visible=true").all();
         for (const [index, element] of visible.entries()) {
           const key = `${kindLabel} ${index + 1}`;

@@ -4,6 +4,7 @@ out/
 next-env.d.ts
 *.tsbuildinfo
 test-results/
+e2e/probe/
 playwright-report/
 .env*.local
 build.log
