@@ -934,12 +934,35 @@ test("the header stays at the top while a Post scrolls, with a line under it onl
     await expect(header, `${width}px scrolled`).toHaveAttribute("data-scrolled");
     const box = await header.boundingBox();
     expect(box?.y, `${width}px scrolled`).toBe(0);
-    // One line at every width, and as tall as the --header-height that anchors and the table of contents clear.
-    const headerHeight = await page.evaluate(() =>
-      parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-height")),
-    );
-    expect(box?.height, `${width}px height`).toBe(headerHeight);
+    // On one line: the site's name and the section links share a row.
+    const name = await header.getByRole("link", { name: "Duncan Wen" }).boundingBox();
+    const nav = await header.getByRole("navigation", { name: "主要" }).boundingBox();
+    expect(Math.abs(name!.y + name!.height / 2 - (nav!.y + nav!.height / 2)), `${width}px one line`).toBeLessThan(4);
   }
+});
+
+test("the header's height in globals.css, used before it measures itself, is its real height", async ({ page }) => {
+  for (const width of [1280, 375, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/posts/typography-sample");
+    const guessed = await page.evaluate(() => {
+      document.documentElement.style.removeProperty("--header-height");
+      return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-height"));
+    });
+    const box = await page.getByRole("banner").boundingBox();
+    expect(box?.height, `${width}px`).toBe(guessed);
+  }
+});
+
+test("on a screen narrow enough to wrap the header, an anchor still lands below it", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/about#contact");
+
+  await expect(async () => {
+    const header = (await page.getByRole("banner").boundingBox())!;
+    const contact = (await page.locator("#contact").boundingBox())!;
+    expect(contact.y).toBeGreaterThanOrEqual(header.y + header.height);
+  }).toPass();
 });
 
 test("a table-of-contents link lands its heading below the header, not under it", async ({ page }) => {

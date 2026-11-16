@@ -27,13 +27,14 @@ The job it does for Readers: help them find Posts, and the rest of the site, fro
 ## Implementation Decisions
 
 - **Always shown**: the header sticks at the top (`position: sticky; top: 0`) for the whole page; it neither hides on scrolling down nor shrinks. Chosen over a header that hides while scrolling down, or shrinks once scrolled, as the simplest that does the job, with no scroll handler.
-- **Every width**: phones too. Its layout is checked at 375px to be one line; if it wraps, the gaps shrink until it doesn't.
+- **Every width**: phones too. Its layout is checked at 375px to be one line; if it wraps, the gaps shrink until it doesn't. Below 370px it still wraps onto two lines (fitting it would mean changing how it looks); anchors and the table of contents allow for its height there too.
 - **Background as wide as the reading column**: the header's own box (`max-w-2xl`) gets the solid paper colour (`bg-paper`); nothing spans the window, so the Backdrop's lines in the margins stay whole.
-- **The line under it**: a bottom border in the rule colour, shown only once the page has scrolled. An `IntersectionObserver` watches a marker at the top of the page and sets a `data-` attribute on the header when the marker leaves the window; no scroll listener, and no CSS scroll-driven animation (not in every browser the site supports). Without JavaScript, or before it runs, there's no line, which is the at-the-top look.
+- **The line under it**: a line in the rule colour (a shadow, not a border, so it takes no space), shown only once the page has scrolled. An `IntersectionObserver` watches a marker at the top of the page and sets a `data-` attribute on the header when the marker leaves the window; no scroll listener, and no CSS scroll-driven animation (not in every browser the site supports). Without JavaScript, or before it runs, there's no line, which is the at-the-top look.
 - **At rest, pixel for pixel as today**: the header gains the bottom padding it needs to sit above passing text; the same amount comes off `main`'s top padding, so the unscrolled page doesn't move.
 - **Stacking**: above the page's content, including the `z-10` links in `PostGrid` and `RelatedPosts`, and below the full-screen Slide Deck (`z-50`).
-- **Anchors**: one `scroll-padding-top` on `html`, the header's height plus the gap a heading had before, replaces the per-element `scroll-mt-6` on Post headings and on `/about#contact`.
-- **Table of contents**: its sticky `top` moves down by the header's height, so it stays below the header.
+- **The header's height**: `--header-height` in `globals.css` (72px, 114px below 370px where it wraps) is the guess used before JavaScript runs, since a page opened at an anchor scrolls there first; the header then measures itself (`ResizeObserver`) and overwrites it.
+- **Anchors**: one `scroll-padding-top` on `html`, `--anchor-offset` (the header's height plus the gap a heading had before), replaces the per-element `scroll-mt-6` on Post headings and on `/about#contact`.
+- **Table of contents**: it sticks at `--anchor-offset`, below the header by the same gap as a heading it links to.
 
 ## Testing Decisions
 
