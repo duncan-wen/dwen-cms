@@ -332,3 +332,25 @@
     border-radius: 6px;
   }
 }
+
+/*
+ * The site header sticks to the top of the window (SiteHeader). --header-height is its height
+ * there: 72px on one line, 114px on two below 370px wide, where it wraps; SiteHeader overwrites
+ * it with its measured height. The guess matters before it runs: a page opened at an anchor
+ * scrolls there first. --anchor-offset adds the gap a heading had above it before the header stuck: a
+ * link to an anchor lands its target that far down, and the table of contents sticks there.
+ */
+:root {
+  --header-height: 72px;
+  --anchor-offset: calc(var(--header-height) + 1.5rem);
+}
+
+@media (width < 370px) {
+  :root {
+    --header-height: 114px;
+  }
+}
+
+html {
+  scroll-padding-top: var(--anchor-offset);
+}

@@ -104,7 +104,7 @@ export default async function PostPage({ params }: Props) {
           )}
           {inSeries && <SeriesContents series={inSeries.series} slug={post.slug} />}
         </PageHeading>
-        <div className="prose prose-site max-w-none prose-h2:scroll-mt-6">
+        <div className="prose prose-site max-w-none">
           <Body />
         </div>
         {inSeries && <SeriesNeighbours inSeries={inSeries} />}

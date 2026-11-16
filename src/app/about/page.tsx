@@ -36,7 +36,7 @@ export default async function AboutPage() {
       {/* The Contact form and links live in code, so every 「聯絡我」 on the site always lands here. */}
       {/* A fixed id on purpose: every 「聯絡我」 links to /about#contact, so the anchor is part of the site's URLs. */}
       {/* eslint-disable-next-line no-restricted-syntax */}
-      <section id="contact" className="mt-14 scroll-mt-6 border-t border-rule pt-8">
+      <section id="contact" className="mt-14 border-t border-rule pt-8">
         <h2 className="text-[22px] leading-[1.5] font-bold">聯絡我</h2>
         <ContactForm />
         {/* The footer's link to this very form would only scroll to itself here. */}

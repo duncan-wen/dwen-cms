@@ -14,7 +14,7 @@ const sections = [
 export function SiteNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="主要" className="flex items-center gap-[22px] text-[15px]">
+    <nav aria-label="主要" className="flex items-center gap-[22px] text-[15px] max-sm:gap-3">
       {sections.map(({ href, label }) => {
         const current = pathname === href || pathname.startsWith(`${href}/`);
         return (
