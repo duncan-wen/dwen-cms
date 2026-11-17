@@ -1,8 +1,8 @@
 "use client";
 
 import { AnimationFigure } from "../animation-figure";
-import { SCENE_HEIGHT, SCENE_WIDTH } from "../job-shifts-animation/scene-kit";
-import { CENTRAL_STOCK_CAPTION, CENTRAL_STOCK_STEPS, SCENE_FPS } from "./oversell";
+import { SCENE_FPS, SCENE_HEIGHT, SCENE_WIDTH } from "../job-shifts-animation/scene-kit";
+import { CENTRAL_STOCK_CAPTION, CENTRAL_STOCK_STEPS } from "./oversell";
 import { CENTRAL_STOCK_SECONDS, CentralStockScene } from "./central-stock-scene";
 
 /**

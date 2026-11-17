@@ -1,5 +1,16 @@
 import { useCurrentFrame, useVideoConfig } from "remotion";
-import { ACCENT, BERRY, INK, PAPER, RULE, SOFT, type Point } from "../job-shifts-animation/scene-kit";
+import {
+  ACCENT,
+  BERRY,
+  BLUE,
+  GREEN,
+  INK,
+  PAPER,
+  RULE,
+  SOFT,
+  type Point,
+  WOOD,
+} from "../job-shifts-animation/scene-kit";
 
 /** The warning colour: a count past what exists, a request that failed. */
 export const WARN = BERRY;
@@ -26,38 +37,21 @@ export function along(path: Point[], t: number): Point {
   return { x: from.x + (to.x - from.x) * into, y: from.y + (to.y - from.y) * into };
 }
 
-type BoxProps = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+type BoxProps = Rect & {
   label: string;
   /** A second line under the label, such as a ledger's count. */
   detail?: string;
-  detailColour?: string;
   colour?: string;
   /** Greyed out: a service that is down. */
   down?: boolean;
-  opacity?: number;
 };
 
 /** A service drawn as a rounded box with its name, and below it, when given, what it holds. */
-export function Box({
-  x,
-  y,
-  width,
-  height,
-  label,
-  detail,
-  detailColour,
-  colour = INK,
-  down = false,
-  opacity = 1,
-}: BoxProps) {
+export function Box({ x, y, width, height, label, detail, colour = INK, down = false }: BoxProps) {
   const ink = down ? SOFT : colour;
   const centre = { x: x + width / 2, y: y + height / 2 };
   return (
-    <g opacity={opacity}>
+    <g>
       <rect
         x={x}
         y={y}
@@ -80,13 +74,7 @@ export function Box({
         {label}
       </text>
       {detail && (
-        <text
-          x={centre.x}
-          y={centre.y + 21}
-          textAnchor="middle"
-          fontSize={20}
-          fill={down ? SOFT : (detailColour ?? INK)}
-        >
+        <text x={centre.x} y={centre.y + 21} textAnchor="middle" fontSize={20} fill={down ? SOFT : INK}>
           {detail}
         </text>
       )}
@@ -160,34 +148,62 @@ export function Counter({ x, y, label, value, colour = INK, note }: CounterProps
   );
 }
 
-type Trip = {
+/** A buyer's request on its way: it leaves at `start` and travels `path`, one leg at a time. */
+export type Trip = {
   /** When the dot leaves, in seconds. */
   start: number;
   path: Point[];
-  colour: string;
-  /** A colour it turns to for the last leg, such as a failed request. */
-  endColour?: string;
+  /** Its colour on each leg: neutral until the load balancer deals it, a shop's colour after. */
+  colours: string[];
 };
 
-/** How long one dot takes over its whole path, in seconds. */
-export const TRIP_SECONDS = 1.1;
+/** How long a dot takes over one leg of its path, in seconds: every dot moves at one pace. */
+export const LEG_SECONDS = 0.25;
+
+/** When a dot has travelled its first `legs` legs. */
+export const arrival = (trip: Trip, legs = trip.path.length - 1) => trip.start + legs * LEG_SECONDS;
+
+/** Departure times from `from` until `until`, one every `every` seconds. */
+export const departures = (from: number, until: number, every: number) =>
+  Array.from({ length: Math.floor((until - from) / every) + 1 }, (_, n) => from + n * every);
+
+type TripsProps = { trips: Trip[]; now: number };
 
 /** The dots in flight at `now`: each travels its path once, then disappears. */
-export function Trips({ trips, now }: { trips: Trip[]; now: number }) {
+export function Trips({ trips, now }: TripsProps) {
   return (
     <g>
       {trips.map((trip, i) => {
-        const t = (now - trip.start) / TRIP_SECONDS;
+        const legs = trip.path.length - 1;
+        const t = (now - trip.start) / (legs * LEG_SECONDS);
         if (t <= 0 || t >= 1) return null;
         const { x, y } = along(trip.path, t);
-        const lastLeg = t > 1 - 1 / (trip.path.length - 1);
-        return <circle key={i} cx={x} cy={y} r={5.5} fill={lastLeg && trip.endColour ? trip.endColour : trip.colour} />;
+        return <circle key={i} cx={x} cy={y} r={5.5} fill={trip.colours[Math.floor(t * legs)]} />;
       })}
     </g>
   );
 }
 
+/** A service's box, in the scene's pixels. */
+export type Rect = { x: number; y: number; width: number; height: number };
+
+/** Where requests enter a box (its left edge) and leave it (its right edge), half way down. */
+export const inPort = (box: Rect): Point => ({ x: box.x, y: box.y + box.height / 2 });
+export const outPort = (box: Rect): Point => ({ x: box.x + box.width, y: box.y + box.height / 2 });
+
+/** The 3 copies of the shop, by port, each drawn in its own colour. */
+export const SHOP_PORTS = [
+  { port: "9001", colour: BLUE },
+  { port: "9002", colour: GREEN },
+  { port: "9003", colour: WOOD },
+];
+
+/** The colour of a dot before the load balancer deals it to a shop. */
+export const UNDEALT = ACCENT;
+
+type WireProps = { from: Point; to: Point };
+
 /** A thin line between two services, the way requests travel. */
-export function Wire({ from, to }: { from: Point; to: Point }) {
+export function Wire({ from, to }: WireProps) {
   return <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={RULE} strokeWidth={2} />;
 }

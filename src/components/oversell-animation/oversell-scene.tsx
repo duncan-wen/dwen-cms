@@ -1,7 +1,26 @@
-import { BLUE, GREEN, type Point, SceneCanvas, WOOD } from "../job-shifts-animation/scene-kit";
-import { Box, Counter, Crowd, crowdExit, span, TRIP_SECONDS, Trips, useSeconds, WARN, Wire } from "./flow-kit";
+import { SceneCanvas } from "../job-shifts-animation/scene-kit";
+import {
+  arrival,
+  Box,
+  Counter,
+  Crowd,
+  crowdExit,
+  departures,
+  inPort,
+  LEG_SECONDS,
+  outPort,
+  type Rect,
+  SHOP_PORTS,
+  span,
+  type Trip,
+  Trips,
+  UNDEALT,
+  useSeconds,
+  WARN,
+  Wire,
+} from "./flow-kit";
 
-/** How long the scene runs, in seconds; it holds its finished frame for the last two. */
+/** How long the scene runs, in seconds; it holds its finished frame for the last two and a half. */
 export const OVERSELL_SECONDS = 12;
 
 const SELL_START = 1;
@@ -12,29 +31,17 @@ const VERDICT_AT = 9.4;
 const SPAWN_EVERY = 0.12;
 
 const CROWD = { x: 44, y: 92 };
-const BALANCER = { x: 128, y: 116, width: 100, height: 56 };
-const SHOP_X = 322;
-const SHOP_WIDTH = 150;
-const SHOP_HEIGHT = 66;
-const SHOPS = [
-  { port: "9001", y: 22, colour: BLUE },
-  { port: "9002", y: 111, colour: GREEN },
-  { port: "9003", y: 200, colour: WOOD },
-];
+const BALANCER: Rect = { x: 128, y: 116, width: 100, height: 56 };
+const SHOPS = SHOP_PORTS.map((shop, i) => ({ ...shop, box: { x: 322, y: 22 + i * 89, width: 150, height: 66 } }));
 
 const exit = crowdExit(CROWD.x, CROWD.y);
-const balancerIn: Point = { x: BALANCER.x, y: BALANCER.y + BALANCER.height / 2 };
-const balancerOut: Point = { x: BALANCER.x + BALANCER.width, y: balancerIn.y };
-const shopIn = (y: number): Point => ({ x: SHOP_X, y: y + SHOP_HEIGHT / 2 });
-
-const TRIPS = Array.from({ length: Math.floor((SELL_END - TRIP_SECONDS - SELL_START) / SPAWN_EVERY) + 1 }, (_, n) => {
+const route = (shop: Rect) => [exit, inPort(BALANCER), outPort(BALANCER), inPort(shop)];
+/** Every buyer goes through the load balancer, which deals them to the shops in turn. */
+const TRIPS: Trip[] = departures(SELL_START, SELL_END - 3 * LEG_SECONDS, SPAWN_EVERY).map((start, n) => {
   const shop = SHOPS[n % SHOPS.length];
-  return {
-    start: SELL_START + n * SPAWN_EVERY,
-    path: [exit, balancerIn, balancerOut, shopIn(shop.y)],
-    colour: shop.colour,
-  };
+  return { start, path: route(shop.box), colours: [UNDEALT, UNDEALT, shop.colour] };
 });
+const FIRST_SALE = arrival(TRIPS[0]);
 
 /**
  * Why 3 copies of the shop sell 300 of 100: the load balancer deals buyers to 3 shops in turn,
@@ -43,33 +50,28 @@ const TRIPS = Array.from({ length: Math.floor((SELL_END - TRIP_SECONDS - SELL_ST
 export function OversellScene() {
   const now = useSeconds();
   const shown = span(now, 0, 0.6);
-  const sold = span(now, SELL_START + TRIP_SECONDS, SELL_END);
-  const total = 300 * sold;
+  const soldShare = span(now, FIRST_SALE, SELL_END);
+  const total = 300 * soldShare;
   const over = total > 100;
   return (
     <SceneCanvas name="oversell">
       <g opacity={shown}>
-        <Wire from={exit} to={balancerIn} />
+        <Wire from={exit} to={inPort(BALANCER)} />
         {SHOPS.map((shop) => (
-          <Wire key={shop.port} from={balancerOut} to={shopIn(shop.y)} />
+          <Wire key={shop.port} from={outPort(BALANCER)} to={inPort(shop.box)} />
         ))}
         <Trips trips={TRIPS} now={now} />
-        <Crowd x={CROWD.x} y={CROWD.y} label="1,000 人搶購" left={1 - span(now, SELL_START, SELL_END - TRIP_SECONDS)} />
+        <Crowd x={CROWD.x} y={CROWD.y} label="1,000 人搶購" left={1 - span(now, SELL_START, TRIPS.at(-1)!.start)} />
         <Box {...BALANCER} label="分流器" />
         {SHOPS.map((shop) => (
           <Box
             key={shop.port}
-            x={SHOP_X}
-            y={shop.y}
-            width={SHOP_WIDTH}
-            height={SHOP_HEIGHT}
+            {...shop.box}
             label={shop.port}
             colour={shop.colour}
-            detail={`庫存 ${Math.round(100 * (1 - sold))}`}
+            detail={`庫存 ${Math.round(100 * (1 - soldShare))}`}
           />
         ))}
-      </g>
-      <g opacity={shown}>
         <Counter
           x={28}
           y={322}
@@ -80,7 +82,7 @@ export function OversellScene() {
         />
       </g>
       <text
-        x={SHOP_X + SHOP_WIDTH / 2}
+        x={SHOPS[0].box.x + SHOPS[0].box.width / 2}
         y={296}
         textAnchor="middle"
         fontSize={19}

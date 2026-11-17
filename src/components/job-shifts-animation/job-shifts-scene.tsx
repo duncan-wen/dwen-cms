@@ -3,11 +3,10 @@ import { AbsoluteFill, Sequence, interpolate, useCurrentFrame, useVideoConfig } 
 import { AI_SECONDS, AiScene } from "./ai-scene";
 import { COMPUTER_SECONDS, ComputerScene } from "./computer-scene";
 import { INDUSTRIAL_SECONDS, IndustrialScene } from "./industrial-scene";
-import { CLAMPED, SCENE_HEIGHT, SCENE_WIDTH } from "./scene-kit";
+import { CLAMPED, SCENE_FPS, SCENE_HEIGHT, SCENE_WIDTH } from "./scene-kit";
 import { SUMMARY_SECONDS, SummaryScene } from "./summary-scene";
 
-export { SCENE_HEIGHT, SCENE_WIDTH };
-export const SCENE_FPS = 30;
+export { SCENE_FPS, SCENE_HEIGHT, SCENE_WIDTH };
 
 /** The scenes in the order they play, each for its own length; the summary comes last and holds. */
 const SCENES: { Scene: ComponentType; seconds: number }[] = [

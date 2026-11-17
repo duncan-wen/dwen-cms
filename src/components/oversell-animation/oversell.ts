@@ -14,5 +14,3 @@ export const CENTRAL_STOCK_STEPS = [
   "總倉從 100 扣到 0，剛好賣出 100 件，其餘的人收到賣完了。",
   "總倉關掉後再來 1,000 人：3 家店都還在，但問不到庫存，1,000 人全部失敗。",
 ];
-
-export const SCENE_FPS = 30;
