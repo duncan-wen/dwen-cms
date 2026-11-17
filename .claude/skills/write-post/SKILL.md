@@ -22,10 +22,11 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - the first paragraph leads with step 2's hook;
    - in mode 4, a person in a moment comes before the first number;
    - every sentence about the Owner's own situation (who they know, who uses the thing, how far it has got) traces to the Series brief's confirmed details or to the Owner's words, and a source's "if" is still an "if" in the Post;
+   - every code block followed by its output is a whole program (`package main` and its imports, not a fragment): copied from the Post as written into the scratchpad, run, and the output shown is what that run printed, with any number that varies run to run said so in the prose;
    - `pnpm content:check` passes: `pnpm cover` runs it before it draws.
 4. **Draw the cover** ([COVER-STYLES.md](COVER-STYLES.md)). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose, or the Post's own picture when the Post is about one, and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
 5. **Add `promo` frontmatter** ([PROMO.md](PROMO.md)).
-6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names.
+6. **Check.** Run `pnpm content:check`, then `pnpm check` (the pre-commit hook runs it too), then `pnpm build:check`, which is CI's build of the real content. Done when all three pass with no errors and no warnings. Fix each content error at the file, field and rule it names. When `build:check` stops on Next.js's security-vulnerability notice, follow `docs/agents/shipping.md`'s **Next.js security notice**.
 7. **Make the promo images.** `pnpm promo <slug>` (run `pnpm exec playwright install chromium` once if it can't launch a browser). Read every PNG it writes to `promo/` and the contact sheet `promo/index.html`. Done when the title breaks where you meant, nothing overflows, and the points read as the Post's hook.
    Then shoot the Post itself: `pnpm shots --content content /posts/<slug>`. It prints every file it writes; read each of these:
    - every `…-light-1280-part-<n>.png` and every `…-light-375-sheet-<n>.png` (a phone's parts, four side by side), for the text and layout; a page under 1,600px has neither, so read its two whole-page light shots;
