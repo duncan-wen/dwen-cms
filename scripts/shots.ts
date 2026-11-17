@@ -4,7 +4,8 @@
 //   pnpm shots --content content /posts/<slug>      build the real content instead
 //   pnpm shots '/posts/<slug>?open=所有頁面'          open that fold first (a shot of its own)
 //   pnpm shots '/posts/<slug>?open=放大圖表'          or press that button: a Lightbox is shot as the screen shows it
-//   pnpm shots '/posts/<slug>?scroll=1100'           scroll that many px first: the window as the Reader sees it there
+//   pnpm shots '/posts/<slug>?scroll=1100'           scroll to that many px first: the window as the Reader sees it there
+//                                                   (no parts, sheets or crops; pass the plain path too for those)
 // Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration,
 // Diagram and Demo as <path>-<illustration|diagram|demo>-<n>-<theme>-<width>.png (n counts from the
 // top of the page), a page taller than 1,600px again as <path>-<theme>-1280-part-<n>.png, each a
@@ -89,9 +90,12 @@ for (const path of paths) {
       const url = new URL(path, base);
       const labels = url.searchParams.getAll("open");
       url.searchParams.delete("open");
-      // `?scroll=<px>` isn't sent either: the page is scrolled that far before the shot, for what
-      // only shows once scrolled (a sticky header's line, the Backdrop's lines moving).
-      const scrollBy = Number(url.searchParams.get("scroll") ?? 0);
+      // `?scroll=<px>` isn't sent either: the page is scrolled to that position before the shot, for
+      // what only shows once scrolled (a sticky header's line). Reduced motion keeps the Backdrop still.
+      const scrollParam = url.searchParams.get("scroll");
+      const scrollTo = scrollParam === null ? 0 : Number(scrollParam);
+      if (!Number.isInteger(scrollTo) || scrollTo < 0)
+        throw new Error(`${path}: ?scroll= takes a whole number of px, not "${scrollParam}"`);
       url.searchParams.delete("scroll");
       const response = await page.goto(url.href);
       // A button named exactly so wins over a fold whose text merely contains the label. A
@@ -132,15 +136,19 @@ for (const path of paths) {
       });
       for (const src of unloadedFrames)
         overflowing.push(`${path} (${theme}, ${width}px): the frame ${src} didn't load`);
-      if (scrollBy > 0) {
-        await page.mouse.wheel(0, scrollBy);
-        // Two frames, so observers that react to the scroll (IntersectionObserver) have run and painted.
-        await page.evaluate(
-          () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-        );
+      if (scrollTo > 0) {
+        // An absolute, instant scroll: wherever opening a fold left the page, and no pointer over anything.
+        const reached = await page.evaluate(async (top) => {
+          window.scrollTo({ top, behavior: "instant" });
+          // A few frames, so what reacts to the scroll (an IntersectionObserver, then React) has rendered.
+          for (let frame = 0; frame < 3; frame++) await new Promise((resolve) => requestAnimationFrame(resolve));
+          return Math.round(window.scrollY);
+        }, scrollTo);
+        if (reached !== scrollTo)
+          overflowing.push(`${path} (${theme}, ${width}px): scrolled to ${reached}px, not ${scrollTo}px`);
       }
       // An open dialog, or a scrolled page, is shot as the window shows it, not as the whole page.
-      const windowOnly = dialogOpen || scrollBy > 0;
+      const windowOnly = dialogOpen || scrollTo > 0;
       const name = `${fileName(path)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
       await page.screenshot({ path: file, fullPage: !windowOnly });
