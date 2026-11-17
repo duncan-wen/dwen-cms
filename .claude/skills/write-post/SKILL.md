@@ -23,6 +23,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - in mode 4, a person in a moment comes before the first number;
    - every sentence about the Owner's own situation (who they know, who uses the thing, how far it has got) traces to the Series brief's confirmed details or to the Owner's words, and a source's "if" is still an "if" in the Post;
    - every code block followed by its output is a whole program (`package main` and its imports, not a fragment): copied from the Post as written into the scratchpad, run, and the output shown is what that run printed, with any number that varies run to run said so in the prose;
+   - `pnpm code:check <slug>` passes: it compiles each whole Go and Python program as a Reader would copy it;
    - `pnpm content:check` passes: `pnpm cover` runs it before it draws.
 4. **Draw the cover** ([COVER-STYLES.md](COVER-STYLES.md)). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose, or the Post's own picture when the Post is about one, and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
 5. **Add `promo` frontmatter** ([PROMO.md](PROMO.md)).
