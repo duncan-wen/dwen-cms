@@ -10,6 +10,8 @@ import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 /** The canvas, in the scene's own pixels; the Player scales it to the column. */
 export const SCENE_WIDTH = 500;
 export const SCENE_HEIGHT = 340;
+/** Frames per second every scene drawn on this canvas plays at. */
+export const SCENE_FPS = 30;
 /** The floor line of both worlds. */
 export const GROUND = 262;
 
