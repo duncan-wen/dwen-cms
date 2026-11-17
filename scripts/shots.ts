@@ -21,7 +21,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
-import { parseAtTimes } from "../src/shots/at-times";
+import { takeAt } from "../src/shots/at-times";
 import { ShotMemory } from "../src/shots/shot-memory";
 import { SITE_LANGUAGE } from "../src/site-name";
 
@@ -92,11 +92,17 @@ const overflowing: string[] = [];
 const sections: string[] = [];
 for (const path of paths) {
   // `?at=` adds mid-play shots; the path's other shots keep the names they have without it.
-  const atTimes = parseAtTimes(path, new URL(path, "http://shots").searchParams.get("at"));
-  const shotPath = path.replace(/[?&]at=[^&]*/, "").replace(/^([^?]*)&/, "$1?");
+  const { shotPath, atTimes } = takeAt(path);
   const figures: string[] = [];
   /** Each element's crops, keyed by kind and position, in the order the page shows them. */
   const crops = new Map<string, string[]>();
+  /** Adds a crop to its element's row on the contact sheet. */
+  const addCrop = (key: string, name: string, label: string) =>
+    crops.set(key, [
+      ...(crops.get(key) ?? []),
+      `<figure><figcaption>${label}</figcaption>` +
+        `<a href="${name}"><img class="crop" src="${name}" alt="${path} ${label}" loading="lazy"></a></figure>`,
+    ]);
   for (const theme of themes) {
     for (const width of widths) {
       // Reduced motion, so an animation shows its finished frame rather than wherever it was when the shot was taken.
@@ -107,7 +113,7 @@ for (const path of paths) {
       });
       // `?open=<label>` isn't sent: it names a fold (<summary>) to open before the shot, or,
       // when no fold has that label, the first visible button named so, such as 放大圖表.
-      const url = new URL(path, base);
+      const url = new URL(shotPath, base);
       const labels = url.searchParams.getAll("open");
       url.searchParams.delete("open");
       // `?scroll=<px>` isn't sent either: the page is scrolled to that position before the shot, for
@@ -117,7 +123,6 @@ for (const path of paths) {
       if (!Number.isInteger(scrollTo) || scrollTo < 0)
         throw new Error(`${path}: ?scroll= takes a whole number of px, not "${scrollParam}"`);
       url.searchParams.delete("scroll");
-      url.searchParams.delete("at");
       const response = await page.goto(url.href);
       // A button named exactly so wins over a fold whose text merely contains the label. A
       // Lightbox covers the page, so its button belongs last among the labels.
@@ -242,11 +247,7 @@ for (const path of paths) {
           const cropSame = recordShot(cropFile);
           console.log(`    ${cropFile}${mark(cropSame)}`);
           const cropLabel = `${key}・${themeLabel(theme)}・${widthLabel(width)}${sameTag(cropSame)}`;
-          crops.set(key, [
-            ...(crops.get(key) ?? []),
-            `<figure><figcaption>${cropLabel}</figcaption>` +
-              `<a href="${cropName}"><img class="crop" src="${cropName}" alt="${path} ${cropLabel}" loading="lazy"></a></figure>`,
-          ]);
+          addCrop(key, cropName, cropLabel);
         }
       }
       const label = `${themeLabel(theme)}・${widthLabel(width)}`;
@@ -288,13 +289,10 @@ for (const path of paths) {
         const midName = `${fileName(shotPath)}-animation-${index + 1}-at-${at}-${theme}-${MID_PLAY_WIDTH}.png`;
         const midFile = `${outDir}/${midName}`;
         await animation.screenshot({ path: midFile });
-        console.log(`    ${midFile}${mark(recordShot(midFile))}`);
-        const midLabel = `${key}・第 ${at} 秒・${themeLabel(theme)}`;
-        crops.set(key, [
-          ...(crops.get(key) ?? []),
-          `<figure><figcaption>${midLabel}</figcaption>` +
-            `<a href="${midName}"><img class="crop" src="${midName}" alt="${path} ${midLabel}" loading="lazy"></a></figure>`,
-        ]);
+        const midSame = recordShot(midFile);
+        console.log(`    ${midFile}${mark(midSame)}`);
+        const midLabel = `${key}・第 ${at} 秒・${themeLabel(theme)}${sameTag(midSame)}`;
+        addCrop(key, midName, midLabel);
       }
       await page.close();
     }
