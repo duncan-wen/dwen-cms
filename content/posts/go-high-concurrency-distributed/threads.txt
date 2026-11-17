@@ -1,3 +1,5 @@
+posted: https://www.threads.com/@aibbm.duncan/post/Df1qNUHEz5X
+
 100 件商品，1,000 人同時搶，結果賣出了 300 件。
 
 程式沒寫錯，我只是把同一個 Go 程式多開了 2 份。每台都有自己的帳本，各自認真扣到 0。
