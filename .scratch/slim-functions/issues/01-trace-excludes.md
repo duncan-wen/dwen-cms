@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `next.config` excludes the spec's list from every route
-- [ ] The local build's largest traced route drops from about 77 MB, with the before/after per route in the PR body
-- [ ] The preview check script passes on the PR's Vercel preview: every page and image 200, unknown Post 404, bad feedback 400
-- [ ] sharp is excluded only if the preview check passes without it
+- [x] `next.config` excludes the spec's list from every route
+- [x] The local build's largest traced route drops from about 77 MB, with the before/after per route in the PR body
+- [x] The preview check script passes on the PR's Vercel preview: every page and image 200, unknown Post 404, bad feedback 400
+- [x] sharp is excluded only if the preview check passes without it

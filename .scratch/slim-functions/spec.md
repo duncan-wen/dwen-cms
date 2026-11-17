@@ -1,6 +1,6 @@
 # Spec: Slim functions and fewer deployments
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 

@@ -15,7 +15,7 @@ if (!base?.startsWith("https://")) {
 }
 const secret =
   process.env.VERCEL_AUTOMATION_BYPASS_SECRET ??
-  /^VERCEL_AUTOMATION_BYPASS_SECRET=(.*)$/m.exec(readFileSync(".env.local", "utf8"))?.[1]?.replace(/^"|"$/g, "");
+  /^VERCEL_AUTOMATION_BYPASS_SECRET=(.*)$/m.exec(readFileSync(".env.local", "utf8"))?.[1]?.replace(/^["']|["']$/g, "");
 const headers: Record<string, string> = secret ? { "x-vercel-protection-bypass": secret } : {};
 
 const content = await getContent();
