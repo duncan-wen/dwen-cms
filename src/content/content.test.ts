@@ -185,6 +185,15 @@ describe("images", () => {
     });
   });
 
+  it("rejects a Go block with func main and no package main, naming it by its position and line", async () => {
+    const error = await loadContent(fixture("go-package-main")).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({
+      problems: [{ file: "posts/go-program/index.mdx", field: "body", rule: "go-package-main" }],
+    });
+    expect((error as Error).message).toContain("Go block 3 (line 28)");
+  });
+
   it("rejects Mermaid that doesn't parse, naming the block by its position and line", async () => {
     const error = await loadContent(fixture("mermaid-syntax")).catch((e: unknown) => e);
 

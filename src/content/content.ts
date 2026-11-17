@@ -351,6 +351,7 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
     if (tree) checkImagesNotLinked(tree, report);
     if (tree) checkProseDates(tree, report);
     if (tree) await checkDiagrams(tree, bodyLine, report);
+    if (tree) checkGoPrograms(tree, bodyLine, report);
     const promo = checkPromo(data.promo, title, description, report);
     const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
     const threadsShare = await loadThreadsShare(contentDir, slug, problems);
@@ -1219,6 +1220,25 @@ function isLink({ type, name }: MdNode): boolean {
  * problem names the block by its position among the body's Mermaid blocks and
  * its line in the file; `bodyLine` is how many lines into the file the body starts.
  */
+/**
+ * A ```go block with `func main` is a whole program a Reader copies and runs, so it starts with
+ * `package main`; a fragment (no `func main`) is left alone.
+ */
+function checkGoPrograms(tree: MdNode, bodyLine: number, report: Report) {
+  const blocks = mdNodes(tree).filter((node) => node.type === "code" && node.lang === "go");
+  for (const [index, block] of blocks.entries()) {
+    const source = block.value ?? "";
+    if (/^func main\(\)/m.test(source) && !/^package main\b/m.test(source)) {
+      const which = `Go block ${index + 1} (line ${bodyLine + (block.position?.start.line ?? 1)})`;
+      report(
+        "body",
+        "go-package-main",
+        `${which} has func main but no package main; start it with package main and its imports, so a Reader can run it as written`,
+      );
+    }
+  }
+}
+
 async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
   const blocks = mermaidBlocks(tree);
   for (const [index, block] of blocks.entries()) {
