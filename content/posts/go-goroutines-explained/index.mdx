@@ -279,6 +279,10 @@ v := <-ch                 // 收，沒東西就等
 沒有緩衝的 channel 像當面交接，送的一方會停在那裡，直到另一方伸手接過去。這帶來同步的效果，也帶來最常見的錯誤：沒有人接。
 
 ```go
+package main
+
+import "fmt"
+
 func main() {
 	ch := make(chan int)
 	ch <- 1 // 沒有人在另一端接，這裡永遠等下去
