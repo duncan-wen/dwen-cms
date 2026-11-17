@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] One shared component carries the playback states, 重播, reduced motion, the hidden list and the caption
-- [ ] `JobShiftsAnimation` uses it; its smoke tests pass unchanged
-- [ ] Its `pnpm shots` crops are byte-identical to `main`'s
-- [ ] `CODING_STANDARDS.md`'s shared-piece list names it
+- [x] One shared component carries the playback states, 重播, reduced motion, the hidden list and the caption
+- [x] `JobShiftsAnimation` uses it; its smoke tests pass unchanged
+- [x] Its `pnpm shots` crops are byte-identical to `main`'s
+- [x] `CODING_STANDARDS.md`'s shared-piece list names it

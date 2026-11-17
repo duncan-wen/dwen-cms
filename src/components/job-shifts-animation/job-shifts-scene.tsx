@@ -19,8 +19,6 @@ const SCENES: { Scene: ComponentType; seconds: number }[] = [
 const STARTS = SCENES.reduce<number[]>((starts, { seconds }, i) => [...starts, starts[i] + seconds], [0]);
 
 export const SCENE_DURATION_IN_FRAMES = Math.round(STARTS[SCENES.length] * SCENE_FPS);
-/** The summary, which is also the last frame: what Readers who ask for reduced motion see. */
-export const FINISHED_FRAME = SCENE_DURATION_IN_FRAMES - 1;
 
 /** How long a scene takes to turn in or out, in seconds. */
 const TURN_SECONDS = 0.35;
