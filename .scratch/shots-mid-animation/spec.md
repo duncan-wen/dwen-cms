@@ -1,6 +1,6 @@
 # Spec: Screenshots of an animation mid-play
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
@@ -36,3 +36,7 @@
 ## Further Notes
 
 - Agreed with the Owner on 2026-11-17 in chat.
+
+## Comments
+
+- Built in ticket 01. Animations are found by a `data-animation` attribute, added to `AnimationFigure` and the Agent animation, so the finished-frame crops now include the home page's Agent animation too. `?at=` is left out of the path's file names, so its usual shots keep their names.

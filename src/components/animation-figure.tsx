@@ -66,7 +66,7 @@ export function AnimationFigure({ scene, width, height, fps, durationInFrames, s
   }
 
   return (
-    <figure className="not-prose relative my-8 grid max-w-[500px] gap-2" data-playback={playback}>
+    <figure className="not-prose relative my-8 grid max-w-[500px] gap-2" data-animation data-playback={playback}>
       <div>
         <div ref={viewport} aria-hidden="true" style={{ aspectRatio: `${width} / ${height}` }}>
           {reducedMotion !== null && (

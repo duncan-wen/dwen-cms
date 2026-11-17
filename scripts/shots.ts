@@ -6,6 +6,8 @@
 //   pnpm shots '/posts/<slug>?open=放大圖表'          or press that button: a Lightbox is shot as the screen shows it
 //   pnpm shots '/posts/<slug>?scroll=1100'           scroll to that many px first: the window as the Reader sees it there
 //                                                   (no parts, sheets or crops; pass the plain path too for those)
+//   pnpm shots '/posts/<slug>?at=2,5'               also shoot each Animation 2 and 5 s after it starts playing,
+//                                                   cropped, in both themes at 1280px: <path>-animation-<n>-at-<s>-<theme>-1280.png
 // Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration,
 // Diagram, Demo and Animation as <path>-<illustration|diagram|demo|animation>-<n>-<theme>-<width>.png (n counts from the
 // top of the page), a page taller than 1,600px again as <path>-<theme>-1280-part-<n>.png, each a
@@ -19,6 +21,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
+import { takeAt } from "../src/shots/at-times";
 import { ShotMemory } from "../src/shots/shot-memory";
 import { SITE_LANGUAGE } from "../src/site-name";
 
@@ -31,12 +34,16 @@ const PART_OVERLAP = 80;
 /** Below this width a page's parts are joined, this many side by side, into sheets: one image to read instead of four. */
 const SHEET_BELOW_WIDTH = 640;
 const PARTS_PER_SHEET = 4;
+/** Every Animation: a Post's (`AnimationFigure`, which also carries `data-playback`) and the home page's. */
+const ANIMATION = "figure[data-animation]";
+/** Mid-play shots (`?at=`) are taken at this width only: they check motion and colour, which phones share. */
+const MID_PLAY_WIDTH = 1280;
 /** The elements cropped from each page, named by what they are. A phone copy shows in its original's place. */
 const elements = [
   { kind: "illustration", label: "插圖", selector: "span.illustration" },
   { kind: "diagram", label: "圖表", selector: "figure.mermaid-diagram" },
   { kind: "demo", label: "互動展示", selector: "figure.demo" },
-  { kind: "animation", label: "示意動畫", selector: "figure[data-playback]" },
+  { kind: "animation", label: "示意動畫", selector: ANIMATION },
 ] as const;
 
 const args = process.argv.slice(2);
@@ -84,9 +91,18 @@ const browser = await chromium.launch();
 const overflowing: string[] = [];
 const sections: string[] = [];
 for (const path of paths) {
+  // `?at=` adds mid-play shots; the path's other shots keep the names they have without it.
+  const { shotPath, atTimes } = takeAt(path);
   const figures: string[] = [];
   /** Each element's crops, keyed by kind and position, in the order the page shows them. */
   const crops = new Map<string, string[]>();
+  /** Adds a crop to its element's row on the contact sheet. */
+  const addCrop = (key: string, name: string, label: string) =>
+    crops.set(key, [
+      ...(crops.get(key) ?? []),
+      `<figure><figcaption>${label}</figcaption>` +
+        `<a href="${name}"><img class="crop" src="${name}" alt="${path} ${label}" loading="lazy"></a></figure>`,
+    ]);
   for (const theme of themes) {
     for (const width of widths) {
       // Reduced motion, so an animation shows its finished frame rather than wherever it was when the shot was taken.
@@ -97,7 +113,7 @@ for (const path of paths) {
       });
       // `?open=<label>` isn't sent: it names a fold (<summary>) to open before the shot, or,
       // when no fold has that label, the first visible button named so, such as 放大圖表.
-      const url = new URL(path, base);
+      const url = new URL(shotPath, base);
       const labels = url.searchParams.getAll("open");
       url.searchParams.delete("open");
       // `?scroll=<px>` isn't sent either: the page is scrolled to that position before the shot, for
@@ -159,7 +175,7 @@ for (const path of paths) {
       }
       // An open dialog, or a scrolled page, is shot as the window shows it, not as the whole page.
       const windowOnly = dialogOpen || scrollTo > 0;
-      const name = `${fileName(path)}-${theme}-${width}.png`;
+      const name = `${fileName(shotPath)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
       await page.screenshot({ path: file, fullPage: !windowOnly });
       const pageSame = recordShot(file);
@@ -212,12 +228,12 @@ for (const path of paths) {
           phoneParts.push(await page.screenshot({ fullPage: true, clip }));
           continue;
         }
-        const partFile = `${outDir}/${fileName(path)}-${theme}-${width}-part-${index + 1}.png`;
+        const partFile = `${outDir}/${fileName(shotPath)}-${theme}-${width}-part-${index + 1}.png`;
         await page.screenshot({ path: partFile, fullPage: true, clip });
         console.log(`    ${partFile}${mark(recordShot(partFile))}`);
       }
       for (let first = 0; first < phoneParts.length; first += PARTS_PER_SHEET) {
-        const sheetFile = `${outDir}/${fileName(path)}-${theme}-${width}-sheet-${first / PARTS_PER_SHEET + 1}.png`;
+        const sheetFile = `${outDir}/${fileName(shotPath)}-${theme}-${width}-sheet-${first / PARTS_PER_SHEET + 1}.png`;
         await writeSheet(sheetFile, phoneParts.slice(first, first + PARTS_PER_SHEET), width);
         console.log(`    ${sheetFile}${mark(recordShot(sheetFile))}`);
       }
@@ -225,17 +241,13 @@ for (const path of paths) {
         const visible = await page.locator(selector).locator("visible=true").all();
         for (const [index, element] of visible.entries()) {
           const key = `${kindLabel} ${index + 1}`;
-          const cropName = `${fileName(path)}-${kind}-${index + 1}-${theme}-${width}.png`;
+          const cropName = `${fileName(shotPath)}-${kind}-${index + 1}-${theme}-${width}.png`;
           const cropFile = `${outDir}/${cropName}`;
           await element.screenshot({ path: cropFile });
           const cropSame = recordShot(cropFile);
           console.log(`    ${cropFile}${mark(cropSame)}`);
           const cropLabel = `${key}・${themeLabel(theme)}・${widthLabel(width)}${sameTag(cropSame)}`;
-          crops.set(key, [
-            ...(crops.get(key) ?? []),
-            `<figure><figcaption>${cropLabel}</figcaption>` +
-              `<a href="${cropName}"><img class="crop" src="${cropName}" alt="${path} ${cropLabel}" loading="lazy"></a></figure>`,
-          ]);
+          addCrop(key, cropName, cropLabel);
         }
       }
       const label = `${themeLabel(theme)}・${widthLabel(width)}`;
@@ -243,6 +255,45 @@ for (const path of paths) {
         `<figure><figcaption>${label}${flagged ? "（內容超出版面！）" : ""}${sameTag(pageSame)}</figcaption>` +
           `<a href="${name}"><img src="${name}" alt="${path} ${label}" loading="lazy"></a></figure>`,
       );
+      await page.close();
+    }
+  }
+  for (const theme of atTimes.length > 0 ? themes : []) {
+    const target = new URL(shotPath, base);
+    for (const name of ["open", "scroll"]) target.searchParams.delete(name);
+    const midPlayPage = () =>
+      browser.newPage({
+        colorScheme: theme,
+        reducedMotion: "no-preference",
+        viewport: { width: MID_PLAY_WIDTH, height: 900 },
+      });
+    const counting = await midPlayPage();
+    await counting.goto(target.href);
+    const count = await counting.locator(ANIMATION).locator("visible=true").count();
+    await counting.close();
+    // Each Animation in a page of its own, so its clock starts when it does, not when the one above it did.
+    for (let index = 0; index < count; index++) {
+      const page = await midPlayPage();
+      await page.goto(target.href);
+      // The home page's Agent animation plays on load; a Post's waits until it is scrolled to.
+      let started = Date.now();
+      const animation = page.locator(ANIMATION).locator("visible=true").nth(index);
+      await animation.scrollIntoViewIfNeeded();
+      if ((await animation.getAttribute("data-playback")) !== null) {
+        await animation.and(page.locator('[data-playback="playing"]')).waitFor({ timeout: 10_000 });
+        started = Date.now();
+      }
+      const key = `示意動畫 ${index + 1}`;
+      for (const at of atTimes) {
+        await page.waitForTimeout(Math.max(0, started + at * 1000 - Date.now()));
+        const midName = `${fileName(shotPath)}-animation-${index + 1}-at-${at}-${theme}-${MID_PLAY_WIDTH}.png`;
+        const midFile = `${outDir}/${midName}`;
+        await animation.screenshot({ path: midFile });
+        const midSame = recordShot(midFile);
+        console.log(`    ${midFile}${mark(midSame)}`);
+        const midLabel = `${key}・第 ${at} 秒・${themeLabel(theme)}${sameTag(midSame)}`;
+        addCrop(key, midName, midLabel);
+      }
       await page.close();
     }
   }
