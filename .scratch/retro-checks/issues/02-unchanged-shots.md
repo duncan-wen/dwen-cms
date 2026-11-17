@@ -4,10 +4,10 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `pnpm shots` writes `.shots-cache/last.json` (file name to sha256) at the end of each run; `.shots-cache/` is gitignored
-- [ ] A shot whose name and hash match last run is printed with `unchanged` and tagged 與上次相同 on the contact sheet
-- [ ] The comparison is unit-tested without a browser
-- [ ] Two `pnpm shots` runs in a row on the same path mark every shot `unchanged` the second time
-- [ ] `write-post` step 7 says a reshoot after a fix reads only the shots not marked `unchanged`
+- [x] `pnpm shots` writes `.shots-cache/last.json` (file name to sha256) at the end of each run; `.shots-cache/` is gitignored
+- [x] A shot whose name and hash match last run is printed with `unchanged` and tagged 與上次相同 on the contact sheet
+- [x] The comparison is unit-tested without a browser
+- [x] Two `pnpm shots` runs in a row on the same path mark every shot `unchanged` the second time
+- [x] `write-post` step 7 says a reshoot after a fix reads only the shots not marked `unchanged`
