@@ -232,6 +232,60 @@ test.describe("an Animation in a Post", () => {
   });
 });
 
+for (const { name, caption, steps } of [
+  {
+    name: "the oversell Animation",
+    caption: "示意動畫：3 家店各記一本 100 件的帳本，加起來賣出 300 件。",
+    steps: [
+      "1,000 人搶購，分流器輪流分給 3 家店。",
+      "每家店各記一本 100 件的帳本，各自扣到 0。",
+      "加起來賣出 300 件，實際只有 100 件。",
+    ],
+  },
+  {
+    name: "the central-stock Animation",
+    caption: "示意動畫：庫存交給總倉後只賣出 100 件；總倉一倒，3 家店都活著，1,000 人卻全部買不到。",
+    steps: [
+      "3 家店不記庫存，每次都先問總倉。",
+      "總倉從 100 扣到 0，剛好賣出 100 件，其餘的人收到賣完了。",
+      "總倉關掉後再來 1,000 人：3 家店都還在，但問不到庫存，1,000 人全部失敗。",
+    ],
+  },
+]) {
+  test.describe(name, () => {
+    const post = "/posts/animation-smoke-post";
+    const animation = (page: Page) => page.getByRole("figure").filter({ hasText: caption });
+
+    test("carries its caption and, for screen readers, its steps as a list", async ({ page }) => {
+      await page.goto(post);
+
+      await expect(animation(page).getByRole("listitem")).toHaveText(steps);
+    });
+
+    test("waits until scrolled to, plays once, then offers 重播", async ({ page }) => {
+      test.slow();
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      await page.setViewportSize({ width: 1280, height: 300 });
+      await page.goto(post);
+
+      await expect(animation(page)).toHaveAttribute("data-playback", "waiting");
+      await animation(page).scrollIntoViewIfNeeded();
+      await expect(animation(page)).toHaveAttribute("data-playback", "playing");
+      await expect(animation(page)).toHaveAttribute("data-playback", "finished", { timeout: 30_000 });
+      await animation(page).getByRole("button", { name: "重播" }).click();
+      await expect(animation(page)).toHaveAttribute("data-playback", "playing");
+    });
+
+    test("with reduced motion, shows its finished frame still, with no 重播", async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.goto(post);
+
+      await expect(animation(page)).toHaveAttribute("data-playback", "still");
+      await expect(animation(page).getByRole("button", { name: "重播" })).toHaveCount(0);
+    });
+  });
+}
+
 test.describe("the Backdrop", () => {
   const backdrop = (page: Page) => page.locator("svg.backdrop");
   const lines = (page: Page) =>
