@@ -36,6 +36,10 @@ Vercel's Functions Storage hit 10.09 GB of the Hobby plan's 10 GB on 2026-11-17.
 
 - Moving image generation or MDX compiling elsewhere; changing the plan.
 
+## Comments
+
+- Ticket 02: no shell wrapper. Vercel runs the ignore command before installing dependencies, on Node 26, which runs TypeScript directly, so the decision and its git call are one file, `src/deploy/ignore-build.ts`. A branch's first deployment (no `VERCEL_GIT_PREVIOUS_SHA`) always builds, since its last commit alone may hide earlier ones.
+
 ## Further Notes
 
 - Agreed with the Owner on 2026-11-17 in chat. Usage after the cleanup goes under Comments.
