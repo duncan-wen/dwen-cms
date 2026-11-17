@@ -1,21 +1,17 @@
 // Requests every page and image a deployment serves and checks each answer, so a change to what
 // its functions carry (next.config's outputFileTracingExcludes) is checked where it matters: on Vercel.
 //   pnpm preview:check <deployment URL>
-// Sends VERCEL_AUTOMATION_BYPASS_SECRET (from .env.local) past Deployment Protection. Expects 200 for
-// every page, feed, icon, cover and Post image, 404 for a Post that doesn't exist, and 400, not
+// Sends VERCEL_AUTOMATION_BYPASS_SECRET (from the environment or .env.local) past Deployment Protection. Expects 200 for
+// every page, feed, icon, cover and Body image, 404 for a Post that doesn't exist, and 400, not
 // 500, for feedback with a broken body. Prints each failure and exits non-zero on any.
-import { readFileSync } from "node:fs";
 import { postImageUrl } from "../src/post-image-url";
 import { getContent } from "../src/content/site-content";
+import { fail, loadEnv } from "./share";
 
 const base = process.argv[2]?.replace(/\/$/, "");
-if (!base?.startsWith("https://")) {
-  console.error("Usage: pnpm preview:check <deployment URL>");
-  process.exit(1);
-}
-const secret =
-  process.env.VERCEL_AUTOMATION_BYPASS_SECRET ??
-  /^VERCEL_AUTOMATION_BYPASS_SECRET=(.*)$/m.exec(readFileSync(".env.local", "utf8"))?.[1]?.replace(/^["']|["']$/g, "");
+if (!base?.startsWith("https://")) fail("Usage: pnpm preview:check <deployment URL>");
+loadEnv();
+const secret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 const headers: Record<string, string> = secret ? { "x-vercel-protection-bypass": secret } : {};
 
 const content = await getContent();
@@ -50,7 +46,4 @@ for (const { path, status, init } of expectations) {
   if (response?.status !== status) failures.push(`${response?.status ?? "no answer"} ${path} (expected ${status})`);
 }
 console.log(`${expectations.length - failures.length} of ${expectations.length} answered as expected`);
-if (failures.length > 0) {
-  console.error(failures.join("\n"));
-  process.exit(1);
-}
+if (failures.length > 0) fail(failures.join("\n"));
