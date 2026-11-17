@@ -1,0 +1,32 @@
+---
+title: Go 程式
+description: 第三個 Go 區塊有 func main 卻沒有 package main
+date: 2026-10-01
+tags: [meta]
+---
+
+完整程式：
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("hi")
+}
+```
+
+片段：
+
+```go
+ch := make(chan int)
+```
+
+缺開頭：
+
+```go
+func main() {
+	fmt.Println("hi")
+}
+```

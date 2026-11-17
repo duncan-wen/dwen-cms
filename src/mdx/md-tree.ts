@@ -33,9 +33,24 @@ export function isInlineSlideDeck({ type, name }: MdNode): boolean {
   return type === "mdxJsxTextElement" && name === "SlideDeck";
 }
 
+/** The body's fenced code blocks in one language, in document order. */
+export function codeBlocks(tree: MdNode, lang: string): MdNode[] {
+  return mdNodes(tree).filter((node) => node.type === "code" && node.lang === lang);
+}
+
 /** The body's ```mermaid blocks, in document order. */
 export function mermaidBlocks(tree: MdNode): MdNode[] {
-  return mdNodes(tree).filter((node) => node.type === "code" && node.lang === "mermaid");
+  return codeBlocks(tree, "mermaid");
+}
+
+/** Whether Go source has a `func main`: a program a Reader copies and runs, not a fragment. */
+export function hasGoMain(source: string): boolean {
+  return /^\s*func\s+main\s*\(/m.test(source);
+}
+
+/** Whether Go source is a whole program: it starts its file with `package main`. */
+export function isWholeGoProgram(source: string): boolean {
+  return /^\s*package\s+main\b/m.test(source);
 }
 
 /**

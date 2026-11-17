@@ -23,6 +23,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - in mode 4, a person in a moment comes before the first number;
    - every sentence about the Owner's own situation (who they know, who uses the thing, how far it has got) traces to the Series brief's confirmed details or to the Owner's words, and a source's "if" is still an "if" in the Post;
    - every code block followed by its output is a whole program (`package main` and its imports, not a fragment): copied from the Post as written into the scratchpad, run, and the output shown is what that run printed, with any number that varies run to run said so in the prose;
+   - `pnpm code:check <slug>` passes: it compiles each whole Go and Python program as a Reader would copy it;
    - `pnpm content:check` passes: `pnpm cover` runs it before it draws.
 4. **Draw the cover** ([COVER-STYLES.md](COVER-STYLES.md)). Done when `content/posts/<slug>/cover.jpg` is the candidate you chose, or the Post's own picture when the Post is about one, and `cover: cover.jpg` is in the frontmatter, or, when Fooocus isn't answering, the Post keeps its generated cover and the PR says so.
 5. **Add `promo` frontmatter** ([PROMO.md](PROMO.md)).
@@ -33,7 +34,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - every crop of an Illustration, Diagram and Demo (`…-illustration-<n>-…png`, `…-diagram-<n>-…png`, `…-demo-<n>-…png`), in both themes at both widths, for labels and colours;
    - the whole-page `…-dark-1280.png`, for colour.
 
-   Done when the command passes (it fails on anything cut off or scrolling sideways) and you have read every file on that list. The PR body names any you left unread.
+   Done when the command passes (it fails on anything cut off or scrolling sideways) and you have read every file on that list. On a reshoot after a fix, a file printed `unchanged` came out byte for byte as last run's, so the list is only the files without it. The PR body names any you left unread.
 8. **Write the Shares**: `content/posts/<slug>/linkedin.txt` and `threads.txt` ([SHARES.md](SHARES.md)). Done when `pnpm content:check` passes and both lead with the same hook as the title.
 9. **Commit and open the Draft.** Commit only the Post's folder (plus `content/tags.yml` when proposing a Tag, and `content/series.yml` when proposing a Series). Push and run `gh pr create --draft --base main`. The PR body, in Traditional Chinese, gives:
    - one paragraph on what the Post says and who it's for;

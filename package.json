@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
+    "code:check": "tsx scripts/code-check.ts",
     "content:check": "tsx scripts/content-check.ts",
     "test": "vitest run",
     "test:smoke": "playwright test",

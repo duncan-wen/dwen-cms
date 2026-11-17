@@ -18,10 +18,13 @@ import { linkedInHashtags } from "../linkedin";
 import { isValidThreadsTag, THREADS_TAG_MAX, threadsTopicTag } from "../threads";
 import { DEMOS_DIR, demoPagePath } from "../demo";
 import {
+  codeBlocks,
+  hasGoMain,
   isDemo,
   isInlineDemo,
   isInlineSlideDeck,
   isSlideDeck,
+  isWholeGoProgram,
   mdAttribute,
   type MdNode,
   mdNodes,
@@ -351,6 +354,7 @@ export async function loadContent(contentDir: string, { demosDir = DEMOS_DIR }: 
     if (tree) checkImagesNotLinked(tree, report);
     if (tree) checkProseDates(tree, report);
     if (tree) await checkDiagrams(tree, bodyLine, report);
+    if (tree) checkGoPrograms(tree, bodyLine, report);
     const promo = checkPromo(data.promo, title, description, report);
     const linkedInShare = await loadLinkedInShare(contentDir, slug, problems);
     const threadsShare = await loadThreadsShare(contentDir, slug, problems);
@@ -783,6 +787,17 @@ async function loadPages(contentDir: string, problems: ContentProblem[]) {
  * missing file (with `missing` as the advice) or broken YAML and returns
  * undefined.
  */
+/**
+ * An MDX file's frontmatter and body, and how many lines into the file the body starts.
+ * Throws when the frontmatter isn't valid YAML.
+ */
+export function splitFrontmatter(source: string) {
+  const { data, content: body } = matter(source, { engines: { yaml: parseYaml } });
+  // The body is the end of the file, so its first line sits this many lines in.
+  const bodyLine = source.split("\n").length - body.split("\n").length;
+  return { data, body, bodyLine };
+}
+
 async function readMdx(contentDir: string, file: string, missing: string, report: Report) {
   const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
   if (source === undefined) {
@@ -790,10 +805,7 @@ async function readMdx(contentDir: string, file: string, missing: string, report
     return undefined;
   }
   try {
-    const { data, content: body } = matter(source, { engines: { yaml: parseYaml } });
-    // The body is the end of the file, so its first line sits this many lines in.
-    const bodyLine = source.split("\n").length - body.split("\n").length;
-    return { data, body, bodyLine };
+    return splitFrontmatter(source);
   } catch (error) {
     report("frontmatter", "yaml-syntax", (error as Error).message.split("\n")[0]);
     return undefined;
@@ -1208,6 +1220,24 @@ function isText({ type, value }: MdNode): boolean {
 function isLink({ type, name }: MdNode): boolean {
   if (type === "mdxJsxTextElement" || type === "mdxJsxFlowElement") return name === "a";
   return type === "link" || type === "linkReference";
+}
+
+/**
+ * A ```go block with `func main` is a whole program a Reader copies and runs, so it starts with
+ * `package main`; a fragment (no `func main`) is left alone.
+ */
+function checkGoPrograms(tree: MdNode, bodyLine: number, report: Report) {
+  for (const [index, block] of codeBlocks(tree, "go").entries()) {
+    const source = block.value ?? "";
+    if (hasGoMain(source) && !isWholeGoProgram(source)) {
+      const which = `Go block ${index + 1} (line ${bodyLine + (block.position?.start.line ?? 1)})`;
+      report(
+        "body",
+        "go-package-main",
+        `${which} has func main but no package main; start it with package main and its imports, so a Reader can run it as written`,
+      );
+    }
+  }
 }
 
 /**
