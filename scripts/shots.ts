@@ -74,9 +74,11 @@ rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 /** Last run's shots, so each one written the same as last time is marked and needn't be read again. */
 const memory = ShotMemory.load();
-/** Whether `file`, just written, has the same bytes as last run's shot of that name. */
-const unchanged = (file: string) => memory.record(file.slice(outDir.length + 1), readFileSync(file));
+/** Records `file`, just written, and says whether it has the same bytes as last run's shot of that name. */
+const recordShot = (file: string) => memory.record(file.slice(outDir.length + 1), readFileSync(file));
+/** What follows a shot that came out as last run's: in the printed list, and in its contact-sheet caption. */
 const mark = (same: boolean) => (same ? "  unchanged" : "");
+const sameTag = (same: boolean) => (same ? "（與上次相同）" : "");
 const browser = await chromium.launch();
 const overflowing: string[] = [];
 const sections: string[] = [];
@@ -159,7 +161,7 @@ for (const path of paths) {
       const name = `${fileName(path)}-${theme}-${width}.png`;
       const file = `${outDir}/${name}`;
       await page.screenshot({ path: file, fullPage: !windowOnly });
-      const pageSame = unchanged(file);
+      const pageSame = recordShot(file);
       const scrolls = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
       if (scrolls) overflowing.push(`${path} (${theme}, ${width}px): the page scrolls horizontally`);
       // A Demo is its own page in a frame: it mustn't scroll sideways inside the frame either.
@@ -211,22 +213,23 @@ for (const path of paths) {
         }
         const partFile = `${outDir}/${fileName(path)}-${theme}-${width}-part-${index + 1}.png`;
         await page.screenshot({ path: partFile, fullPage: true, clip });
-        console.log(`    ${partFile}${mark(unchanged(partFile))}`);
+        console.log(`    ${partFile}${mark(recordShot(partFile))}`);
       }
       for (let first = 0; first < phoneParts.length; first += PARTS_PER_SHEET) {
         const sheetFile = `${outDir}/${fileName(path)}-${theme}-${width}-sheet-${first / PARTS_PER_SHEET + 1}.png`;
         await writeSheet(sheetFile, phoneParts.slice(first, first + PARTS_PER_SHEET), width);
-        console.log(`    ${sheetFile}${mark(unchanged(sheetFile))}`);
+        console.log(`    ${sheetFile}${mark(recordShot(sheetFile))}`);
       }
       for (const { kind, label: kindLabel, selector } of windowOnly ? [] : elements) {
         const visible = await page.locator(selector).locator("visible=true").all();
         for (const [index, element] of visible.entries()) {
           const key = `${kindLabel} ${index + 1}`;
           const cropName = `${fileName(path)}-${kind}-${index + 1}-${theme}-${width}.png`;
-          await element.screenshot({ path: `${outDir}/${cropName}` });
-          const cropSame = unchanged(`${outDir}/${cropName}`);
-          console.log(`    ${outDir}/${cropName}${mark(cropSame)}`);
-          const cropLabel = `${key}・${themeLabel(theme)}・${widthLabel(width)}${cropSame ? "（與上次相同）" : ""}`;
+          const cropFile = `${outDir}/${cropName}`;
+          await element.screenshot({ path: cropFile });
+          const cropSame = recordShot(cropFile);
+          console.log(`    ${cropFile}${mark(cropSame)}`);
+          const cropLabel = `${key}・${themeLabel(theme)}・${widthLabel(width)}${sameTag(cropSame)}`;
           crops.set(key, [
             ...(crops.get(key) ?? []),
             `<figure><figcaption>${cropLabel}</figcaption>` +
@@ -236,7 +239,7 @@ for (const path of paths) {
       }
       const label = `${themeLabel(theme)}・${widthLabel(width)}`;
       figures.push(
-        `<figure><figcaption>${label}${flagged ? "（內容超出版面！）" : ""}${pageSame ? "（與上次相同）" : ""}</figcaption>` +
+        `<figure><figcaption>${label}${flagged ? "（內容超出版面！）" : ""}${sameTag(pageSame)}</figcaption>` +
           `<a href="${name}"><img src="${name}" alt="${path} ${label}" loading="lazy"></a></figure>`,
       );
       await page.close();

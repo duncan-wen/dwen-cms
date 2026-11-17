@@ -27,7 +27,7 @@ describe("ShotMemory", () => {
     expect(second.record("c.png", Buffer.from("a"))).toBe(false);
   });
 
-  it("remembers only the latest run", () => {
+  it("keeps the shots a later run didn't take, and the latest bytes of those it did", () => {
     const file = memoryFile();
     const first = ShotMemory.load(file);
     first.record("a.png", Buffer.from("a"));
@@ -36,7 +36,21 @@ describe("ShotMemory", () => {
     second.record("a.png", Buffer.from("new"));
     second.save();
 
-    expect(ShotMemory.load(file).record("a.png", Buffer.from("a"))).toBe(false);
+    const third = ShotMemory.load(file);
+    expect(third.record("a.png", Buffer.from("a"))).toBe(false);
+    expect(third.record("a.png", Buffer.from("new"))).toBe(true);
+  });
+
+  it("still knows one path's shots after a run of another path", () => {
+    const file = memoryFile();
+    const first = ShotMemory.load(file);
+    first.record("posts_a-light-1280.png", Buffer.from("a"));
+    first.save();
+    const second = ShotMemory.load(file);
+    second.record("posts_b-light-1280.png", Buffer.from("b"));
+    second.save();
+
+    expect(ShotMemory.load(file).record("posts_a-light-1280.png", Buffer.from("a"))).toBe(true);
   });
 
   it("starts empty when the memory file is unreadable", () => {

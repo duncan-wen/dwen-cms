@@ -18,10 +18,13 @@ import { linkedInHashtags } from "../linkedin";
 import { isValidThreadsTag, THREADS_TAG_MAX, threadsTopicTag } from "../threads";
 import { DEMOS_DIR, demoPagePath } from "../demo";
 import {
+  codeBlocks,
+  hasGoMain,
   isDemo,
   isInlineDemo,
   isInlineSlideDeck,
   isSlideDeck,
+  isWholeGoProgram,
   mdAttribute,
   type MdNode,
   mdNodes,
@@ -784,6 +787,17 @@ async function loadPages(contentDir: string, problems: ContentProblem[]) {
  * missing file (with `missing` as the advice) or broken YAML and returns
  * undefined.
  */
+/**
+ * An MDX file's frontmatter and body, and how many lines into the file the body starts.
+ * Throws when the frontmatter isn't valid YAML.
+ */
+export function splitFrontmatter(source: string) {
+  const { data, content: body } = matter(source, { engines: { yaml: parseYaml } });
+  // The body is the end of the file, so its first line sits this many lines in.
+  const bodyLine = source.split("\n").length - body.split("\n").length;
+  return { data, body, bodyLine };
+}
+
 async function readMdx(contentDir: string, file: string, missing: string, report: Report) {
   const source = await readFile(path.join(contentDir, file), "utf8").catch(() => undefined);
   if (source === undefined) {
@@ -791,10 +805,7 @@ async function readMdx(contentDir: string, file: string, missing: string, report
     return undefined;
   }
   try {
-    const { data, content: body } = matter(source, { engines: { yaml: parseYaml } });
-    // The body is the end of the file, so its first line sits this many lines in.
-    const bodyLine = source.split("\n").length - body.split("\n").length;
-    return { data, body, bodyLine };
+    return splitFrontmatter(source);
   } catch (error) {
     report("frontmatter", "yaml-syntax", (error as Error).message.split("\n")[0]);
     return undefined;
@@ -1212,23 +1223,13 @@ function isLink({ type, name }: MdNode): boolean {
 }
 
 /**
- * Every ```mermaid block in the body must parse as Mermaid (a keyword used as
- * a node ID is named, since Mermaid's own error names only a line), be a diagram type
- * the site can draw, give a flowchart's nodes ASCII IDs, draw with the
- * site's renderer (mermaidSvg), which reads less than Mermaid does, keep a
- * flowchart's edges from tangling, and fit a phone's column as a phone draws it. Each
- * problem names the block by its position among the body's Mermaid blocks and
- * its line in the file; `bodyLine` is how many lines into the file the body starts.
- */
-/**
  * A ```go block with `func main` is a whole program a Reader copies and runs, so it starts with
  * `package main`; a fragment (no `func main`) is left alone.
  */
 function checkGoPrograms(tree: MdNode, bodyLine: number, report: Report) {
-  const blocks = mdNodes(tree).filter((node) => node.type === "code" && node.lang === "go");
-  for (const [index, block] of blocks.entries()) {
+  for (const [index, block] of codeBlocks(tree, "go").entries()) {
     const source = block.value ?? "";
-    if (/^func main\(\)/m.test(source) && !/^package main\b/m.test(source)) {
+    if (hasGoMain(source) && !isWholeGoProgram(source)) {
       const which = `Go block ${index + 1} (line ${bodyLine + (block.position?.start.line ?? 1)})`;
       report(
         "body",
@@ -1239,6 +1240,15 @@ function checkGoPrograms(tree: MdNode, bodyLine: number, report: Report) {
   }
 }
 
+/**
+ * Every ```mermaid block in the body must parse as Mermaid (a keyword used as
+ * a node ID is named, since Mermaid's own error names only a line), be a diagram type
+ * the site can draw, give a flowchart's nodes ASCII IDs, draw with the
+ * site's renderer (mermaidSvg), which reads less than Mermaid does, keep a
+ * flowchart's edges from tangling, and fit a phone's column as a phone draws it. Each
+ * problem names the block by its position among the body's Mermaid blocks and
+ * its line in the file; `bodyLine` is how many lines into the file the body starts.
+ */
 async function checkDiagrams(tree: MdNode, bodyLine: number, report: Report) {
   const blocks = mermaidBlocks(tree);
   for (const [index, block] of blocks.entries()) {

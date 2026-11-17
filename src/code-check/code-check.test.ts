@@ -2,24 +2,19 @@ import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { checkCodeBlocks } from "./code-check";
 
-const has = (command: string) => {
+const has = (command: string, versionArgs: string[]) => {
   try {
-    execFileSync(command, ["--version"], { stdio: "ignore" });
+    execFileSync(command, versionArgs, { stdio: "ignore" });
     return true;
   } catch {
-    try {
-      execFileSync(command, ["version"], { stdio: "ignore" });
-      return true;
-    } catch {
-      return false;
-    }
+    return false;
   }
 };
 
 const fence = (lang: string, source: string) => `\`\`\`${lang}\n${source}\n\`\`\`\n`;
 const goodGo = 'package main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("hi")\n}';
 
-describe.skipIf(!has("go"))("checkCodeBlocks: Go", () => {
+describe.skipIf(!has("go", ["version"]))("checkCodeBlocks: Go", () => {
   it("passes a whole program that is formatted and vets clean, naming its line", async () => {
     const results = await checkCodeBlocks(`前言\n\n${fence("go", goodGo)}`);
 
@@ -54,7 +49,7 @@ describe.skipIf(!has("go"))("checkCodeBlocks: Go", () => {
   });
 });
 
-describe.skipIf(!has("python3"))("checkCodeBlocks: Python", () => {
+describe.skipIf(!has("python3", ["--version"]))("checkCodeBlocks: Python", () => {
   it("passes valid Python and fails a syntax error", async () => {
     const body = `${fence("python", "print('hi')")}\n${fence("python", "def broken(:\n    pass")}`;
 

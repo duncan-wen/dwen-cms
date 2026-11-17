@@ -3,46 +3,44 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { createProcessor } from "@mdx-js/mdx";
+import { splitFrontmatter } from "../content/content";
+import { codeBlocks, isWholeGoProgram, type MdNode } from "../mdx/md-tree";
 
 const run = promisify(execFile);
 
-/** One code block's result: its language, the line its opening fence is on, and why it failed. */
-export type BlockResult = { lang: "go" | "python"; line: number; ok: boolean; detail: string };
+/** The languages whose blocks `code:check` compiles. */
+export type CodeLang = "go" | "python";
 
-type Block = { lang: "go" | "python"; line: number; source: string };
+/** One code block's result: its language, the file line its opening fence is on, and why it failed. */
+export type BlockResult = { lang: CodeLang; line: number; ok: boolean; detail: string };
 
 /**
- * Compiles the whole programs in a Post's MDX, as a Reader would copy them: each ```go block with
- * `package main` through `gofmt -l` and `go vet`, each ```python block through `py_compile`.
- * Go fragments and other languages are skipped. Lines count from the start of `mdx`.
+ * Compiles the whole programs in a Post's MDX file, as a Reader would copy them: each ```go block
+ * with `package main` through `go vet` and `gofmt -l`, each ```python block through `py_compile`.
+ * Go fragments and other languages are skipped. It finds blocks as the content check does.
  */
 export async function checkCodeBlocks(mdx: string): Promise<BlockResult[]> {
-  const blocks = codeBlocks(mdx).filter((block) => block.lang === "python" || /^package main\b/m.test(block.source));
+  const { body, bodyLine } = splitFrontmatter(mdx);
+  const tree = createProcessor().parse(body) as MdNode;
+  const blocks = [
+    ...codeBlocks(tree, "go")
+      .filter((node) => isWholeGoProgram(node.value ?? ""))
+      .map((node) => ({ lang: "go" as const, node })),
+    ...codeBlocks(tree, "python").map((node) => ({ lang: "python" as const, node })),
+  ].sort((a, b) => (a.node.position?.start.line ?? 0) - (b.node.position?.start.line ?? 0));
   const results: BlockResult[] = [];
-  for (const block of blocks) {
+  for (const { lang, node } of blocks) {
+    const source = `${node.value ?? ""}\n`;
     const dir = await mkdtemp(path.join(tmpdir(), "code-check-"));
     try {
-      const detail = block.lang === "go" ? await checkGo(dir, block.source) : await checkPython(dir, block.source);
-      results.push({ lang: block.lang, line: block.line, ok: detail === "", detail });
+      const detail = lang === "go" ? await checkGo(dir, source) : await checkPython(dir, source);
+      results.push({ lang, line: bodyLine + (node.position?.start.line ?? 1), ok: detail === "", detail });
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
   }
   return results;
-}
-
-function codeBlocks(mdx: string): Block[] {
-  const lines = mdx.split("\n");
-  const blocks: Block[] = [];
-  for (let i = 0; i < lines.length; i++) {
-    const lang = /^```(go|python)\s*$/.exec(lines[i] ?? "")?.[1] as Block["lang"] | undefined;
-    if (lang === undefined) continue;
-    const end = lines.findIndex((line, j) => j > i && /^```\s*$/.test(line));
-    if (end === -1) break;
-    blocks.push({ lang, line: i + 1, source: lines.slice(i + 1, end).join("\n") + "\n" });
-    i = end;
-  }
-  return blocks;
 }
 
 let goVersion: Promise<string> | undefined;

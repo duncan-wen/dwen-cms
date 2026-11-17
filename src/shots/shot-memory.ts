@@ -6,7 +6,7 @@ import path from "node:path";
 export const SHOT_MEMORY_FILE = ".shots-cache/last.json";
 
 /**
- * Each shot's sha256 from the last `pnpm shots` run, by file name, so a reshoot can say which
+ * Each shot's sha256 from the last `pnpm shots` run that took it, by file name, so a reshoot can say which
  * shots came out byte for byte the same and need no second read.
  */
 export class ShotMemory {
@@ -36,9 +36,9 @@ export class ShotMemory {
     return this.previous[name] === hash;
   }
 
-  /** Replaces the memory file with this run's hashes. */
+  /** Writes this run's hashes over last run's, keeping those of shots this run didn't take (another path's). */
   save(): void {
     mkdirSync(path.dirname(this.file), { recursive: true });
-    writeFileSync(this.file, `${JSON.stringify(this.current, null, 2)}\n`);
+    writeFileSync(this.file, `${JSON.stringify({ ...this.previous, ...this.current }, null, 2)}\n`);
   }
 }
