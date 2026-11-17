@@ -12,3 +12,4 @@ build.log
 .claude/worktrees/
 /promo/
 /covers/
+/.shots-cache/
