@@ -7,7 +7,7 @@
 //   pnpm shots '/posts/<slug>?scroll=1100'           scroll to that many px first: the window as the Reader sees it there
 //                                                   (no parts, sheets or crops; pass the plain path too for those)
 // Writes test-results/shots/<path>-<theme>-<width>.png, a crop of each visible Illustration,
-// Diagram and Demo as <path>-<illustration|diagram|demo>-<n>-<theme>-<width>.png (n counts from the
+// Diagram, Demo and Animation as <path>-<illustration|diagram|demo|animation>-<n>-<theme>-<width>.png (n counts from the
 // top of the page), a page taller than 1,600px again as <path>-<theme>-1280-part-<n>.png, each a
 // screen-sized piece an agent can read (the whole-page shot of a long Post shrinks past reading), and its
 // phone parts four to an image as <path>-<theme>-375-sheet-<n>.png,
@@ -36,6 +36,7 @@ const elements = [
   { kind: "illustration", label: "插圖", selector: "span.illustration" },
   { kind: "diagram", label: "圖表", selector: "figure.mermaid-diagram" },
   { kind: "demo", label: "互動展示", selector: "figure.demo" },
+  { kind: "animation", label: "示意動畫", selector: "figure[data-playback]" },
 ] as const;
 
 const args = process.argv.slice(2);

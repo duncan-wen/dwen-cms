@@ -1,6 +1,6 @@
 # Spec: Oversell and central-stock Animations
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
@@ -55,3 +55,7 @@ Both Mermaid diagrams stay: the diagram shows the layout, the Animation how it u
 ## Further Notes
 
 - Agreed with the Owner on 2026-11-17 in chat.
+
+## Comments
+
+- Built in PR #139. Three changes from the wording above, kept with the Owner's OK on 2026-11-17: the central stock sits to the right of the shops, not below them, so requests flow left to right; act 2's heading reads 「總倉關掉，再來 1,000 人」; and act 2 fades 「已賣出」 out for 「失敗」, since it is a new crowd. `pnpm shots` also crops each Animation.
