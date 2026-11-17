@@ -4,8 +4,8 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The decision (changed paths in, build or skip out) is unit-tested: docs-only skips; any other path, or no list, builds
-- [ ] `vercel.json` runs `scripts/vercel-ignore-build.sh` as `ignoreCommand`
-- [ ] `docs/agents/shipping.md` says a docs-only PR's Vercel check is skipped and `check` is the one to wait for
+- [x] The decision (changed paths in, build or skip out) is unit-tested: docs-only skips; any other path, or no list, builds
+- [x] `vercel.json` runs `node src/deploy/ignore-build.ts` as `ignoreCommand`
+- [x] `docs/agents/shipping.md` says a docs-only PR's Vercel check is skipped and `check` is the one to wait for
