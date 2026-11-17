@@ -33,6 +33,7 @@ Changing a Published Post (Correction, Revision, new Slug, Takedown) follows [CH
    - every `…-light-1280-part-<n>.png` and every `…-light-375-sheet-<n>.png` (a phone's parts, four side by side), for the text and layout; a page under 1,600px has neither, so read its two whole-page light shots;
    - every crop of an Illustration, Diagram and Demo (`…-illustration-<n>-…png`, `…-diagram-<n>-…png`, `…-demo-<n>-…png`), in both themes at both widths, for labels and colours;
    - the whole-page `…-dark-1280.png`, for colour.
+   - when the Post places an Animation whose code changed in this PR, its mid-play crops from `?at=` (`docs/agents/shipping.md` **Screenshots**).
 
    Done when the command passes (it fails on anything cut off or scrolling sideways) and you have read every file on that list. On a reshoot after a fix, a file printed `unchanged` came out byte for byte as last run's, so the list is only the files without it. The PR body names any you left unread.
 8. **Write the Shares**: `content/posts/<slug>/linkedin.txt` and `threads.txt` ([SHARES.md](SHARES.md)). Done when `pnpm content:check` passes and both lead with the same hook as the title.

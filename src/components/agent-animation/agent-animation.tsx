@@ -20,7 +20,7 @@ import {
 export function AgentAnimation() {
   const reducedMotion = useReducedMotion();
   return (
-    <figure className="grid gap-2">
+    <figure className="grid gap-2" data-animation="agent">
       <div aria-hidden="true" style={{ aspectRatio: `${SCENE_WIDTH} / ${SCENE_HEIGHT}` }}>
         {reducedMotion !== null && (
           <Player
