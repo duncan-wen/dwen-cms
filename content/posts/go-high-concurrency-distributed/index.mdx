@@ -41,20 +41,45 @@ func main() {
 沒有執行緒池、沒有非同步框架，就這幾行。接著寫一支壓測程式，一口氣開 n 個 goroutine，每個送一個請求，數一數成功幾個、總共花多久：
 
 ```go
-for i := range n {
-	wg.Go(func() {
-		url := fmt.Sprintf("http://127.0.0.%d:8080/", i%4+1)
-		resp, err := client.Get(url)
-		if err != nil {
-			return
-		}
-		io.Copy(io.Discard, resp.Body)
-		resp.Body.Close()
-		ok.Add(1)
-	})
+package main
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strconv"
+	"sync"
+	"sync/atomic"
+	"time"
+)
+
+func main() {
+	n, _ := strconv.Atoi(os.Args[1]) // 同時送出幾個請求
+	client := &http.Client{Transport: &http.Transport{MaxIdleConnsPerHost: n}}
+
+	var ok atomic.Int64
+	var wg sync.WaitGroup
+	start := time.Now()
+	for i := range n {
+		wg.Go(func() {
+			url := fmt.Sprintf("http://127.0.0.%d:8080/", i%4+1)
+			resp, err := client.Get(url)
+			if err != nil {
+				return
+			}
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
+			ok.Add(1)
+		})
+	}
+	wg.Wait()
+	fmt.Printf("%d 個請求，成功 %d 個，花了 %.2f 秒\n",
+		n, ok.Load(), time.Since(start).Seconds())
 }
-wg.Wait()
 ```
+
+依序傳入 1、100、1000、10000 執行：
 
 ```text
 1 個請求，成功 1 個，花了 0.10 秒
@@ -63,7 +88,7 @@ wg.Wait()
 10000 個請求，成功 10000 個，花了 0.76 秒
 ```
 
-1 萬個請求，每個都要等 0.1 秒，一個一個排隊要 1,000 秒；同時處理，0.76 秒就全部做完。
+1 萬個請求，每個都要等 0.1 秒，一個一個排隊要 1,000 秒；同時處理，0.76 秒就全部做完。秒數每次跑會差一點，我後來用同一份程式再跑一次是 0.93 秒，還是不到 1 秒。
 
 秘密在 Go 的 `net/http` 裡：**每一條連線進來，它就開一個 goroutine 去處理**。上一篇量過，一個 goroutine 只佔幾 KB，等待的時候也不佔執行緒，所以 1 萬個請求同時在等「資料庫」，對它來說就是 1 萬個 goroutine 停在一旁，CPU 根本沒在忙。這就是高併發最核心的一件事：大部分的請求，時間都花在等，誰能便宜地「讓很多人一起等」，誰就接得住人潮。
 
@@ -110,7 +135,48 @@ func main() {
 
 1 萬個請求會變成 1 萬個 goroutine 同時跑這段程式，所以「檢查還有沒有、扣一件」這兩步要用 `sync.Mutex` 包起來，一次只讓一個 goroutine 進去，不然就是上一篇那種 data race。
 
-再寫一支搶購程式：1,000 個 goroutine 同時送 `/buy`，數一數幾個人買到。連跑 3 次：
+再寫一支搶購程式：1,000 個 goroutine 同時送 `/buy`，依照回應數一數幾個人買到、幾個人被告知賣完、幾個人連線失敗：
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"os"
+	"sync"
+	"sync/atomic"
+)
+
+func main() {
+	target := os.Args[1] // 要打的網址
+	var bought, soldOut, failed atomic.Int64
+	var wg sync.WaitGroup
+	for range 1000 { // 1,000 個人同時搶 100 件
+		wg.Go(func() {
+			resp, err := http.Post(target+"/buy", "", nil)
+			if err != nil {
+				failed.Add(1)
+				return
+			}
+			resp.Body.Close()
+			switch resp.StatusCode {
+			case http.StatusOK:
+				bought.Add(1)
+			case http.StatusConflict:
+				soldOut.Add(1)
+			default:
+				failed.Add(1)
+			}
+		})
+	}
+	wg.Wait()
+	fmt.Printf("買到 %d 人，賣完 %d 人，失敗 %d 人\n",
+		bought.Load(), soldOut.Load(), failed.Load())
+}
+```
+
+先開店（`./shop -port 9001`），再搶（`./buy http://localhost:9001`），連跑 3 次：
 
 ```text
 買到 100 人，賣完 900 人，失敗 0 人
@@ -186,6 +252,14 @@ flowchart TD
 修法也就清楚了：讓庫存只有一個主人，3 家分店賣東西前，都先打電話問總倉。總倉也是一個小小的 Go 程式，裡面的邏輯跟原本的店幾乎一模一樣，差別只在全世界只有它記庫存：
 
 ```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"sync"
+)
+
 func main() {
 	stock := 100 // 全世界只有這裡記庫存
 	var mu sync.Mutex
@@ -204,18 +278,31 @@ func main() {
 }
 ```
 
-店這邊不再自己記庫存，收到 `/buy` 就轉頭去問總倉，把總倉的答案照實回給客人：
+店這邊拿掉自己的庫存和鎖，收到 `/buy` 就轉頭去問總倉，把總倉的答案照實回給客人：
 
 ```go
-http.HandleFunc("/buy", func(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Post("http://localhost:9100/take", "", nil)
-	if err != nil {
-		http.Error(w, "庫存服務連不上", http.StatusServiceUnavailable)
-		return
-	}
-	defer resp.Body.Close()
-	w.WriteHeader(resp.StatusCode)
-})
+package main
+
+import (
+	"flag"
+	"net/http"
+)
+
+func main() {
+	port := flag.String("port", "9001", "這家店開在哪個 port")
+	flag.Parse()
+
+	http.HandleFunc("/buy", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := http.Post("http://localhost:9100/take", "", nil)
+		if err != nil {
+			http.Error(w, "庫存服務連不上", http.StatusServiceUnavailable)
+			return
+		}
+		defer resp.Body.Close()
+		w.WriteHeader(resp.StatusCode)
+	})
+	http.ListenAndServe(":"+*port, nil)
+}
 ```
 
 ```mermaid
