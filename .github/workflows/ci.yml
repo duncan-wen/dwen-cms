@@ -7,6 +7,12 @@ on:
   push:
     branches: [main]
 
+# A new run on a PR (a push, or an edit) cancels its run still in progress; runs on main each
+# finish. `check` always runs in full: main requires it, and a skipped job counts as passed.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   base-is-main:
     if: github.event_name == 'pull_request'
