@@ -2,7 +2,6 @@
 export const AGENT_PARTS_LABELS = {
   question: "問：訂單 A 為什麼還沒出貨？",
   brain: "大腦",
-  thinking: "決定下一步",
   order: { tool: "查訂單", system: "公司 ERP", result: "卡在倉庫" },
   shipping: { tool: "查物流", system: "物流系統", result: "缺貨，週五補" },
   answer: "答：缺貨，預計週五出貨",

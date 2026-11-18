@@ -47,3 +47,7 @@ One Animation (「示意動畫」), `<AgentPartsAnimation />`, built like `<Over
 ## Further Notes
 
 - Storyboard agreed with the Owner on 2026-11-18 in chat.
+
+## Comments
+
+- Built in ticket 01. Changes from the wording above, from review: the scene runs 12 seconds; a request is a pulse of three dots, as in flow-kit's other scenes; and a dashed `accent` frame round both tools and their results carries 「自己做：只有你家有」 just under it, so the tag reads as the tools' and not the answer's, with the answer below it.
