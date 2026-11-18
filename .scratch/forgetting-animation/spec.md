@@ -46,3 +46,7 @@ One Animation (「示意動畫」), `<ForgettingAnimation />`, built like `<Over
 ## Further Notes
 
 - Storyboard agreed with the Owner on 2026-11-18 in chat (「微調後的能力條」: full fine-tuning, LoRA, prompting with RAG). The forgetting examples it stands for are from 李宏毅's 2025 lecture on post-training and forgetting, cited in the Post.
+
+## Comments
+
+- Built in ticket 01. From review: each cell draws a faint track of a full bar with a dashed tick where the ability started, rather than an outline the width of the start; the row label 「產品知識」 is drawn in `accent` like its bar, and the note 「學多忘多」 in the warning colour. `CODING_STANDARDS.md` now names flow-kit's clock and warning colour as the way any Animation gets them.

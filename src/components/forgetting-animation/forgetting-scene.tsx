@@ -1,6 +1,6 @@
 import { ACCENT, BLUE, EASE_IN_OUT, INK, RULE, SceneCanvas, SOFT } from "../job-shifts-animation/scene-kit";
 import { span, useSeconds, WARN } from "../oversell-animation/flow-kit";
-import { ABILITIES, METHODS, START } from "./forgetting";
+import { ABILITIES, METHODS } from "./forgetting";
 
 /** How long the scene runs, in seconds; it holds its finished frame for the last two. */
 export const FORGETTING_SECONDS = 13;
@@ -18,7 +18,7 @@ const FIRST_ROW_Y = 66;
 const ROW_STEP = 60;
 const NOTE_Y = 322;
 
-/** When the first column starts to move, how long each column moves, and the gap between columns. */
+/** When the first column starts to move, how long each column moves, and how often a column starts. */
 const FIRST_MOVE = 0.8;
 const MOVE_SECONDS = 2.2;
 const COLUMN_EVERY = 3.6;
@@ -26,21 +26,28 @@ const COLUMN_EVERY = 3.6;
 const FORGOTTEN = 15;
 
 const columnX = (column: number) => GRID_X + column * (COLUMN_WIDTH + COLUMN_GAP);
+const columnStart = (column: number) => FIRST_MOVE + column * COLUMN_EVERY;
 const rowY = (row: number) => FIRST_ROW_Y + row * ROW_STEP;
+/** How long a bar is drawn for an ability of `value`. */
+const barLength = (value: number) => (BAR_MAX * value) / 100;
 
 type BarProps = { x: number; y: number; start: number; value: number; target: boolean };
 
-/** One ability in one column: a faint outline of where it started, and the bar where it is now. */
+/**
+ * One ability in one column: a faint track of a full bar, the bar where the ability is now, and a
+ * dashed tick where it started.
+ */
 function Bar({ x, y, start, value, target }: BarProps) {
   const forgotten = value < start - FORGOTTEN;
   const fill = target ? ACCENT : forgotten ? WARN : BLUE;
+  const tick = x + barLength(start);
   return (
     <g>
       <rect x={x} y={y} width={BAR_MAX} height={BAR_HEIGHT} rx={4} fill="none" stroke={RULE} strokeWidth={1} />
-      <rect x={x} y={y} width={(BAR_MAX * value) / 100} height={BAR_HEIGHT} rx={4} fill={fill} />
+      <rect x={x} y={y} width={barLength(value)} height={BAR_HEIGHT} rx={4} fill={fill} />
       <line
-        x1={x + (BAR_MAX * start) / 100}
-        x2={x + (BAR_MAX * start) / 100}
+        x1={tick}
+        x2={tick}
         y1={y - 4}
         y2={y + BAR_HEIGHT + 4}
         stroke={SOFT}
@@ -61,14 +68,13 @@ export function ForgettingScene() {
   return (
     <SceneCanvas name="forgetting">
       <g opacity={span(now, 0, 0.6)}>
-        {ABILITIES.map((ability, row) => (
-          <text key={ability} x={LABEL_X} y={rowY(row) + 21} fontSize={19} fill={row === 0 ? ACCENT : INK}>
-            {ability}
+        {ABILITIES.map(({ name, target }, row) => (
+          <text key={name} x={LABEL_X} y={rowY(row) + 21} fontSize={19} fill={target ? ACCENT : INK}>
+            {name}
           </text>
         ))}
         {METHODS.map(({ name, after }, column) => {
-          const begins = FIRST_MOVE + column * COLUMN_EVERY;
-          const moved = EASE_IN_OUT(span(now, begins, begins + MOVE_SECONDS));
+          const moved = EASE_IN_OUT(span(now, columnStart(column), columnStart(column) + MOVE_SECONDS));
           const x = columnX(column);
           return (
             <g key={name}>
@@ -77,20 +83,20 @@ export function ForgettingScene() {
               </text>
               {ABILITIES.map((ability, row) => (
                 <Bar
-                  key={ability}
+                  key={ability.name}
                   x={x + (COLUMN_WIDTH - BAR_MAX) / 2}
                   y={rowY(row)}
-                  start={START[row]}
-                  value={START[row] + (after[row] - START[row]) * moved}
-                  target={row === 0}
+                  start={ability.start}
+                  value={ability.start + (after[ability.name] - ability.start) * moved}
+                  target={ability.target ?? false}
                 />
               ))}
             </g>
           );
         })}
       </g>
-      {METHODS.map(({ name, note }, column) => {
-        const settles = FIRST_MOVE + column * COLUMN_EVERY + MOVE_SECONDS;
+      {METHODS.map(({ name, note, warns }, column) => {
+        const settles = columnStart(column) + MOVE_SECONDS;
         return (
           <text
             key={name}
@@ -99,7 +105,7 @@ export function ForgettingScene() {
             textAnchor="middle"
             fontSize={19}
             fontWeight={600}
-            fill={column === 0 ? WARN : INK}
+            fill={warns ? WARN : INK}
             opacity={span(now, settles + 0.2, settles + 0.6)}
           >
             {note}
