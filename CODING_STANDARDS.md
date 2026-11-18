@@ -72,6 +72,7 @@ Judgement calls for the reviewer. Lint, Prettier (`pnpm format` fixes it), typec
   - an architecture Animation's services
   - crowd
   - counters and request dots through `src/components/oversell-animation/flow-kit.tsx` (each dot's pace through `LEG_SECONDS`)
+  - an Animation's clock and the warning colour (`useSeconds`, `span`, `WARN`) through the same `flow-kit.tsx`, in any Animation
   - every scene's frame rate through `SCENE_FPS` in `scene-kit`
   - an Animation's scenes through `src/components/job-shifts-animation/scene-kit.tsx` (people through `Person`, the turn from the old way to the new through `TwoWorlds`, the canvas through `SceneCanvas`) and their colours through the `--scene-*` tokens in `globals.css`
   - the contour lines of a cover or the Backdrop through `generateCover` (the Backdrop's strength through `BACKDROP_STRENGTH`, its colours through the `--backdrop-*` tokens)

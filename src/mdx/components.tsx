@@ -1,4 +1,5 @@
 import type { MDXComponents } from "mdx/types";
+import { ForgettingAnimation } from "@/components/forgetting-animation/forgetting-animation";
 import { CentralStockAnimation } from "@/components/oversell-animation/central-stock-animation";
 import { JobShiftsAnimation } from "@/components/job-shifts-animation/job-shifts-animation";
 import { OversellAnimation } from "@/components/oversell-animation/oversell-animation";
@@ -19,6 +20,7 @@ export const mdxComponents: MDXComponents = {
   Callout,
   CentralStockAnimation,
   Demo,
+  ForgettingAnimation,
   JobShiftsAnimation,
   Mermaid,
   OversellAnimation,
