@@ -12,3 +12,5 @@ src/content/fixtures/
 .repomap.tags.cache.v1/
 # A Demo is a self-contained page shipped as-is.
 public/demos/
+# Skills installed on one machine and kept out of git by .git/info/exclude, which Prettier doesn't read.
+.claude/skills/remotion-*/
