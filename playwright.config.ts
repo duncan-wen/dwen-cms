@@ -19,6 +19,8 @@ export default defineConfig({
   testIgnore: process.env.PROBE ? undefined : `${import.meta.dirname}/e2e/probe/**`,
   // smoke.spec.ts is one file, so without this every test runs on one worker.
   fullyParallel: true,
+  // A GitHub runner has 4 CPUs, and Playwright would use half: the tests mostly wait on the browser.
+  workers: process.env.CI ? 4 : undefined,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL: `http://localhost:${port}` },
