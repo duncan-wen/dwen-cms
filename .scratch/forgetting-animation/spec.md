@@ -1,6 +1,6 @@
 # Spec: Forgetting Animation
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Problem Statement
 
