@@ -17,6 +17,8 @@ export default defineConfig({
   // e2e/probe/ holds throwaway specs that measure a page (gitignored): PROBE=1 runs them alone, and smoke never does.
   testDir: process.env.PROBE ? "e2e/probe" : "e2e",
   testIgnore: process.env.PROBE ? undefined : `${import.meta.dirname}/e2e/probe/**`,
+  // smoke.spec.ts is one file, so without this every test runs on one worker.
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL: `http://localhost:${port}` },
