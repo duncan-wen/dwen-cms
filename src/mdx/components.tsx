@@ -1,4 +1,5 @@
 import type { MDXComponents } from "mdx/types";
+import { AgentPartsAnimation } from "@/components/agent-parts-animation/agent-parts-animation";
 import { CentralStockAnimation } from "@/components/oversell-animation/central-stock-animation";
 import { JobShiftsAnimation } from "@/components/job-shifts-animation/job-shifts-animation";
 import { OversellAnimation } from "@/components/oversell-animation/oversell-animation";
@@ -16,6 +17,7 @@ import { SlideDeck } from "./slide-deck";
  */
 export const mdxComponents: MDXComponents = {
   img: BodyImage,
+  AgentPartsAnimation,
   Callout,
   CentralStockAnimation,
   Demo,

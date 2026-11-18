@@ -251,6 +251,17 @@ for (const { name, caption, steps } of [
       "總倉關掉後再來 1,000 人：3 家店都還在，但問不到庫存，1,000 人全部失敗。",
     ],
   },
+  {
+    name: "the agent parts Animation",
+    caption: "示意動畫：AI agent 回答一個問題，大腦是買來的，連到公司系統的手腳要自己做。",
+    steps: [
+      "員工問：訂單 A 為什麼還沒出貨？",
+      "大腦決定先查訂單，從公司 ERP 查到卡在倉庫。",
+      "再查物流，從物流系統查到缺貨，週五補貨。",
+      "大腦組成答案：缺貨，預計週五出貨。",
+      "大腦是買來的，每家公司都一樣；連到公司系統的手腳要自己做，只有你家有。",
+    ],
+  },
 ]) {
   test.describe(name, () => {
     const post = "/posts/animation-smoke-post";
