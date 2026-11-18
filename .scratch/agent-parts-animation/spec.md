@@ -1,6 +1,6 @@
 # Spec: Agent parts Animation
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 ## Problem Statement
 
@@ -47,3 +47,7 @@ One Animation (「示意動畫」), `<AgentPartsAnimation />`, built like `<Over
 ## Further Notes
 
 - Storyboard agreed with the Owner on 2026-11-18 in chat.
+
+## Comments
+
+- 2026-11-18: wontfix. The Owner changed the Post's thesis to "fine-tuning can make a model forget what it could do; evaluate the model first, then decide whether to fine-tune", which this Animation doesn't explain. Built and reviewed in PR #147, closed unmerged; the Forgetting Animation (`.scratch/forgetting-animation/`) replaces it.

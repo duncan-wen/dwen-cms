@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 - [ ] Plays the storyboard: the question reaches the brain, the brain calls 查訂單 then 查物流 and each answer comes back, then 「答：缺貨，預計週五出貨」
 - [ ] Act 2: the brain greys with 「買來的：每家都一樣」, the tools turn accent with 「自己做：只有你家有」
