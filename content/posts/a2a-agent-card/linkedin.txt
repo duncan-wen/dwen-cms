@@ -1,3 +1,5 @@
+posted: https://www.linkedin.com/feed/update/urn:li:share:7530282381786894336/
+
 我讓兩個 AI agent 交換了一張名片，它們就開始分工合作了……然後在第一份報告裡，一起傳錯了話。
 
 A2A（Agent-to-Agent）是讓不同人做的 agent 互相合作的開放協定，現在是 Linux Foundation 的專案。我用官方 SDK 在自己電腦上做了兩個 agent：

@@ -1,3 +1,5 @@
+posted: https://www.threads.com/@aibbm.duncan/post/DgDEQVyk7d8
+
 我讓兩個 AI agent 交換一張名片，它們就開始分工了……然後第一份報告就傳錯話。
 
 主管讀了新聞同事的名片，自己決定把問題交出去。同事回了 3 則新聞，2 則其實是別人的版本發布，主管 3 次有 2 次說「A2A 發布了 v0.33.0」。
