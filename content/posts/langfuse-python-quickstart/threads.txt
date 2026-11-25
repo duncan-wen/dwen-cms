@@ -1,3 +1,5 @@
+posted: https://www.threads.com/@aibbm.duncan/post/DgLPB7kk0rQ
+
 問 AI 一句「東京和台北差幾小時」，它背後呼叫了 2 次模型、跑了 2 次工具、花了 0.00029 美元。
 
 這些原本都看不到。改一行 import、加兩個裝飾器、包一層 session，接上 Langfuse 就全部攤開。

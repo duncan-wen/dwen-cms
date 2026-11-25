@@ -1,3 +1,5 @@
+posted: https://www.linkedin.com/feed/update/urn:li:share:7531432069336326145/
+
 我問 AI：「東京和台北現在差幾小時？」它回了一句話。背後其實呼叫了 2 次模型、跑了 2 次查時間的工具，用了 866 個 token，花了 0.00029 美元。
 
 這些數字原本都看不到。這篇用 Python 寫一個會用工具的小 AI agent，再接上開源監控工具 Langfuse，三個步驟：
